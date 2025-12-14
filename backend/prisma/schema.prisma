@@ -1,0 +1,222 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  CONSIGNADOR
+  CLIENTE
+}
+
+enum PecaStatus {
+  PENDENTE_APROVACAO
+  APROVADA
+  VENDIDA
+  REJEITADA
+  REMOVIDA
+}
+
+enum EstadoPeca {
+  NOVO_COM_ETIQUETA
+  NOVO_SEM_ETIQUETA
+  USADO_EXCELENTE
+  USADO_BOM
+  USADO_MARCAS
+}
+
+enum VendaStatus {
+  PENDENTE
+  PAGA
+  ENVIADA
+  ENTREGUE
+  CANCELADA
+  REEMBOLSADA
+}
+
+enum MovimentacaoTipo {
+  CREDITO_VENDA
+  DEBITO_SAQUE
+  ESTORNO
+}
+
+enum SaqueStatus {
+  SOLICITADO
+  APROVADO
+  PAGO
+  REJEITADO
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String   @map("password_hash")
+  name          String
+  role          UserRole @default(CLIENTE)
+  phone         String?
+  cpf           String?  @unique
+  avatar        String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relações
+  consignador   Consignador?
+  enderecos     Endereco[]
+  vendas        Venda[]      @relation("ClienteVendas")
+
+  @@map("users")
+}
+
+model Consignador {
+  id                  String  @id @default(uuid())
+  userId              String  @unique @map("user_id")
+  comissaoPercentual  Decimal @default(30) @map("comissao_percentual") @db.Decimal(5, 2)
+  pixKey              String? @map("pix_key")
+  bancoDados          Json?   @map("banco_dados") // {banco, agencia, conta, titular}
+  saldoDisponivel     Decimal @default(0) @map("saldo_disponivel") @db.Decimal(10, 2)
+  status              String  @default("ativo") // ativo, inativo, pendente
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  // Relações
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pecas               Peca[]
+  vendas              Venda[]  @relation("ConsignadorVendas")
+  movimentacoes       MovimentacaoFinanceira[]
+  saques              Saque[]
+
+  @@map("consignadores")
+}
+
+model Peca {
+  id                      String      @id @default(uuid())
+  consignadorId           String?     @map("consignador_id") // null = peça da loja
+  titulo                  String
+  descricao               String      @db.Text
+  marca                   String
+  categoria               String      // Vestido, Calça, Blusa, etc
+  tamanho                 String
+  genero                  String      // Feminino, Masculino, Unissex
+  estado                  EstadoPeca
+  preco                   Decimal     @db.Decimal(10, 2)
+  precoOriginal           Decimal?    @map("preco_original") @db.Decimal(10, 2)
+  status                  PecaStatus  @default(PENDENTE_APROVACAO)
+  fotos                   Json        // ["url1.jpg", "url2.jpg", "url3.jpg"]
+  medidas                 Json?       // {busto: 90, cintura: 70, quadril: 95, comprimento: 120}
+  autenticidadeVerificada Boolean     @default(false) @map("autenticidade_verificada")
+  motivoRejeicao          String?     @map("motivo_rejeicao")
+  destaque                Boolean     @default(false) // Peça em destaque no marketplace
+  createdAt               DateTime    @default(now()) @map("created_at")
+  updatedAt               DateTime    @updatedAt @map("updated_at")
+
+  // Relações
+  consignador             Consignador? @relation(fields: [consignadorId], references: [id])
+  venda                   Venda?
+
+  @@index([status])
+  @@index([categoria])
+  @@index([consignadorId])
+  @@map("pecas")
+}
+
+model Endereco {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  nome        String   // Ex: "Casa", "Trabalho"
+  cep         String
+  logradouro  String
+  numero      String
+  complemento String?
+  bairro      String
+  cidade      String
+  estado      String
+  principal   Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relações
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vendas      Venda[]
+
+  @@map("enderecos")
+}
+
+model Venda {
+  id                String       @id @default(uuid())
+  pecaId            String       @unique @map("peca_id")
+  clienteId         String       @map("cliente_id")
+  consignadorId     String?      @map("consignador_id") // null se peça da loja
+  enderecoEntregaId String       @map("endereco_entrega_id")
+
+  valorTotal        Decimal      @map("valor_total") @db.Decimal(10, 2)
+  valorConsignador  Decimal      @default(0) @map("valor_consignador") @db.Decimal(10, 2)
+  valorComissao     Decimal      @default(0) @map("valor_comissao") @db.Decimal(10, 2)
+
+  status            VendaStatus  @default(PENDENTE)
+  pagamentoId       String?      @map("pagamento_id") // ID do Mercado Pago
+  pagamentoMetodo   String?      @map("pagamento_metodo") // pix, cartao, boleto
+
+  rastreioUrl       String?      @map("rastreio_url")
+  rastreioCodigo    String?      @map("rastreio_codigo")
+
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  // Relações
+  peca              Peca         @relation(fields: [pecaId], references: [id])
+  cliente           User         @relation("ClienteVendas", fields: [clienteId], references: [id])
+  consignador       Consignador? @relation("ConsignadorVendas", fields: [consignadorId], references: [id])
+  enderecoEntrega   Endereco     @relation(fields: [enderecoEntregaId], references: [id])
+  movimentacoes     MovimentacaoFinanceira[]
+
+  @@index([status])
+  @@index([clienteId])
+  @@index([consignadorId])
+  @@map("vendas")
+}
+
+model MovimentacaoFinanceira {
+  id              String            @id @default(uuid())
+  consignadorId   String            @map("consignador_id")
+  tipo            MovimentacaoTipo
+  valor           Decimal           @db.Decimal(10, 2)
+  vendaId         String?           @map("venda_id")
+  saqueId         String?           @map("saque_id")
+  descricao       String
+  createdAt       DateTime          @default(now()) @map("created_at")
+
+  // Relações
+  consignador     Consignador       @relation(fields: [consignadorId], references: [id])
+  venda           Venda?            @relation(fields: [vendaId], references: [id])
+  saque           Saque?            @relation(fields: [saqueId], references: [id])
+
+  @@index([consignadorId])
+  @@map("movimentacoes_financeiras")
+}
+
+model Saque {
+  id              String       @id @default(uuid())
+  consignadorId   String       @map("consignador_id")
+  valor           Decimal      @db.Decimal(10, 2)
+  status          SaqueStatus  @default(SOLICITADO)
+  pixKey          String       @map("pix_key")
+  comprovanteUrl  String?      @map("comprovante_url")
+  motivoRejeicao  String?      @map("motivo_rejeicao")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  paidAt          DateTime?    @map("paid_at")
+
+  // Relações
+  consignador     Consignador  @relation(fields: [consignadorId], references: [id])
+  movimentacoes   MovimentacaoFinanceira[]
+
+  @@index([consignadorId])
+  @@index([status])
+  @@map("saques")
+}

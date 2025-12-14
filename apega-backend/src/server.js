@@ -34,6 +34,9 @@ app.use(express.urlencoded({ extended: true }));
 // Servir arquivos estáticos (uploads)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Servir frontend web (build do Expo)
+app.use(express.static(path.join(__dirname, '../public')));
+
 // Rota de saúde
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -65,9 +68,14 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
+// 404 handler - Para rotas da API, retorna JSON. Para outras rotas, serve o frontend
 app.use((req, res) => {
-  res.status(404).json({ error: true, message: 'Rota não encontrada' });
+  if (req.path.startsWith('/api/')) {
+    res.status(404).json({ error: true, message: 'Rota não encontrada' });
+  } else {
+    // Serve o frontend para rotas não-API (SPA routing)
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+  }
 });
 
 app.listen(PORT, () => {
