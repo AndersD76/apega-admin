@@ -1,28 +1,13 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const { sql } = require('../config/database');
 const { authenticate, optionalAuth } = require('../middleware/auth');
+const { uploadToCloudinary } = require('../config/cloudinary');
 
 const router = express.Router();
 
-// Configuração do multer para upload de imagens
-const uploadsDir = path.join(__dirname, '../../uploads/products');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, `product-${uniqueSuffix}${ext}`);
-  }
-});
+// Configuração do multer para upload em memória (para Cloudinary)
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -202,12 +187,13 @@ router.post('/upload', authenticate, upload.single('image'), async (req, res, ne
       return res.status(400).json({ error: true, message: 'Nenhuma imagem enviada' });
     }
 
-    const imageUrl = `${process.env.API_URL}/uploads/products/${req.file.filename}`;
+    // Upload para Cloudinary
+    const result = await uploadToCloudinary(req.file.buffer, 'products');
 
     res.json({
       success: true,
-      url: imageUrl,
-      filename: req.file.filename
+      url: result.secure_url,
+      public_id: result.public_id
     });
   } catch (error) {
     next(error);
@@ -442,12 +428,15 @@ router.post('/:id/images', authenticate, upload.array('images', 10), async (req,
     `;
     const existingCount = parseInt(existingImages[0].count);
 
-    // Inserir as novas imagens
+    // Upload para Cloudinary e inserir no banco
     const uploadedImages = [];
     for (let i = 0; i < req.files.length; i++) {
       const file = req.files[i];
-      const imageUrl = `${process.env.API_URL}/uploads/products/${file.filename}`;
-      const isPrimary = existingCount === 0 && i === 0; // Primeira imagem é primária se não houver outras
+
+      // Upload para Cloudinary
+      const cloudinaryResult = await uploadToCloudinary(file.buffer, 'products');
+      const imageUrl = cloudinaryResult.secure_url;
+      const isPrimary = existingCount === 0 && i === 0;
 
       const result = await sql`
         INSERT INTO product_images (product_id, image_url, sort_order, is_primary)
