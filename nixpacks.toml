@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["nodejs_18"]
+
+[phases.install]
+cmds = ["cd apega-backend && npm install"]
+
+[start]
+cmd = "cd apega-backend && node src/server.js"
