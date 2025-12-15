@@ -19,10 +19,12 @@ import { getProducts, Product } from '../services/products';
 import { loadToken } from '../services/api';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
+import { getCardWidth, moderateScale, screenWidth, isSmallDevice, isTablet } from '../utils/responsive';
 
 const { width } = Dimensions.get('window');
-const BANNER_HEIGHT = 100;
-const ITEM_WIDTH = (width - 24) / 2;
+const BANNER_HEIGHT = moderateScale(100);
+const ITEM_WIDTH = getCardWidth(isTablet ? 4 : 2, 12, 12);
+const GRID_COLUMNS = isTablet ? 4 : 2;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 

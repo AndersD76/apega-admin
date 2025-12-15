@@ -26,12 +26,14 @@ import AddAddressScreen from '../screens/AddAddressScreen';
 import PaymentsScreen from '../screens/PaymentsScreen';
 import HelpScreen from '../screens/HelpScreen';
 import TermsScreen from '../screens/TermsScreen';
+import EditProductScreen from '../screens/EditProductScreen';
 
 export type RootStackParamList = {
   Login: undefined;
   Home: undefined;
   ItemDetail: { itemId?: string; item?: any };
-  NewItem: undefined;
+  NewItem: { productId?: string };
+  EditProduct: { productId: string };
   Subscription: undefined;
   Search: undefined;
   Profile: undefined;
@@ -91,6 +93,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Payments" component={PaymentsScreen} />
         <Stack.Screen name="Help" component={HelpScreen} />
         <Stack.Screen name="Terms" component={TermsScreen} />
+        <Stack.Screen name="EditProduct" component={EditProductScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
