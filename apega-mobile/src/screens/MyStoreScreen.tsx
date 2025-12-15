@@ -152,47 +152,45 @@ export default function MyStoreScreen({ navigation }: Props) {
   };
 
   const renderProductCard = (product: Product) => (
-    <TouchableOpacity
-      key={product.id}
-      style={styles.productCard}
-      onPress={() => navigation.navigate('EditProduct', { productId: product.id })}
-      activeOpacity={0.7}
-    >
-      {product.image_url ? (
-        <Image source={{ uri: product.image_url }} style={styles.productImage} />
-      ) : (
-        <View style={[styles.productImage, styles.productImagePlaceholder]}>
-          <Ionicons name="image" size={40} color={COLORS.textTertiary} />
-        </View>
-      )}
-
-      <View style={styles.productInfo}>
-        <Text style={styles.productTitle} numberOfLines={2}>{product.title}</Text>
-        <Text style={styles.productPrice}>{formatPrice(product.price)}</Text>
-
-        <View style={styles.statsRow}>
-          <View style={styles.stat}>
-            <Ionicons name="eye-outline" size={14} color={COLORS.textSecondary} />
-            <Text style={styles.statText}>{product.views}</Text>
+    <View key={product.id} style={styles.productCard}>
+      <TouchableOpacity
+        style={styles.productCardContent}
+        onPress={() => navigation.navigate('EditProduct', { productId: product.id })}
+        activeOpacity={0.7}
+      >
+        {product.image_url ? (
+          <Image source={{ uri: product.image_url }} style={styles.productImage} />
+        ) : (
+          <View style={[styles.productImage, styles.productImagePlaceholder]}>
+            <Ionicons name="image" size={40} color={COLORS.textTertiary} />
           </View>
-          <View style={styles.stat}>
-            <Ionicons name="heart-outline" size={14} color={COLORS.textSecondary} />
-            <Text style={styles.statText}>{product.favorites}</Text>
+        )}
+
+        <View style={styles.productInfo}>
+          <Text style={styles.productTitle} numberOfLines={2}>{product.title}</Text>
+          <Text style={styles.productPrice}>{formatPrice(product.price)}</Text>
+
+          <View style={styles.statsRow}>
+            <View style={styles.stat}>
+              <Ionicons name="eye-outline" size={14} color={COLORS.textSecondary} />
+              <Text style={styles.statText}>{product.views}</Text>
+            </View>
+            <View style={styles.stat}>
+              <Ionicons name="heart-outline" size={14} color={COLORS.textSecondary} />
+              <Text style={styles.statText}>{product.favorites}</Text>
+            </View>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.menuButton}
-        onPress={(e) => {
-          e.stopPropagation();
-          openActionMenu(product);
-        }}
-        hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+        onPress={() => openActionMenu(product)}
+        hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
       >
-        <Ionicons name="ellipsis-vertical" size={24} color={COLORS.textSecondary} />
+        <Ionicons name="ellipsis-vertical" size={24} color={COLORS.textPrimary} />
       </TouchableOpacity>
-    </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -388,11 +386,16 @@ const styles = StyleSheet.create({
   },
   productCard: {
     flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: COLORS.white,
     padding: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
     marginBottom: SPACING.sm,
     ...SHADOWS.xs,
+  },
+  productCardContent: {
+    flexDirection: 'row',
+    flex: 1,
   },
   productImage: {
     width: 80,

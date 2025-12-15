@@ -47,7 +47,8 @@
       "Bash(npx expo export:*)",
       "Bash(node fix-image-urls.js:*)",
       "Bash(node:*)",
-      "Bash(railway redeploy:*)"
+      "Bash(railway redeploy:*)",
+      "Bash(railway login:*)"
     ],
     "deny": [],
     "ask": []
