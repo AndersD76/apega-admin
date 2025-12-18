@@ -35,17 +35,12 @@ export function BrandLogo({ size = 'medium', color = 'light' }: { size?: 'small'
   const currentColor = colors[color];
 
   return (
-    <View style={brandStyles.wrapper}>
-      <View style={brandStyles.nameRow}>
-        <Text style={[brandStyles.apega, { fontSize: currentSize.main, color: currentColor.apega }]}>
-          apega
-        </Text>
-        <Text style={[brandStyles.desapega, { fontSize: currentSize.main, color: currentColor.desapega }]}>
-          desapega
-        </Text>
-      </View>
-      <Text style={[brandStyles.tagline, { fontSize: currentSize.sub, color: currentColor.tagline }]}>
-        moda circular
+    <View style={brandStyles.nameRow}>
+      <Text style={[brandStyles.apega, { fontSize: currentSize.main, color: currentColor.apega }]}>
+        apega
+      </Text>
+      <Text style={[brandStyles.desapega, { fontSize: currentSize.main, color: currentColor.desapega }]}>
+        desapega
       </Text>
     </View>
   );

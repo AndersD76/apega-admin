@@ -392,12 +392,12 @@ export default function ProfileScreen({ navigation }: Props) {
                       key={i}
                       name="star"
                       size={14}
-                      color={i < Math.floor(user.rating || 0) ? '#FFD700' : 'rgba(255,255,255,0.3)'}
+                      color={i < Math.floor(typeof user.rating === 'number' ? user.rating : parseFloat(user.rating || '0')) ? '#FFD700' : 'rgba(255,255,255,0.3)'}
                     />
                   ))}
                 </View>
                 <Text style={styles.ratingText}>
-                  {user.rating?.toFixed(1) || '0.0'} ({user.total_reviews || 0} avaliações)
+                  {typeof user.rating === 'number' ? user.rating.toFixed(1) : parseFloat(user.rating || '0').toFixed(1)} ({user.total_reviews || 0} avaliações)
                 </Text>
               </View>
             </View>
@@ -416,7 +416,7 @@ export default function ProfileScreen({ navigation }: Props) {
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{user.rating?.toFixed(1) || '0.0'}</Text>
+              <Text style={styles.statValue}>{typeof user.rating === 'number' ? user.rating.toFixed(1) : parseFloat(user.rating || '0').toFixed(1)}</Text>
               <Text style={styles.statLabel}>Nota</Text>
             </View>
           </View>

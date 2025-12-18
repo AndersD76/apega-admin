@@ -67,7 +67,7 @@ export default function BottomNavigation({ navigation, activeRoute = 'Home' }: B
           styles.navLabel,
           activeRoute === 'Search' && styles.navLabelActive
         ]}>
-          buscar
+          apegar
         </Text>
       </TouchableOpacity>
 

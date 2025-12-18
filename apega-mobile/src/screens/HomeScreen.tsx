@@ -190,10 +190,13 @@ export default function HomeScreen({ navigation }: Props) {
         onPress={() => navigation.navigate('ItemDetail', { item })}
         activeOpacity={0.95}
       >
-        <Image
-          source={{ uri: item.images[0] || 'https://via.placeholder.com/400' }}
-          style={styles.featuredImage}
-        />
+        {item.images[0] ? (
+          <Image source={{ uri: item.images[0] }} style={styles.featuredImage} />
+        ) : (
+          <View style={[styles.featuredImage, { backgroundColor: COLORS.gray[200], justifyContent: 'center', alignItems: 'center' }]}>
+            <Ionicons name="image-outline" size={48} color={COLORS.gray[400]} />
+          </View>
+        )}
         <LinearGradient
           colors={['transparent', 'rgba(0,0,0,0.7)']}
           style={styles.featuredGradient}
@@ -372,9 +375,6 @@ export default function HomeScreen({ navigation }: Props) {
               </TouchableOpacity>
             </View>
           </View>
-
-          {/* Tagline */}
-          <Text style={styles.tagline}>MODA CIRCULAR</Text>
 
           {/* Search Bar Premium */}
           <TouchableOpacity
@@ -592,13 +592,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.gray[50],
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  tagline: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.primary,
-    letterSpacing: 3,
-    marginBottom: 16,
   },
   searchBarPremium: {
     flexDirection: 'row',
