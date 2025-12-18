@@ -48,7 +48,8 @@
       "Bash(node fix-image-urls.js:*)",
       "Bash(node:*)",
       "Bash(railway redeploy:*)",
-      "Bash(railway login:*)"
+      "Bash(railway login:*)",
+      "Bash(xcopy:*)"
     ],
     "deny": [],
     "ask": []
