@@ -310,10 +310,11 @@ export default function CheckoutScreen({ route, navigation }: Props) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>seu produto</Text>
           <View style={styles.productCard}>
-            <Image
-              source={{ uri: item?.imageUrl || 'https://via.placeholder.com/80' }}
-              style={styles.productImage}
-            />
+            {item?.imageUrl ? (
+              <Image source={{ uri: item.imageUrl }} style={styles.productImage} />
+            ) : (
+              <View style={[styles.productImage, { backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }]} />
+            )}
             <View style={styles.productInfo}>
               <Text style={styles.productBrand}>{item?.brand || 'Marca'}</Text>
               <Text style={styles.productTitle} numberOfLines={2}>

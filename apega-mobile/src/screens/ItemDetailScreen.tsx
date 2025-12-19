@@ -44,7 +44,7 @@ export default function ItemDetailScreen({ route, navigation }: Props) {
 
   const images = item.images && item.images.length > 0
     ? item.images
-    : [item.imageUrl || 'https://via.placeholder.com/600'];
+    : item.imageUrl ? [item.imageUrl] : [];
 
   const discount = item.discount || (item.originalPrice
     ? Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)

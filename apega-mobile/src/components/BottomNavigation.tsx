@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, TYPOGRAPHY, SPACING, SHADOWS } from '../constants/theme';
 import { loadToken } from '../services/api';
@@ -10,11 +11,18 @@ interface BottomNavigationProps {
   activeRoute?: string;
 }
 
+const NAV_ITEMS = [
+  { key: 'Home', icon: 'grid', label: 'início' },
+  { key: 'Search', icon: 'compass', label: 'apegar' },
+  { key: 'NewItem', icon: 'add', label: 'desapegar', isCenter: true },
+  { key: 'Favorites', icon: 'heart', label: 'apegos' },
+  { key: 'Profile', icon: 'person-circle', label: 'eu' },
+];
+
 export default function BottomNavigation({ navigation, activeRoute = 'Home' }: BottomNavigationProps) {
   const insets = useSafeAreaInsets();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check auth status
   useEffect(() => {
     checkAuth();
   }, []);
@@ -24,7 +32,6 @@ export default function BottomNavigation({ navigation, activeRoute = 'Home' }: B
     setIsAuthenticated(!!token);
   };
 
-  // Navigate with auth check
   const navigateWithAuth = (route: string) => {
     if (isAuthenticated) {
       navigation.navigate(route);
@@ -33,148 +40,191 @@ export default function BottomNavigation({ navigation, activeRoute = 'Home' }: B
     }
   };
 
+  const handlePress = (key: string) => {
+    if (key === 'NewItem' || key === 'Favorites') {
+      navigateWithAuth(key);
+    } else {
+      navigation.navigate(key);
+    }
+  };
+
+  const renderNavItem = (item: typeof NAV_ITEMS[0]) => {
+    const isActive = activeRoute === item.key;
+
+    // Botão central com gradiente
+    if (item.isCenter) {
+      return (
+        <TouchableOpacity
+          key={item.key}
+          style={styles.centerButton}
+          onPress={() => handlePress(item.key)}
+          activeOpacity={0.85}
+        >
+          <LinearGradient
+            colors={['#6B9080', '#2d3b35', '#1a1a1a'] as const}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.centerButtonGradient}
+          >
+            <View style={styles.centerButtonInner}>
+              <Ionicons name="add" size={28} color={COLORS.white} />
+            </View>
+          </LinearGradient>
+          <Text style={styles.centerLabel}>{item.label}</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    // Itens normais
+    return (
+      <TouchableOpacity
+        key={item.key}
+        style={styles.navItem}
+        onPress={() => handlePress(item.key)}
+        activeOpacity={0.7}
+      >
+        {isActive ? (
+          <LinearGradient
+            colors={[COLORS.primary, '#3d5a4c'] as const}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.activeIconBg}
+          >
+            <Ionicons
+              name={item.icon as any}
+              size={20}
+              color={COLORS.white}
+            />
+          </LinearGradient>
+        ) : (
+          <View style={styles.inactiveIconBg}>
+            <Ionicons
+              name={`${item.icon}-outline` as any}
+              size={20}
+              color="#9CA3AF"
+            />
+          </View>
+        )}
+        <Text style={[
+          styles.navLabel,
+          isActive && styles.navLabelActive
+        ]}>
+          {item.label}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
   return (
-    <View style={[styles.bottomNav, { paddingBottom: insets.bottom + 8 }]}>
-      {/* 1. Home */}
-      <TouchableOpacity
-        style={styles.navItem}
-        onPress={() => navigation.navigate('Home')}
-      >
-        <Ionicons
-          name={activeRoute === 'Home' ? 'home' : 'home-outline'}
-          size={22}
-          color={activeRoute === 'Home' ? COLORS.primary : '#9CA3AF'}
-        />
-        <Text style={[
-          styles.navLabel,
-          activeRoute === 'Home' && styles.navLabelActive
-        ]}>
-          home
-        </Text>
-      </TouchableOpacity>
-
-      {/* 2. Buscar */}
-      <TouchableOpacity
-        style={styles.navItem}
-        onPress={() => navigation.navigate('Search')}
-      >
-        <Ionicons
-          name={activeRoute === 'Search' ? 'search' : 'search-outline'}
-          size={22}
-          color={activeRoute === 'Search' ? COLORS.primary : '#9CA3AF'}
-        />
-        <Text style={[
-          styles.navLabel,
-          activeRoute === 'Search' && styles.navLabelActive
-        ]}>
-          apegar
-        </Text>
-      </TouchableOpacity>
-
-      {/* 3. DESAPEGAR - Botão central destacado */}
-      <TouchableOpacity
-        style={styles.sellButton}
-        onPress={() => navigateWithAuth('NewItem')}
-      >
-        <View style={styles.sellButtonInner}>
-          <Ionicons name="pricetag" size={24} color={COLORS.white} />
-        </View>
-        <Text style={styles.sellLabel}>desapegar</Text>
-      </TouchableOpacity>
-
-      {/* 4. Meu Apegos (Favoritos) - requer auth */}
-      <TouchableOpacity
-        style={styles.navItem}
-        onPress={() => navigateWithAuth('Favorites')}
-      >
-        <Ionicons
-          name={activeRoute === 'Favorites' ? 'heart' : 'heart-outline'}
-          size={22}
-          color={activeRoute === 'Favorites' ? COLORS.primary : '#9CA3AF'}
-        />
-        <Text style={[
-          styles.navLabel,
-          activeRoute === 'Favorites' && styles.navLabelActive
-        ]}>
-          favoritos
-        </Text>
-      </TouchableOpacity>
-
-      {/* 5. Perfil */}
-      <TouchableOpacity
-        style={styles.navItem}
-        onPress={() => navigation.navigate('Profile')}
-      >
-        <Ionicons
-          name={activeRoute === 'Profile' ? 'person' : 'person-outline'}
-          size={22}
-          color={activeRoute === 'Profile' ? COLORS.primary : '#9CA3AF'}
-        />
-        <Text style={[
-          styles.navLabel,
-          activeRoute === 'Profile' && styles.navLabelActive
-        ]}>
-          perfil
-        </Text>
-      </TouchableOpacity>
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+      <View style={styles.navBar}>
+        {NAV_ITEMS.map(renderNavItem)}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  bottomNav: {
-    flexDirection: 'row',
+  container: {
     backgroundColor: COLORS.white,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopWidth: 0,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 12,
+      },
+      web: {
+        boxShadow: '0 -4px 20px rgba(0,0,0,0.08)',
+      },
+    }),
+  },
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-around',
     paddingTop: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 8,
+    paddingHorizontal: 4,
   },
   navItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 4,
+    paddingVertical: 6,
+  },
+  activeIconBg: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  inactiveIconBg: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   navLabel: {
     fontSize: 10,
-    color: '#6B7280',
+    color: '#9CA3AF',
     fontWeight: '500',
-    marginTop: 2,
+    marginTop: 4,
+    letterSpacing: 0.2,
   },
   navLabelActive: {
     color: COLORS.primary,
-    fontWeight: '600',
+    fontWeight: '700',
   },
-  sellButton: {
+  centerButton: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    marginTop: -20,
+    marginTop: -28,
   },
-  sellButtonInner: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: COLORS.primary,
+  centerButtonGradient: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-    borderWidth: 3,
-    borderColor: COLORS.white,
+    padding: 3,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#1a1a1a',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.35,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 10,
+      },
+      web: {
+        boxShadow: '0 6px 16px rgba(26,26,26,0.35)',
+      },
+    }),
   },
-  sellLabel: {
+  centerButtonInner: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 26,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.25)',
+  },
+  centerLabel: {
     fontSize: 10,
     color: COLORS.primary,
-    fontWeight: '600',
-    marginTop: 2,
+    fontWeight: '700',
+    marginTop: 6,
+    letterSpacing: 0.3,
   },
 });

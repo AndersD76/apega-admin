@@ -237,7 +237,7 @@ export default function SearchScreen({ navigation }: Props) {
       : 0;
 
     // Usar image_url ou primeira imagem do array se disponível
-    const imageUrl = item.image_url || (item.images && item.images[0]?.image_url) || 'https://via.placeholder.com/150';
+    const imageUrl = item.image_url || (item.images && item.images[0]?.image_url) || null;
 
     return (
       <TouchableOpacity
