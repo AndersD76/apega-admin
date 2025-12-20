@@ -26,13 +26,48 @@ const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
 const isDesktop = isWeb && width > 900;
 
-// Imagens do carrossel
+// Imagens do carrossel com informações detalhadas dos produtos
 const CAROUSEL_IMAGES = [
-  { uri: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=80', label: 'Vestidos' },
-  { uri: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=400&q=80', label: 'Moda' },
-  { uri: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=80', label: 'Bolsas' },
-  { uri: 'https://images.unsplash.com/photo-1515347619252-60a4bf4fff4f?w=400&q=80', label: 'Calçados' },
-  { uri: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&q=80', label: 'Blusas' },
+  {
+    uri: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=80',
+    label: 'Vestidos',
+    title: 'Vestidos Elegantes',
+    description: 'Peças únicas para todas as ocasiões',
+    highlight: 'Até 70% OFF',
+    pieces: '+150 peças'
+  },
+  {
+    uri: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=400&q=80',
+    label: 'Moda',
+    title: 'Tendências 2024',
+    description: 'As melhores marcas do mercado',
+    highlight: 'Novidades',
+    pieces: '+300 peças'
+  },
+  {
+    uri: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=80',
+    label: 'Bolsas',
+    title: 'Bolsas de Grife',
+    description: 'Louis Vuitton, Gucci, Prada e mais',
+    highlight: 'Premium',
+    pieces: '+80 peças'
+  },
+  {
+    uri: 'https://images.unsplash.com/photo-1515347619252-60a4bf4fff4f?w=400&q=80',
+    label: 'Calçados',
+    title: 'Sapatos & Tênis',
+    description: 'Do casual ao sofisticado',
+    highlight: 'Exclusivo',
+    pieces: '+200 peças'
+  },
+  {
+    uri: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&q=80',
+    label: 'Blusas',
+    title: 'Blusas & Tops',
+    description: 'Peças para compor seu look perfeito',
+    highlight: 'Imperdível',
+    pieces: '+250 peças'
+  },
 ];
 
 // Logos das marcas (servirão como filtros) - usando logos PNG de alta qualidade
@@ -85,25 +120,54 @@ export default function HomeScreen({ navigation }: Props) {
   // Carousel state
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const infoSlideAnim = useRef(new Animated.Value(0)).current;
+  const infoOpacityAnim = useRef(new Animated.Value(1)).current;
 
-  // Auto-rotate carousel
+  // Auto-rotate carousel com transição mais suave
   useEffect(() => {
     const interval = setInterval(() => {
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start(() => {
-        setCurrentImageIndex((prev) => (prev + 1) % CAROUSEL_IMAGES.length);
+      // Fade out animação paralela (imagem + info)
+      Animated.parallel([
         Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
+          toValue: 0,
+          duration: 600,
           useNativeDriver: true,
-        }).start();
+        }),
+        Animated.timing(infoOpacityAnim, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(infoSlideAnim, {
+          toValue: -30,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % CAROUSEL_IMAGES.length);
+        infoSlideAnim.setValue(30);
+        // Fade in animação paralela
+        Animated.parallel([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(infoOpacityAnim, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+          Animated.timing(infoSlideAnim, {
+            toValue: 0,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ]).start();
       });
-    }, 3000);
+    }, 6000);
     return () => clearInterval(interval);
-  }, [fadeAnim]);
+  }, [fadeAnim, infoSlideAnim, infoOpacityAnim]);
 
   const handleSellPress = async () => {
     const token = await loadToken();
@@ -249,10 +313,44 @@ export default function HomeScreen({ navigation }: Props) {
                 <Text style={styles.carouselLabelText}>{CAROUSEL_IMAGES[currentImageIndex].label}</Text>
               </View>
             </Animated.View>
-            <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=80' }}
-              style={styles.heroImageSecondary}
-            />
+
+            {/* Painel de informações animado ao lado direito */}
+            <Animated.View
+              style={[
+                styles.carouselInfoPanel,
+                {
+                  opacity: infoOpacityAnim,
+                  transform: [{ translateY: infoSlideAnim }],
+                },
+              ]}
+            >
+              <View style={styles.carouselInfoHighlight}>
+                <Ionicons name="flash" size={12} color="#fff" />
+                <Text style={styles.carouselInfoHighlightText}>
+                  {CAROUSEL_IMAGES[currentImageIndex].highlight}
+                </Text>
+              </View>
+              <Text style={styles.carouselInfoTitle}>
+                {CAROUSEL_IMAGES[currentImageIndex].title}
+              </Text>
+              <Text style={styles.carouselInfoDescription}>
+                {CAROUSEL_IMAGES[currentImageIndex].description}
+              </Text>
+              <View style={styles.carouselInfoStats}>
+                <Ionicons name="layers-outline" size={16} color={COLORS.primary} />
+                <Text style={styles.carouselInfoPieces}>
+                  {CAROUSEL_IMAGES[currentImageIndex].pieces}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.carouselInfoButton}
+                onPress={() => navigation.navigate('Search')}
+              >
+                <Text style={styles.carouselInfoButtonText}>Ver coleção</Text>
+                <Ionicons name="arrow-forward" size={14} color={COLORS.primary} />
+              </TouchableOpacity>
+            </Animated.View>
+
             {/* Dots do carrossel */}
             <View style={styles.carouselDots}>
               {CAROUSEL_IMAGES.map((_, index) => (
@@ -715,6 +813,83 @@ const styles = StyleSheet.create({
   dotActive: {
     backgroundColor: COLORS.primary,
     width: 20,
+  },
+
+  // Painel de informações do carrossel
+  carouselInfoPanel: {
+    position: 'absolute',
+    right: isDesktop ? -20 : 10,
+    top: isDesktop ? 40 : 10,
+    width: isDesktop ? 200 : 140,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: isDesktop ? 20 : 14,
+    ...Platform.select({
+      web: { boxShadow: '0 8px 32px rgba(0,0,0,0.12)' },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.12,
+        shadowRadius: 16,
+        elevation: 8,
+      },
+    }),
+  },
+  carouselInfoHighlight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    gap: 4,
+    marginBottom: 12,
+  },
+  carouselInfoHighlightText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#fff',
+    textTransform: 'uppercase',
+  },
+  carouselInfoTitle: {
+    fontSize: isDesktop ? 18 : 15,
+    fontWeight: '800',
+    color: COLORS.gray[800],
+    marginBottom: 6,
+    lineHeight: isDesktop ? 22 : 18,
+  },
+  carouselInfoDescription: {
+    fontSize: isDesktop ? 13 : 11,
+    color: COLORS.gray[500],
+    marginBottom: 12,
+    lineHeight: isDesktop ? 18 : 15,
+  },
+  carouselInfoStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
+  },
+  carouselInfoPieces: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  carouselInfoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: COLORS.primary,
+  },
+  carouselInfoButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.primary,
   },
 
   // Brands Section - Grande e Impactante
