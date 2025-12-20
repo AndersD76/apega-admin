@@ -70,24 +70,24 @@ const CAROUSEL_IMAGES = [
   },
 ];
 
-// Logos das marcas (servirão como filtros) - usando logos PNG de alta qualidade
+// Logos das marcas (usando logo.clearbit.com para melhor compatibilidade)
 const BRAND_LOGOS = [
-  { name: 'Zara', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Zara_Logo.svg/800px-Zara_Logo.svg.png' },
-  { name: 'Farm', logo: 'https://www.farmrio.com.br/on/demandware.static/Sites-FarmRio-BR-Site/-/default/dw1f3e0c5a/images/logo-farm.svg' },
-  { name: 'Animale', logo: 'https://www.animale.com.br/on/demandware.static/Sites-animale-Site/-/default/dwcd59cd1e/images/animale.svg' },
-  { name: 'Renner', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Renner_logo.svg/800px-Renner_logo.svg.png' },
-  { name: 'C&A', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/C%26A_logo.svg/800px-C%26A_logo.svg.png' },
-  { name: 'Forever 21', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Forever_21_logo.svg/800px-Forever_21_logo.svg.png' },
-  { name: 'H&M', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/H%26M-Logo.svg/800px-H%26M-Logo.svg.png' },
-  { name: 'Gucci', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/1960s_Gucci_Logo.svg/800px-1960s_Gucci_Logo.svg.png' },
-  { name: 'Louis Vuitton', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Louis_Vuitton_logo_and_wordmark.svg/800px-Louis_Vuitton_logo_and_wordmark.svg.png' },
-  { name: 'Prada', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Prada-Logo.svg/800px-Prada-Logo.svg.png' },
-  { name: 'Chanel', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Chanel_logo-no_words.svg/800px-Chanel_logo-no_words.svg.png' },
-  { name: 'Dior', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Dior_Logo.svg/800px-Dior_Logo.svg.png' },
-  { name: 'Michael Kors', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Michael_Kors_%28brand%29_logo.svg/800px-Michael_Kors_%28brand%29_logo.svg.png' },
-  { name: 'Tommy', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Tommy-hilfiger-logo.svg/800px-Tommy-hilfiger-logo.svg.png' },
-  { name: 'Calvin Klein', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Calvin_klein_logo.svg/800px-Calvin_klein_logo.svg.png' },
-  { name: 'Lacoste', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Logo_Lacoste.svg/800px-Logo_Lacoste.svg.png' },
+  { name: 'Zara', logo: 'https://logo.clearbit.com/zara.com' },
+  { name: 'Farm', logo: 'https://logo.clearbit.com/farmrio.com.br' },
+  { name: 'Animale', logo: 'https://logo.clearbit.com/animale.com.br' },
+  { name: 'Renner', logo: 'https://logo.clearbit.com/lojasrenner.com.br' },
+  { name: 'C&A', logo: 'https://logo.clearbit.com/cea.com.br' },
+  { name: 'Forever 21', logo: 'https://logo.clearbit.com/forever21.com' },
+  { name: 'H&M', logo: 'https://logo.clearbit.com/hm.com' },
+  { name: 'Gucci', logo: 'https://logo.clearbit.com/gucci.com' },
+  { name: 'Louis Vuitton', logo: 'https://logo.clearbit.com/louisvuitton.com' },
+  { name: 'Prada', logo: 'https://logo.clearbit.com/prada.com' },
+  { name: 'Chanel', logo: 'https://logo.clearbit.com/chanel.com' },
+  { name: 'Dior', logo: 'https://logo.clearbit.com/dior.com' },
+  { name: 'Michael Kors', logo: 'https://logo.clearbit.com/michaelkors.com' },
+  { name: 'Tommy', logo: 'https://logo.clearbit.com/tommy.com' },
+  { name: 'Calvin Klein', logo: 'https://logo.clearbit.com/calvinklein.com' },
+  { name: 'Lacoste', logo: 'https://logo.clearbit.com/lacoste.com' },
 ];
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
