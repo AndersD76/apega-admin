@@ -12,6 +12,7 @@ import {
   StatusBar,
   Platform,
   Animated,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -177,6 +178,45 @@ export default function HomeScreen({ navigation }: Props) {
   // Category counts state
   const [categoryCounts, setCategoryCounts] = useState<{ [key: string]: number }>({});
 
+  // Promo popup state - mostra na primeira visita
+  const [showPromoPopup, setShowPromoPopup] = useState(true);
+  const promoScaleAnim = useRef(new Animated.Value(0)).current;
+  const promoOpacityAnim = useRef(new Animated.Value(0)).current;
+
+  // Animar popup de promoção ao abrir
+  useEffect(() => {
+    if (showPromoPopup) {
+      Animated.parallel([
+        Animated.spring(promoScaleAnim, {
+          toValue: 1,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+        Animated.timing(promoOpacityAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [showPromoPopup, promoScaleAnim, promoOpacityAnim]);
+
+  const closePromoPopup = () => {
+    Animated.parallel([
+      Animated.timing(promoScaleAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(promoOpacityAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setShowPromoPopup(false));
+  };
+
   // Auto-rotate carousel com transição mais suave
   useEffect(() => {
     const interval = setInterval(() => {
@@ -335,6 +375,85 @@ export default function HomeScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FAF9F7" />
+
+      {/* Popup de Promoção de Lançamento */}
+      <Modal
+        visible={showPromoPopup}
+        transparent
+        animationType="none"
+        onRequestClose={closePromoPopup}
+      >
+        <View style={styles.promoOverlay}>
+          <Animated.View
+            style={[
+              styles.promoPopup,
+              {
+                opacity: promoOpacityAnim,
+                transform: [{ scale: promoScaleAnim }],
+              },
+            ]}
+          >
+            {/* Fechar */}
+            <TouchableOpacity style={styles.promoClose} onPress={closePromoPopup}>
+              <Ionicons name="close" size={24} color="#666" />
+            </TouchableOpacity>
+
+            {/* Ícone de celebração */}
+            <View style={styles.promoIconContainer}>
+              <Text style={styles.promoEmoji}>🎉</Text>
+            </View>
+
+            {/* Título */}
+            <Text style={styles.promoTitle}>LANÇAMENTO ESPECIAL!</Text>
+            <Text style={styles.promoSubtitle}>
+              Estamos começando e queremos você com a gente
+            </Text>
+
+            {/* Ofertas */}
+            <View style={styles.promoOffers}>
+              <View style={styles.promoOfferCard}>
+                <View style={styles.promoOfferBadge}>
+                  <Text style={styles.promoOfferBadgeText}>500</Text>
+                </View>
+                <Text style={styles.promoOfferTitle}>Primeiros usuários</Text>
+                <Text style={styles.promoOfferDesc}>SEM COMISSÃO nas vendas</Text>
+                <View style={styles.promoOfferHighlight}>
+                  <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+                  <Text style={styles.promoOfferHighlightText}>0% de taxa</Text>
+                </View>
+              </View>
+
+              <View style={[styles.promoOfferCard, styles.promoOfferCardPremium]}>
+                <View style={[styles.promoOfferBadge, styles.promoOfferBadgePremium]}>
+                  <Text style={styles.promoOfferBadgeText}>50</Text>
+                </View>
+                <Text style={styles.promoOfferTitle}>Primeiros cadastros</Text>
+                <Text style={styles.promoOfferDesc}>PREMIUM GRÁTIS por 1 ano</Text>
+                <View style={styles.promoOfferHighlight}>
+                  <Ionicons name="diamond" size={16} color="#FFD700" />
+                  <Text style={styles.promoOfferHighlightText}>Acesso VIP</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* CTA */}
+            <TouchableOpacity
+              style={styles.promoCTA}
+              onPress={() => {
+                closePromoPopup();
+                navigation.navigate('Login');
+              }}
+            >
+              <Text style={styles.promoCTAText}>Quero participar!</Text>
+              <Ionicons name="arrow-forward" size={18} color="#fff" />
+            </TouchableOpacity>
+
+            <Text style={styles.promoDisclaimer}>
+              *Válido enquanto durarem as vagas
+            </Text>
+          </Animated.View>
+        </View>
+      </Modal>
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
@@ -702,114 +821,165 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
         )}
 
-        {/* Premium Banner */}
+{/* Banner Premium - Rola com o conteúdo */}
         {showPremiumBanner && (
           <Animated.View
             style={[
-              styles.premiumBanner,
+              styles.premiumBannerScroll,
               {
                 opacity: premiumBannerAnim,
-                transform: [
-                  {
-                    translateY: premiumBannerAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [50, 0],
-                    }),
-                  },
-                  {
-                    scale: premiumBannerAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0.95, 1],
-                    }),
-                  },
-                ],
+                transform: [{ scale: premiumBannerAnim }],
               },
             ]}
           >
-            {/* Dismiss button */}
-            <TouchableOpacity style={styles.premiumDismiss} onPress={dismissPremiumBanner}>
+            <TouchableOpacity style={styles.premiumDismissScroll} onPress={dismissPremiumBanner}>
               <Ionicons name="close" size={18} color="#fff" />
             </TouchableOpacity>
 
-            {/* Crown icon animado */}
             <Animated.View
               style={[
-                styles.premiumCrown,
+                styles.premiumIconScroll,
                 {
-                  transform: [
-                    {
-                      scale: premiumShineAnim.interpolate({
-                        inputRange: [0, 0.5, 1],
-                        outputRange: [1, 1.15, 1],
-                      }),
-                    },
-                  ],
+                  transform: [{
+                    scale: premiumShineAnim.interpolate({
+                      inputRange: [0, 0.5, 1],
+                      outputRange: [1, 1.15, 1],
+                    }),
+                  }],
                 },
               ]}
             >
               <Ionicons name="diamond" size={28} color="#FFD700" />
             </Animated.View>
 
-            {/* Conteúdo principal */}
-            <View style={styles.premiumContent}>
-              <Text style={styles.premiumTitle}>Seja PREMIUM</Text>
-              <Text style={styles.premiumSubtitle}>
+            <View style={styles.premiumContentScroll}>
+              <Text style={styles.premiumTitleScroll}>Seja PREMIUM</Text>
+              <Text style={styles.premiumSubtitleScroll}>
                 Acesso exclusivo às melhores peças antes de todo mundo
               </Text>
 
-              {/* Fotos de produtos premium */}
-              <View style={styles.premiumProductsRow}>
-                <Image
-                  source={{ uri: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=200&q=80' }}
-                  style={styles.premiumProductImg}
-                />
-                <Image
-                  source={{ uri: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=200&q=80' }}
-                  style={styles.premiumProductImg}
-                />
-                <Image
-                  source={{ uri: 'https://images.unsplash.com/photo-1591561954557-26941169b49e?w=200&q=80' }}
-                  style={styles.premiumProductImg}
-                />
-              </View>
-
-              {/* Benefícios */}
-              <View style={styles.premiumBenefits}>
-                <View style={styles.premiumBenefit}>
+              <View style={styles.premiumBenefitsScroll}>
+                <View style={styles.premiumBenefitScroll}>
                   <Ionicons name="flash" size={14} color="#FFD700" />
-                  <Text style={styles.premiumBenefitText}>Acesso antecipado</Text>
+                  <Text style={styles.premiumBenefitTextScroll}>Acesso antecipado</Text>
                 </View>
-                <View style={styles.premiumBenefit}>
+                <View style={styles.premiumBenefitScroll}>
                   <Ionicons name="pricetag" size={14} color="#FFD700" />
-                  <Text style={styles.premiumBenefitText}>Descontos exclusivos</Text>
+                  <Text style={styles.premiumBenefitTextScroll}>Descontos exclusivos</Text>
                 </View>
               </View>
             </View>
 
-            {/* CTA Button */}
-            <TouchableOpacity style={styles.premiumCTA} onPress={() => navigation.navigate('Profile')}>
-              <Text style={styles.premiumCTAText}>Quero ser Premium</Text>
+            <TouchableOpacity style={styles.premiumCTAScroll} onPress={() => navigation.navigate('Subscription')}>
+              <Text style={styles.premiumCTATextScroll}>Quero ser Premium</Text>
               <Ionicons name="arrow-forward" size={16} color="#1a1a1a" />
             </TouchableOpacity>
           </Animated.View>
         )}
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerLogo}>apega<Text style={styles.footerLogoLight}>desapega</Text></Text>
-          <Text style={styles.footerText}>
-            Nascemos em Passo Fundo, RS.{'\n'}
-            Fundado por Amanda Maier.
-          </Text>
-          <View style={styles.footerSocial}>
-            <TouchableOpacity style={styles.socialIcon}>
-              <Ionicons name="logo-instagram" size={24} color={COLORS.gray[600]} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialIcon}>
-              <Ionicons name="logo-whatsapp" size={24} color={COLORS.gray[600]} />
-            </TouchableOpacity>
+        {/* Footer Estilo Enjoei */}
+        <View style={styles.footerEnjoei}>
+          {/* Banner Download App */}
+          <View style={styles.footerAppBanner}>
+            <View style={styles.footerAppBannerContent}>
+              <Text style={styles.footerAppBannerTitle}>BAIXE AGORA O APP</Text>
+              <Text style={styles.footerAppBannerSubtitle}>
+                Moda circular na palma da sua mão.{'\n'}Desapegue de onde estiver!
+              </Text>
+              <View style={styles.footerAppButtons}>
+                <TouchableOpacity style={styles.footerAppButton}>
+                  <Ionicons name="logo-google-playstore" size={18} color="#fff" />
+                  <Text style={styles.footerAppButtonText}>Google Play</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.footerAppButton}>
+                  <Ionicons name="logo-apple" size={18} color="#fff" />
+                  <Text style={styles.footerAppButtonText}>App Store</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <Image
+              source={{ uri: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=300&q=80' }}
+              style={styles.footerAppImage}
+            />
           </View>
-          <Text style={styles.footerMotto}>Moda circular é nosso modo de mudar o mundo 🌱</Text>
+
+          {/* Links do Footer */}
+          <View style={styles.footerLinksContainer}>
+            {/* Categorias */}
+            <View style={styles.footerLinkColumn}>
+              <Text style={styles.footerLinkTitle}>categorias</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Search')}><Text style={styles.footerLink}>moda feminina</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Search')}><Text style={styles.footerLink}>bolsas</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Search')}><Text style={styles.footerLink}>calçados</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Search')}><Text style={styles.footerLink}>acessórios</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Search')}><Text style={styles.footerLink}>ver tudo</Text></TouchableOpacity>
+            </View>
+
+            {/* Destaques */}
+            <View style={styles.footerLinkColumn}>
+              <Text style={styles.footerLinkTitle}>destaques</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Search')}><Text style={styles.footerLink}>novidades</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Search')}><Text style={styles.footerLink}>mais vendidos</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Search')}><Text style={styles.footerLink}>marcas premium</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Search')}><Text style={styles.footerLink}>promoções</Text></TouchableOpacity>
+            </View>
+
+            {/* Marcas */}
+            <View style={styles.footerLinkColumn}>
+              <Text style={styles.footerLinkTitle}>marcas populares</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Search')}><Text style={styles.footerLink}>zara</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Search')}><Text style={styles.footerLink}>farm</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Search')}><Text style={styles.footerLink}>gucci</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Search')}><Text style={styles.footerLink}>louis vuitton</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Search')}><Text style={styles.footerLink}>ver todas</Text></TouchableOpacity>
+            </View>
+
+            {/* Utilidades */}
+            <View style={styles.footerLinkColumn}>
+              <Text style={styles.footerLinkTitle}>utilidades</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Help')}><Text style={styles.footerLink}>ajuda</Text></TouchableOpacity>
+              <TouchableOpacity onPress={handleSellPress}><Text style={styles.footerLink}>como vender</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Search')}><Text style={styles.footerLink}>como comprar</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Terms')}><Text style={styles.footerLink}>termos de uso</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Terms')}><Text style={styles.footerLink}>privacidade</Text></TouchableOpacity>
+            </View>
+
+            {/* Minha Conta */}
+            <View style={styles.footerLinkColumn}>
+              <Text style={styles.footerLinkTitle}>minha conta</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Profile')}><Text style={styles.footerLink}>meu perfil</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Sales')}><Text style={styles.footerLink}>minhas vendas</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Orders')}><Text style={styles.footerLink}>minhas compras</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Favorites')}><Text style={styles.footerLink}>favoritos</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Settings')}><Text style={styles.footerLink}>configurações</Text></TouchableOpacity>
+            </View>
+
+            {/* Redes Sociais */}
+            <View style={styles.footerLinkColumn}>
+              <Text style={styles.footerLinkTitle}>siga a gente</Text>
+              <TouchableOpacity style={styles.footerSocialLink}>
+                <Ionicons name="logo-instagram" size={16} color={COLORS.primary} />
+                <Text style={styles.footerLink}>instagram</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.footerSocialLink}>
+                <Ionicons name="logo-tiktok" size={16} color={COLORS.primary} />
+                <Text style={styles.footerLink}>tiktok</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.footerSocialLink}>
+                <Ionicons name="logo-whatsapp" size={16} color={COLORS.primary} />
+                <Text style={styles.footerLink}>whatsapp</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Copyright */}
+          <View style={styles.footerCopyright}>
+            <Text style={styles.footerLogo}>apega<Text style={styles.footerLogoLight}>desapega</Text></Text>
+            <Text style={styles.footerCopyrightText}>
+              Nascemos em Passo Fundo, RS • Fundado por Amanda Maier
+            </Text>
+            <Text style={styles.footerMotto}>Moda circular é nosso modo de mudar o mundo 🌱</Text>
+          </View>
         </View>
 
         <View style={{ height: 100 }} />
@@ -1404,13 +1574,13 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   brandCard: {
-    width: isDesktop ? 160 : 100,
+    width: isDesktop ? 180 : 130,
     alignItems: 'center',
   },
   brandLogoContainer: {
-    width: isDesktop ? 120 : 85,
-    height: isDesktop ? 120 : 85,
-    borderRadius: isDesktop ? 60 : 42,
+    width: isDesktop ? 140 : 100,
+    height: isDesktop ? 140 : 100,
+    borderRadius: isDesktop ? 70 : 50,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
@@ -1432,8 +1602,8 @@ const styles = StyleSheet.create({
     }),
   },
   brandLogo: {
-    width: isDesktop ? 75 : 55,
-    height: isDesktop ? 75 : 55,
+    width: isDesktop ? 100 : 70,
+    height: isDesktop ? 100 : 70,
   },
   brandInitials: {
     fontSize: isDesktop ? 24 : 18,
@@ -1924,5 +2094,393 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.gray[600],
     textAlign: 'center',
+  },
+
+  // Premium Banner Fixo - Cookie Notice Style
+  premiumBannerFixed: {
+    position: 'absolute',
+    bottom: isWeb ? 0 : 80,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
+    paddingHorizontal: isDesktop ? 40 : 16,
+    paddingVertical: 16,
+    gap: 16,
+    zIndex: 1000,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 -4px 20px rgba(0,0,0,0.2)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+        elevation: 10,
+      },
+    }),
+  },
+  premiumDismissFixed: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  premiumIconFixed: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,215,0,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  premiumContentFixed: {
+    flex: 1,
+  },
+  premiumTitleFixed: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFD700',
+    letterSpacing: 1,
+  },
+  premiumSubtitleFixed: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)',
+    marginTop: 2,
+  },
+  premiumCTAFixed: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+  premiumCTATextFixed: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+
+  // Promo Popup Styles
+  promoOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  promoPopup: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 32,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+    position: 'relative',
+  },
+  promoClose: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  promoIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.primaryExtraLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  promoEmoji: {
+    fontSize: 40,
+  },
+  promoTitle: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: COLORS.primary,
+    textAlign: 'center',
+    marginBottom: 8,
+    letterSpacing: 1,
+  },
+  promoSubtitle: {
+    fontSize: 16,
+    color: COLORS.gray[600],
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  promoOffers: {
+    flexDirection: isDesktop ? 'row' : 'column',
+    gap: 16,
+    width: '100%',
+    marginBottom: 24,
+  },
+  promoOfferCard: {
+    flex: 1,
+    backgroundColor: '#FAF9F7',
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  promoOfferCardPremium: {
+    backgroundColor: '#FFFBEB',
+    borderColor: '#FFD700',
+  },
+  promoOfferBadge: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  promoOfferBadgePremium: {
+    backgroundColor: '#FFD700',
+  },
+  promoOfferBadgeText: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#fff',
+  },
+  promoOfferTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.gray[800],
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  promoOfferDesc: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.primary,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  promoOfferHighlight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  promoOfferHighlightText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.gray[600],
+  },
+  promoCTA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 28,
+  },
+  promoCTAText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  promoDisclaimer: {
+    fontSize: 12,
+    color: COLORS.gray[400],
+    marginTop: 16,
+  },
+
+  // Premium Banner Scroll (dentro do ScrollView)
+  premiumBannerScroll: {
+    marginHorizontal: isDesktop ? 60 : 16,
+    marginBottom: 32,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  premiumDismissScroll: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  premiumIconScroll: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,215,0,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  premiumContentScroll: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  premiumTitleScroll: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#FFD700',
+    letterSpacing: 2,
+    marginBottom: 8,
+  },
+  premiumSubtitleScroll: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 16,
+    maxWidth: 280,
+  },
+  premiumBenefitsScroll: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  premiumBenefitScroll: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  premiumBenefitTextScroll: {
+    fontSize: 12,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  premiumCTAScroll: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 28,
+    paddingVertical: 14,
+    borderRadius: 24,
+  },
+  premiumCTATextScroll: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+
+  // Footer Enjoei Style
+  footerEnjoei: {
+    backgroundColor: '#fff',
+    marginTop: 40,
+  },
+  footerAppBanner: {
+    flexDirection: isDesktop ? 'row' : 'column',
+    backgroundColor: COLORS.primary,
+    marginHorizontal: isDesktop ? 60 : 16,
+    borderRadius: 24,
+    padding: isDesktop ? 40 : 24,
+    marginBottom: 40,
+    overflow: 'hidden',
+    alignItems: 'center',
+  },
+  footerAppBannerContent: {
+    flex: 1,
+    marginRight: isDesktop ? 40 : 0,
+    marginBottom: isDesktop ? 0 : 20,
+  },
+  footerAppBannerTitle: {
+    fontSize: isDesktop ? 32 : 24,
+    fontWeight: '900',
+    color: '#fff',
+    marginBottom: 12,
+    letterSpacing: 1,
+  },
+  footerAppBannerSubtitle: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.9)',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  footerAppButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  footerAppButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  footerAppButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  footerAppImage: {
+    width: isDesktop ? 200 : 150,
+    height: isDesktop ? 200 : 150,
+    borderRadius: 20,
+  },
+  footerLinksContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: isDesktop ? 60 : 20,
+    gap: isDesktop ? 40 : 20,
+    paddingBottom: 40,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray[200],
+  },
+  footerLinkColumn: {
+    minWidth: isDesktop ? 140 : '45%',
+    marginBottom: 20,
+  },
+  footerLinkTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.gray[800],
+    marginBottom: 16,
+    fontStyle: 'italic',
+  },
+  footerLink: {
+    fontSize: 14,
+    color: COLORS.primary,
+    marginBottom: 10,
+  },
+  footerSocialLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
+  footerCopyright: {
+    alignItems: 'center',
+    paddingVertical: 32,
+    paddingHorizontal: 20,
+  },
+  footerCopyrightText: {
+    fontSize: 14,
+    color: COLORS.gray[500],
+    textAlign: 'center',
+    marginBottom: 8,
   },
 });
