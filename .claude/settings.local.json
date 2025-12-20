@@ -50,7 +50,10 @@
       "Bash(railway redeploy:*)",
       "Bash(railway login:*)",
       "Bash(xcopy:*)",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "Bash(pip install:*)",
+      "Bash(python banner_generator.py:*)",
+      "Bash(python advanced_templates.py:*)"
     ],
     "deny": [],
     "ask": []
