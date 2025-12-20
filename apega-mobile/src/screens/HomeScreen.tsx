@@ -71,6 +71,50 @@ const CAROUSEL_IMAGES = [
 ];
 
 // Logos das marcas (usando logo.clearbit.com para melhor compatibilidade)
+// Peças em destaque - Fotos de produtos para seção de scroll horizontal
+const FEATURED_PIECES = [
+  {
+    category: 'Vestidos',
+    image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=300&q=80',
+    count: '+150'
+  },
+  {
+    category: 'Bolsas',
+    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=300&q=80',
+    count: '+80'
+  },
+  {
+    category: 'Calçados',
+    image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=300&q=80',
+    count: '+200'
+  },
+  {
+    category: 'Blusas',
+    image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=300&q=80',
+    count: '+250'
+  },
+  {
+    category: 'Acessórios',
+    image: 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=300&q=80',
+    count: '+120'
+  },
+  {
+    category: 'Jaquetas',
+    image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=300&q=80',
+    count: '+90'
+  },
+  {
+    category: 'Saias',
+    image: 'https://images.unsplash.com/photo-1583496661160-fb5886a0uj1a4?w=300&q=80',
+    count: '+70'
+  },
+  {
+    category: 'Casacos',
+    image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=300&q=80',
+    count: '+60'
+  },
+];
+
 const BRAND_LOGOS = [
   { name: 'Zara', logo: 'https://logo.clearbit.com/zara.com' },
   { name: 'Farm', logo: 'https://logo.clearbit.com/farmrio.com.br' },
@@ -345,114 +389,110 @@ export default function HomeScreen({ navigation }: Props) {
             </TouchableOpacity>
           </View>
 
-          {/* Grid de produtos à direita */}
-          <View style={styles.heroProductsArea}>
-            {/* Coluna principal - imagem grande com carrossel */}
-            <View style={styles.heroMainColumn}>
-              <Animated.View style={[styles.heroMainImageWrapper, { opacity: fadeAnim }]}>
-                <Image
-                  source={{ uri: CAROUSEL_IMAGES[currentImageIndex].uri }}
-                  style={styles.heroMainImage}
-                />
-                <View style={styles.heroMainLabel}>
-                  <View style={styles.heroMainLabelBadge}>
-                    <Ionicons name="flash" size={10} color="#fff" />
-                    <Text style={styles.heroMainLabelBadgeText}>
-                      {CAROUSEL_IMAGES[currentImageIndex].highlight}
-                    </Text>
-                  </View>
-                  <Text style={styles.heroMainLabelTitle}>
-                    {CAROUSEL_IMAGES[currentImageIndex].title}
-                  </Text>
-                </View>
-              </Animated.View>
-              {/* Dots do carrossel */}
-              <View style={styles.carouselDots}>
-                {CAROUSEL_IMAGES.map((_, index) => (
-                  <View
-                    key={index}
-                    style={[styles.dot, currentImageIndex === index && styles.dotActive]}
-                  />
-                ))}
+          {/* Área do carrossel */}
+          <View style={styles.heroImageArea}>
+            <View style={styles.heroImageBg} />
+            {/* Imagem principal com carrossel */}
+            <Animated.View style={[styles.heroImageWrapper, { opacity: fadeAnim }]}>
+              <Image
+                source={{ uri: CAROUSEL_IMAGES[currentImageIndex].uri }}
+                style={styles.heroImage}
+              />
+              <View style={styles.carouselLabel}>
+                <Text style={styles.carouselLabelText}>{CAROUSEL_IMAGES[currentImageIndex].label}</Text>
               </View>
-            </View>
+            </Animated.View>
 
-            {/* Coluna secundária - grid de imagens menores */}
-            <View style={styles.heroSecondaryColumn}>
-              {/* Info card no topo */}
-              <Animated.View
-                style={[
-                  styles.heroInfoCard,
-                  {
-                    opacity: infoOpacityAnim,
-                    transform: [{ translateY: infoSlideAnim }],
-                  },
-                ]}
-              >
-                <Text style={styles.heroInfoTitle}>
-                  {CAROUSEL_IMAGES[currentImageIndex].title}
+            {/* Painel de informações animado */}
+            <Animated.View
+              style={[
+                styles.carouselInfoPanel,
+                {
+                  opacity: infoOpacityAnim,
+                  transform: [{ translateY: infoSlideAnim }],
+                },
+              ]}
+            >
+              <View style={styles.carouselInfoHighlight}>
+                <Ionicons name="flash" size={12} color="#fff" />
+                <Text style={styles.carouselInfoHighlightText}>
+                  {CAROUSEL_IMAGES[currentImageIndex].highlight}
                 </Text>
-                <Text style={styles.heroInfoDesc}>
-                  {CAROUSEL_IMAGES[currentImageIndex].description}
-                </Text>
-                <View style={styles.heroInfoStats}>
-                  <Ionicons name="layers-outline" size={14} color={COLORS.primary} />
-                  <Text style={styles.heroInfoPieces}>
-                    {CAROUSEL_IMAGES[currentImageIndex].pieces}
-                  </Text>
-                </View>
-              </Animated.View>
-
-              {/* Grid de 4 imagens de produtos */}
-              <View style={styles.heroMiniGrid}>
-                <TouchableOpacity style={styles.heroMiniCard} onPress={() => navigation.navigate('Search')}>
-                  <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=200&q=80' }}
-                    style={styles.heroMiniImage}
-                  />
-                  <View style={styles.heroMiniOverlay}>
-                    <Text style={styles.heroMiniLabel}>Bolsas</Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.heroMiniCard} onPress={() => navigation.navigate('Search')}>
-                  <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=200&q=80' }}
-                    style={styles.heroMiniImage}
-                  />
-                  <View style={styles.heroMiniOverlay}>
-                    <Text style={styles.heroMiniLabel}>Calçados</Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.heroMiniCard} onPress={() => navigation.navigate('Search')}>
-                  <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1591561954557-26941169b49e?w=200&q=80' }}
-                    style={styles.heroMiniImage}
-                  />
-                  <View style={styles.heroMiniOverlay}>
-                    <Text style={styles.heroMiniLabel}>Vestidos</Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.heroMiniCard} onPress={() => navigation.navigate('Search')}>
-                  <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=200&q=80' }}
-                    style={styles.heroMiniImage}
-                  />
-                  <View style={styles.heroMiniOverlay}>
-                    <Text style={styles.heroMiniLabel}>Acessórios</Text>
-                  </View>
-                </TouchableOpacity>
               </View>
-
-              {/* CTA button */}
+              <Text style={styles.carouselInfoTitle}>
+                {CAROUSEL_IMAGES[currentImageIndex].title}
+              </Text>
+              <Text style={styles.carouselInfoDescription}>
+                {CAROUSEL_IMAGES[currentImageIndex].description}
+              </Text>
+              <View style={styles.carouselInfoStats}>
+                <Ionicons name="layers-outline" size={16} color={COLORS.primary} />
+                <Text style={styles.carouselInfoPieces}>
+                  {CAROUSEL_IMAGES[currentImageIndex].pieces}
+                </Text>
+              </View>
               <TouchableOpacity
-                style={styles.heroSecCTA}
+                style={styles.carouselInfoButton}
                 onPress={() => navigation.navigate('Search')}
               >
-                <Text style={styles.heroSecCTAText}>Ver todas as peças</Text>
+                <Text style={styles.carouselInfoButtonText}>Ver coleção</Text>
                 <Ionicons name="arrow-forward" size={14} color={COLORS.primary} />
               </TouchableOpacity>
+            </Animated.View>
+
+            {/* Dots do carrossel */}
+            <View style={styles.carouselDots}>
+              {CAROUSEL_IMAGES.map((_, index) => (
+                <View
+                  key={index}
+                  style={[styles.dot, currentImageIndex === index && styles.dotActive]}
+                />
+              ))}
             </View>
           </View>
+        </View>
+
+        {/* Peças em Destaque - Scroll Horizontal */}
+        <View style={styles.featuredPiecesSection}>
+          <Text style={styles.featuredPiecesTitle}>PEÇAS EM DESTAQUE</Text>
+          <Text style={styles.featuredPiecesSubtitle}>
+            Explore nossas categorias mais procuradas
+          </Text>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.featuredPiecesScroll}
+          >
+            {FEATURED_PIECES.map((piece, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.featuredPieceCard}
+                onPress={() => navigation.navigate('Search')}
+              >
+                <View style={styles.featuredPieceImageWrapper}>
+                  <Image
+                    source={{ uri: piece.image }}
+                    style={styles.featuredPieceImage}
+                  />
+                  <View style={styles.featuredPieceOverlay}>
+                    <View style={styles.featuredPieceCountBadge}>
+                      <Text style={styles.featuredPieceCount}>{piece.count}</Text>
+                    </View>
+                  </View>
+                </View>
+                <Text style={styles.featuredPieceCategory}>{piece.category}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          <TouchableOpacity
+            style={styles.featuredPiecesCTA}
+            onPress={() => navigation.navigate('Search')}
+          >
+            <Text style={styles.featuredPiecesCTAText}>Ver todas as peças</Text>
+            <Ionicons name="arrow-forward" size={18} color={COLORS.primary} />
+          </TouchableOpacity>
         </View>
 
         {/* Como Funciona */}
@@ -1140,6 +1180,100 @@ const styles = StyleSheet.create({
   dotActive: {
     backgroundColor: COLORS.primary,
     width: 20,
+  },
+
+  // Featured Pieces Section - Scroll horizontal de peças
+  featuredPiecesSection: {
+    paddingVertical: 50,
+    backgroundColor: '#fff',
+  },
+  featuredPiecesTitle: {
+    fontSize: isDesktop ? 36 : 28,
+    fontWeight: '800',
+    color: COLORS.gray[800],
+    textAlign: 'center',
+    marginBottom: 8,
+    letterSpacing: 1.5,
+  },
+  featuredPiecesSubtitle: {
+    fontSize: 16,
+    color: COLORS.gray[500],
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  featuredPiecesScroll: {
+    paddingHorizontal: isDesktop ? 60 : 20,
+    gap: 16,
+  },
+  featuredPieceCard: {
+    width: isDesktop ? 180 : 140,
+    alignItems: 'center',
+  },
+  featuredPieceImageWrapper: {
+    width: isDesktop ? 160 : 130,
+    height: isDesktop ? 200 : 170,
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 12,
+    position: 'relative',
+    ...Platform.select({
+      web: { boxShadow: '0 6px 20px rgba(0,0,0,0.12)' },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.12,
+        shadowRadius: 10,
+        elevation: 6,
+      },
+    }),
+  },
+  featuredPieceImage: {
+    width: '100%',
+    height: '100%',
+  },
+  featuredPieceOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 10,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    alignItems: 'flex-start',
+  },
+  featuredPieceCountBadge: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  featuredPieceCount: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  featuredPieceCategory: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.gray[700],
+    textAlign: 'center',
+  },
+  featuredPiecesCTA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 32,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 28,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    alignSelf: 'center',
+  },
+  featuredPiecesCTAText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.primary,
   },
 
   // Painel de informações do carrossel
