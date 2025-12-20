@@ -29,14 +29,17 @@ const isDesktop = isWeb && width > 768;
 const CARD_WIDTH = isDesktop ? (width - 120) / 4 : (width - 36) / 2;
 
 const CATEGORIES = [
-  { id: 'all', name: 'Tudo', icon: 'sparkles', color: '#FF6B6B' },
-  { id: 'vestidos', name: 'Vestidos', icon: 'shirt', color: '#4ECDC4' },
-  { id: 'blusas', name: 'Blusas', icon: 'shirt-outline', color: '#45B7D1' },
-  { id: 'calcas', name: 'Calças', icon: 'body', color: '#96CEB4' },
-  { id: 'saias', name: 'Saias', icon: 'flower', color: '#FFEAA7' },
-  { id: 'calcados', name: 'Calçados', icon: 'footsteps', color: '#DDA0DD' },
-  { id: 'bolsas', name: 'Bolsas', icon: 'bag-handle', color: '#F0E68C' },
-  { id: 'acessorios', name: 'Acessórios', icon: 'diamond', color: '#FFB6C1' },
+  { id: 'all', name: 'Tudo', image: 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=200&q=80' },
+  { id: 'novidades', name: 'Novidades', image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=200&q=80' },
+  { id: 'vestidos', name: 'Vestidos', image: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=200&q=80' },
+  { id: 'blusas', name: 'Blusas', image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=200&q=80' },
+  { id: 'calcas', name: 'Calças', image: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=200&q=80' },
+  { id: 'saias', name: 'Saias', image: 'https://images.unsplash.com/photo-1577900232427-18219b9166a0?w=200&q=80' },
+  { id: 'shorts', name: 'Shorts', image: 'https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=200&q=80' },
+  { id: 'calcados', name: 'Calçados', image: 'https://images.unsplash.com/photo-1515347619252-60a4bf4fff4f?w=200&q=80' },
+  { id: 'bolsas', name: 'Bolsas', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=200&q=80' },
+  { id: 'acessorios', name: 'Acessórios', image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=200&q=80' },
+  { id: 'premium', name: 'Premium', image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=200&q=80' },
 ];
 
 const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG'];
@@ -98,13 +101,21 @@ export default function SearchScreen({ navigation }: Props) {
 
   const filteredProducts = getFilteredProducts();
 
+  const getConditionStyle = (condition: string | undefined) => {
+    const cond = condition?.toLowerCase() || '';
+    if (cond.includes('novo')) return { bg: COLORS.success, label: 'Novo' };
+    if (cond.includes('seminovo')) return { bg: COLORS.primary, label: 'Seminovo' };
+    return { bg: COLORS.warning, label: 'Usado' };
+  };
+
   const renderProductCard = (item: Product, index: number) => {
-    const imageHeight = index % 3 === 0 ? 240 : 180;
+    const imageHeight = index % 3 === 0 ? 260 : 200;
     const imageUrl = item.image_url || (item.images && item.images[0]?.image_url) || null;
     const hasDiscount = item.original_price && item.original_price > item.price;
     const discount = hasDiscount
       ? Math.round(((item.original_price! - item.price) / item.original_price!) * 100)
       : 0;
+    const conditionInfo = getConditionStyle(item.condition);
 
     return (
       <TouchableOpacity
@@ -121,7 +132,9 @@ export default function SearchScreen({ navigation }: Props) {
               colors={['#f0f0f0', '#e0e0e0']}
               style={[styles.productImage, styles.imagePlaceholder]}
             >
-              <Ionicons name="image-outline" size={32} color="#bbb" />
+              <View style={styles.placeholderIcon}>
+                <Text style={styles.placeholderText}>📷</Text>
+              </View>
             </LinearGradient>
           )}
 
@@ -136,13 +149,18 @@ export default function SearchScreen({ navigation }: Props) {
               <Text style={styles.sizeText}>{item.size}</Text>
             </View>
           )}
+
+          {/* Condition Badge */}
+          <View style={[styles.conditionBadge, { backgroundColor: conditionInfo.bg }]}>
+            <Text style={styles.conditionText}>{conditionInfo.label}</Text>
+          </View>
         </View>
 
         <View style={styles.cardInfo}>
           {item.brand && (
             <Text style={styles.brandText} numberOfLines={1}>{item.brand}</Text>
           )}
-          <Text style={styles.titleText} numberOfLines={1}>{item.title}</Text>
+          <Text style={styles.titleText} numberOfLines={2}>{item.title}</Text>
           <View style={styles.priceRow}>
             <Text style={styles.priceText}>{formatPrice(item.price)}</Text>
             {hasDiscount && (
@@ -262,8 +280,12 @@ export default function SearchScreen({ navigation }: Props) {
               ]}
               onPress={() => setSelectedCategory(cat.id)}
             >
-              <View style={[styles.categoryIcon, { backgroundColor: cat.color + '20' }]}>
-                <Ionicons name={cat.icon as any} size={20} color={cat.color} />
+              <View style={styles.categoryImageWrapper}>
+                <View style={[
+                  styles.categoryGeometry,
+                  selectedCategory === cat.id && styles.categoryGeometryActive
+                ]} />
+                <Image source={{ uri: cat.image }} style={styles.categoryImage} />
               </View>
               <Text style={[
                 styles.categoryName,
@@ -334,17 +356,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingBottom: 16,
     backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomWidth: 0,
     gap: 12,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f5f5f5',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.primaryExtraLight,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -352,11 +373,13 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 44,
-    gap: 8,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 22,
+    paddingHorizontal: 16,
+    height: 48,
+    gap: 10,
+    borderWidth: 2,
+    borderColor: COLORS.primaryLight,
   },
   searchInput: {
     flex: 1,
@@ -364,10 +387,10 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
   },
   filterButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#f5f5f5',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.primaryExtraLight,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -377,36 +400,43 @@ const styles = StyleSheet.create({
 
   // Filters
   filtersSection: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.gray[50],
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    paddingVertical: 16,
+    borderBottomWidth: 0,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    borderRadius: 16,
   },
   filterTitle: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 8,
-    marginTop: 8,
+    fontWeight: '700',
+    color: COLORS.primary,
+    marginBottom: 10,
+    marginTop: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   filterScroll: {
     marginBottom: 8,
   },
   filterChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: '#f5f5f5',
-    marginRight: 8,
+    backgroundColor: '#fff',
+    marginRight: 10,
+    borderWidth: 1.5,
+    borderColor: COLORS.primaryLight,
   },
   filterChipActive: {
     backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   filterChipText: {
     fontSize: 13,
-    fontWeight: '500',
-    color: '#666',
+    fontWeight: '600',
+    color: COLORS.gray[600],
   },
   filterChipTextActive: {
     color: '#fff',
@@ -420,35 +450,54 @@ const styles = StyleSheet.create({
   // Categories
   categoriesScroll: {
     paddingHorizontal: 16,
-    gap: 12,
-    marginBottom: 20,
+    gap: 8,
+    marginBottom: 24,
   },
   categoryItem: {
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 16,
-    backgroundColor: '#f8f8f8',
-    minWidth: 80,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    minWidth: 85,
   },
   categoryItemActive: {
-    backgroundColor: COLORS.primary + '15',
+    // Active state handled by geometry
   },
-  categoryIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
+  categoryImageWrapper: {
+    position: 'relative',
+    width: 80,
+    height: 100,
     alignItems: 'center',
-    marginBottom: 8,
+    justifyContent: 'flex-end',
+    marginBottom: 10,
+  },
+  categoryGeometry: {
+    position: 'absolute',
+    top: 0,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: COLORS.primaryLight,
+    opacity: 0.4,
+  },
+  categoryGeometryActive: {
+    backgroundColor: COLORS.primary,
+    opacity: 0.6,
+    transform: [{ scale: 1.15 }],
+  },
+  categoryImage: {
+    width: 72,
+    height: 90,
+    borderRadius: 12,
   },
   categoryName: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#666',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'center',
   },
   categoryNameActive: {
     color: COLORS.primary,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 
   // Results
@@ -514,10 +563,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     left: 10,
-    backgroundColor: '#FF6B6B',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    backgroundColor: COLORS.error,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
   },
   discountText: {
     fontSize: 11,
@@ -528,45 +577,68 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 10,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
   },
   sizeText: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
     color: '#fff',
   },
+  conditionBadge: {
+    position: 'absolute',
+    bottom: 10,
+    left: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+  },
+  conditionText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#fff',
+    textTransform: 'uppercase',
+  },
+  placeholderIcon: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 32,
+  },
   cardInfo: {
-    paddingTop: 10,
+    paddingTop: 12,
     paddingHorizontal: 4,
   },
   brandText: {
-    fontSize: 11,
-    color: '#999',
+    fontSize: 12,
+    color: '#888',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 2,
+    marginBottom: 4,
+    fontWeight: '600',
   },
   titleText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#333',
-    marginBottom: 4,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 6,
+    lineHeight: 20,
   },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   priceText: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '800',
     color: COLORS.primary,
   },
   originalPriceText: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#999',
     textDecorationLine: 'line-through',
   },
