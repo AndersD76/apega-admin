@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
 import { loadToken } from '../services/api';
+
+const { width } = Dimensions.get('window');
+const isWeb = Platform.OS === 'web';
 
 interface BottomNavigationProps {
   navigation: any;
@@ -13,15 +16,20 @@ interface BottomNavigationProps {
 
 const NAV_ITEMS = [
   { key: 'Home', icon: 'home', label: 'início' },
-  { key: 'Search', icon: 'search', label: 'apegar' },
+  { key: 'Search', icon: 'search', label: 'buscar' },
   { key: 'NewItem', icon: 'add', label: 'vender', isCenter: true },
-  { key: 'Favorites', icon: 'heart', label: 'favoritos' },
-  { key: 'Profile', icon: 'person', label: 'perfil' },
+  { key: 'Favorites', icon: 'heart', label: 'curtidos' },
+  { key: 'Profile', icon: 'person', label: 'eu' },
 ];
 
 export default function BottomNavigation({ navigation, activeRoute = 'Home' }: BottomNavigationProps) {
   const insets = useSafeAreaInsets();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Não mostra footer na web desktop
+  if (isWeb && width > 768) {
+    return null;
+  }
 
   useEffect(() => {
     checkAuth();

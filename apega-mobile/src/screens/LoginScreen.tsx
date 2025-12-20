@@ -13,8 +13,9 @@ import {
   TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS, SPACING, BORDER_RADIUS } from '../constants/theme';
+import { COLORS } from '../constants/theme';
 import { login, register } from '../services/auth';
 
 interface LoginScreenProps {
@@ -24,6 +25,7 @@ interface LoginScreenProps {
 type Screen = 'main' | 'email-login' | 'email-signup' | 'forgot';
 
 const { width } = Dimensions.get('window');
+const isWeb = Platform.OS === 'web';
 
 export default function LoginScreen({ navigation }: LoginScreenProps) {
   const insets = useSafeAreaInsets();
@@ -44,7 +46,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('ops', 'preencha email e senha');
+      Alert.alert('Atenção', 'Preencha email e senha');
       return;
     }
 
@@ -56,7 +58,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         routes: [{ name: 'Home' }],
       });
     } catch (error: any) {
-      Alert.alert('ops', error.message || 'falha no login');
+      Alert.alert('Erro', error.message || 'Falha no login');
     } finally {
       setIsLoading(false);
     }
@@ -64,15 +66,15 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
   const handleSignup = async () => {
     if (!signupName || signupName.length < 3) {
-      Alert.alert('ops', 'nome deve ter no mínimo 3 caracteres');
+      Alert.alert('Atenção', 'Nome deve ter no mínimo 3 caracteres');
       return;
     }
     if (!signupEmail || !signupEmail.includes('@')) {
-      Alert.alert('ops', 'email inválido');
+      Alert.alert('Atenção', 'Email inválido');
       return;
     }
     if (!signupPassword || signupPassword.length < 8) {
-      Alert.alert('ops', 'senha deve ter no mínimo 8 caracteres');
+      Alert.alert('Atenção', 'Senha deve ter no mínimo 8 caracteres');
       return;
     }
 
@@ -84,43 +86,57 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         routes: [{ name: 'Home' }],
       });
     } catch (error: any) {
-      Alert.alert('ops', error.message || 'falha no cadastro');
+      Alert.alert('Erro', error.message || 'Falha no cadastro');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSocialLogin = (provider: string) => {
-    Alert.alert('em breve', `login com ${provider} estará disponível em breve`);
+    Alert.alert('Em breve', `Login com ${provider} estará disponível em breve!`);
   };
 
-  // Main screen - Enjoei style
+  // Main screen
   if (currentScreen === 'main') {
     return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
-        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#667eea" />
 
-        {/* Header */}
-        <View style={styles.header}>
+        {/* Hero Gradient */}
+        <LinearGradient
+          colors={['#667eea', '#764ba2']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.heroGradient, { paddingTop: insets.top + 20 }]}
+        >
           <TouchableOpacity
-            style={styles.backButton}
+            style={styles.backButtonLight}
             onPress={() => navigation.goBack()}
           >
-            <Ionicons name="chevron-back" size={28} color={COLORS.primary} />
+            <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.logo}>apegadesapega</Text>
-          <View style={{ width: 40 }} />
-        </View>
 
-        <ScrollView
-          contentContainerStyle={styles.mainContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Title */}
-          <View style={styles.titleSection}>
-            <Text style={styles.mainTitle}>entrar no apega</Text>
-            <Text style={styles.mainSubtitle}>a casa é sua, se aprochegue.</Text>
+          <View style={styles.heroContent}>
+            <View style={styles.heroIconContainer}>
+              <Ionicons name="leaf" size={48} color="#fff" />
+            </View>
+            <Text style={styles.heroTitle}>Apega Desapega</Text>
+            <Text style={styles.heroSubtitle}>
+              Moda com propósito.{'\n'}Sustentabilidade com estilo.
+            </Text>
           </View>
+
+          <View style={styles.heroDecor}>
+            <Ionicons name="shirt-outline" size={100} color="rgba(255,255,255,0.08)" />
+          </View>
+        </LinearGradient>
+
+        {/* Content */}
+        <View style={styles.mainContent}>
+          <Text style={styles.welcomeTitle}>Bem-vinda!</Text>
+          <Text style={styles.welcomeSubtitle}>
+            Entre para descobrir peças incríveis
+          </Text>
 
           {/* Primary Button */}
           <TouchableOpacity
@@ -128,53 +144,61 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             onPress={() => setCurrentScreen('email-signup')}
             activeOpacity={0.9}
           >
-            <Text style={styles.primaryBtnText}>criar conta</Text>
+            <LinearGradient
+              colors={[COLORS.primary, '#4a7c59']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.primaryBtnGradient}
+            >
+              <Text style={styles.primaryBtnText}>Criar Conta Grátis</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* Secondary Button */}
+          <TouchableOpacity
+            style={styles.secondaryBtn}
+            onPress={() => setCurrentScreen('email-login')}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.secondaryBtnText}>Já tenho conta</Text>
           </TouchableOpacity>
 
           {/* Divider */}
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>ou</Text>
+            <Text style={styles.dividerText}>ou continue com</Text>
             <View style={styles.dividerLine} />
           </View>
 
-          {/* Social Options */}
-          <TouchableOpacity
-            style={styles.socialBtn}
-            onPress={() => handleSocialLogin('celular')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="phone-portrait-outline" size={20} color="#333" />
-            <Text style={styles.socialBtnText}>continuar com celular</Text>
-          </TouchableOpacity>
+          {/* Social Buttons */}
+          <View style={styles.socialRow}>
+            <TouchableOpacity
+              style={styles.socialIconBtn}
+              onPress={() => handleSocialLogin('Google')}
+            >
+              <Ionicons name="logo-google" size={22} color="#EA4335" />
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.socialBtn}
-            onPress={() => setCurrentScreen('email-login')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="mail-outline" size={20} color="#333" />
-            <Text style={styles.socialBtnText}>continuar com email</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.socialIconBtn}
+              onPress={() => handleSocialLogin('Facebook')}
+            >
+              <Ionicons name="logo-facebook" size={22} color="#1877F2" />
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.socialBtn}
-            onPress={() => handleSocialLogin('google')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="logo-google" size={20} color="#EA4335" />
-            <Text style={styles.socialBtnText}>continuar com o google</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.socialIconBtn}
+              onPress={() => handleSocialLogin('Apple')}
+            >
+              <Ionicons name="logo-apple" size={22} color="#000" />
+            </TouchableOpacity>
+          </View>
 
-          <TouchableOpacity
-            style={styles.socialBtn}
-            onPress={() => handleSocialLogin('facebook')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="logo-facebook" size={20} color="#1877F2" />
-            <Text style={styles.socialBtnText}>continuar com o facebook</Text>
-          </TouchableOpacity>
-        </ScrollView>
+          {/* Footer */}
+          <Text style={styles.footerText}>
+            De Passo Fundo para o mundo{'\n'}com amor e sustentabilidade
+          </Text>
+        </View>
       </View>
     );
   }
@@ -183,19 +207,23 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   if (currentScreen === 'email-login') {
     return (
       <KeyboardAvoidingView
-        style={[styles.container, { paddingTop: insets.top }]}
+        style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-        <View style={styles.header}>
+        {/* Header */}
+        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => setCurrentScreen('main')}
           >
-            <Ionicons name="chevron-back" size={28} color={COLORS.primary} />
+            <Ionicons name="arrow-back" size={24} color="#333" />
           </TouchableOpacity>
-          <Text style={styles.logo}>apegadesapega</Text>
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoText}>Apega</Text>
+            <Text style={styles.logoAccent}>Desapega</Text>
+          </View>
           <View style={{ width: 40 }} />
         </View>
 
@@ -204,31 +232,40 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.formTitle}>entrar com email</Text>
-          <Text style={styles.formSubtitle}>bora lá, digite seus dados</Text>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>email</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="seu@email.com"
-              placeholderTextColor="#999"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+          <View style={styles.formHeader}>
+            <View style={styles.formIcon}>
+              <Ionicons name="mail" size={28} color={COLORS.primary} />
+            </View>
+            <Text style={styles.formTitle}>Entrar</Text>
+            <Text style={styles.formSubtitle}>Digite seus dados para continuar</Text>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>senha</Text>
-            <View style={styles.passwordWrapper}>
+            <Text style={styles.inputLabel}>Email</Text>
+            <View style={styles.inputWrapper}>
+              <Ionicons name="mail-outline" size={20} color="#999" style={styles.inputIcon} />
               <TextInput
-                style={[styles.input, { paddingRight: 50 }]}
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="seu@email.com"
+                placeholderTextColor="#999"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Senha</Text>
+            <View style={styles.inputWrapper}>
+              <Ionicons name="lock-closed-outline" size={20} color="#999" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
                 value={password}
                 onChangeText={setPassword}
-                placeholder="sua senha"
+                placeholder="Sua senha"
                 placeholderTextColor="#999"
                 secureTextEntry={!showPassword}
               />
@@ -246,24 +283,31 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           </View>
 
           <TouchableOpacity onPress={() => setCurrentScreen('forgot')}>
-            <Text style={styles.forgotLink}>esqueci minha senha</Text>
+            <Text style={styles.forgotLink}>Esqueci minha senha</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.primaryBtn, { marginTop: 24 }]}
+            style={styles.primaryBtn}
             onPress={handleLogin}
             disabled={isLoading}
             activeOpacity={0.9}
           >
-            <Text style={styles.primaryBtnText}>
-              {isLoading ? 'entrando...' : 'entrar'}
-            </Text>
+            <LinearGradient
+              colors={[COLORS.primary, '#4a7c59']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.primaryBtnGradient}
+            >
+              <Text style={styles.primaryBtnText}>
+                {isLoading ? 'Entrando...' : 'Entrar'}
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
 
           <View style={styles.switchRow}>
-            <Text style={styles.switchText}>não tem conta? </Text>
+            <Text style={styles.switchText}>Não tem conta? </Text>
             <TouchableOpacity onPress={() => setCurrentScreen('email-signup')}>
-              <Text style={styles.switchLink}>criar conta</Text>
+              <Text style={styles.switchLink}>Criar conta</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -275,19 +319,22 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   if (currentScreen === 'email-signup') {
     return (
       <KeyboardAvoidingView
-        style={[styles.container, { paddingTop: insets.top }]}
+        style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => setCurrentScreen('main')}
           >
-            <Ionicons name="chevron-back" size={28} color={COLORS.primary} />
+            <Ionicons name="arrow-back" size={24} color="#333" />
           </TouchableOpacity>
-          <Text style={styles.logo}>apegadesapega</Text>
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoText}>Apega</Text>
+            <Text style={styles.logoAccent}>Desapega</Text>
+          </View>
           <View style={{ width: 40 }} />
         </View>
 
@@ -296,68 +343,89 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.formTitle}>criar conta</Text>
-          <Text style={styles.formSubtitle}>vem fazer parte da comunidade</Text>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>nome</Text>
-            <TextInput
-              style={styles.input}
-              value={signupName}
-              onChangeText={setSignupName}
-              placeholder="como quer ser chamada?"
-              placeholderTextColor="#999"
-              autoCapitalize="words"
-            />
+          <View style={styles.formHeader}>
+            <View style={[styles.formIcon, { backgroundColor: '#E8F5E9' }]}>
+              <Ionicons name="person-add" size={28} color={COLORS.primary} />
+            </View>
+            <Text style={styles.formTitle}>Criar Conta</Text>
+            <Text style={styles.formSubtitle}>Junte-se à nossa comunidade</Text>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>email</Text>
-            <TextInput
-              style={styles.input}
-              value={signupEmail}
-              onChangeText={setSignupEmail}
-              placeholder="seu@email.com"
-              placeholderTextColor="#999"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+            <Text style={styles.inputLabel}>Nome</Text>
+            <View style={styles.inputWrapper}>
+              <Ionicons name="person-outline" size={20} color="#999" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                value={signupName}
+                onChangeText={setSignupName}
+                placeholder="Como quer ser chamada?"
+                placeholderTextColor="#999"
+                autoCapitalize="words"
+              />
+            </View>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>senha</Text>
-            <TextInput
-              style={styles.input}
-              value={signupPassword}
-              onChangeText={setSignupPassword}
-              placeholder="mínimo 8 caracteres"
-              placeholderTextColor="#999"
-              secureTextEntry
-            />
+            <Text style={styles.inputLabel}>Email</Text>
+            <View style={styles.inputWrapper}>
+              <Ionicons name="mail-outline" size={20} color="#999" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                value={signupEmail}
+                onChangeText={setSignupEmail}
+                placeholder="seu@email.com"
+                placeholderTextColor="#999"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Senha</Text>
+            <View style={styles.inputWrapper}>
+              <Ionicons name="lock-closed-outline" size={20} color="#999" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                value={signupPassword}
+                onChangeText={setSignupPassword}
+                placeholder="Mínimo 8 caracteres"
+                placeholderTextColor="#999"
+                secureTextEntry
+              />
+            </View>
           </View>
 
           <Text style={styles.termsText}>
-            ao criar uma conta, você está de acordo com os{' '}
-            <Text style={styles.termsLink}>termos de serviço</Text> e a{' '}
-            <Text style={styles.termsLink}>política de privacidade</Text> do apega.
+            Ao criar uma conta, você concorda com os{' '}
+            <Text style={styles.termsLink}>Termos de Serviço</Text> e{' '}
+            <Text style={styles.termsLink}>Política de Privacidade</Text>.
           </Text>
 
           <TouchableOpacity
-            style={[styles.primaryBtn, { marginTop: 24 }]}
+            style={styles.primaryBtn}
             onPress={handleSignup}
             disabled={isLoading}
             activeOpacity={0.9}
           >
-            <Text style={styles.primaryBtnText}>
-              {isLoading ? 'criando...' : 'criar conta'}
-            </Text>
+            <LinearGradient
+              colors={[COLORS.primary, '#4a7c59']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.primaryBtnGradient}
+            >
+              <Text style={styles.primaryBtnText}>
+                {isLoading ? 'Criando...' : 'Criar Conta'}
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
 
           <View style={styles.switchRow}>
-            <Text style={styles.switchText}>já tem conta? </Text>
+            <Text style={styles.switchText}>Já tem conta? </Text>
             <TouchableOpacity onPress={() => setCurrentScreen('email-login')}>
-              <Text style={styles.switchLink}>entrar</Text>
+              <Text style={styles.switchLink}>Entrar</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -369,19 +437,22 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   if (currentScreen === 'forgot') {
     return (
       <KeyboardAvoidingView
-        style={[styles.container, { paddingTop: insets.top }]}
+        style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => setCurrentScreen('email-login')}
           >
-            <Ionicons name="chevron-back" size={28} color={COLORS.primary} />
+            <Ionicons name="arrow-back" size={24} color="#333" />
           </TouchableOpacity>
-          <Text style={styles.logo}>apegadesapega</Text>
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoText}>Apega</Text>
+            <Text style={styles.logoAccent}>Desapega</Text>
+          </View>
           <View style={{ width: 40 }} />
         </View>
 
@@ -390,38 +461,60 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.formTitle}>esqueci a senha</Text>
-          <Text style={styles.formSubtitle}>
-            sem problemas! digite seu email que a gente te ajuda.
-          </Text>
+          <View style={styles.formHeader}>
+            <View style={[styles.formIcon, { backgroundColor: '#FFF3E0' }]}>
+              <Ionicons name="key" size={28} color="#FF9800" />
+            </View>
+            <Text style={styles.formTitle}>Recuperar Senha</Text>
+            <Text style={styles.formSubtitle}>
+              Digite seu email e enviaremos um link para redefinir sua senha
+            </Text>
+          </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>email</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="seu@email.com"
-              placeholderTextColor="#999"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+            <Text style={styles.inputLabel}>Email</Text>
+            <View style={styles.inputWrapper}>
+              <Ionicons name="mail-outline" size={20} color="#999" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="seu@email.com"
+                placeholderTextColor="#999"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
           </View>
 
           <TouchableOpacity
-            style={[styles.primaryBtn, { marginTop: 24 }]}
+            style={styles.primaryBtn}
             onPress={() => {
               if (email && email.includes('@')) {
-                Alert.alert('pronto!', 'enviamos um link para recuperar sua senha');
+                Alert.alert('Pronto!', 'Enviamos um link para recuperar sua senha');
                 setCurrentScreen('email-login');
               } else {
-                Alert.alert('ops', 'digite um email válido');
+                Alert.alert('Atenção', 'Digite um email válido');
               }
             }}
             activeOpacity={0.9}
           >
-            <Text style={styles.primaryBtnText}>enviar link</Text>
+            <LinearGradient
+              colors={['#FF9800', '#F57C00']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.primaryBtnGradient}
+            >
+              <Text style={styles.primaryBtnText}>Enviar Link</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.backToLoginBtn}
+            onPress={() => setCurrentScreen('email-login')}
+          >
+            <Text style={styles.backToLoginText}>Voltar para o login</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -437,59 +530,101 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
 
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+  // Hero
+  heroGradient: {
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    position: 'relative',
+    overflow: 'hidden',
   },
-  backButton: {
+  backButtonLight: {
     width: 40,
     height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
-  },
-  logo: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.primary,
-    letterSpacing: -0.5,
-  },
-
-  // Main Screen
-  mainContent: {
-    flexGrow: 1,
-    paddingHorizontal: 32,
-    paddingTop: 60,
-    paddingBottom: 40,
-  },
-  titleSection: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 24,
   },
-  mainTitle: {
+  heroContent: {
+    alignItems: 'center',
+  },
+  heroIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  heroTitle: {
     fontSize: 28,
-    fontWeight: '700',
-    color: '#1a1a1a',
+    fontWeight: '800',
+    color: '#fff',
     marginBottom: 8,
   },
-  mainSubtitle: {
-    fontSize: 16,
+  heroSubtitle: {
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.9)',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  heroDecor: {
+    position: 'absolute',
+    right: -30,
+    bottom: -20,
+  },
+
+  // Main Content
+  mainContent: {
+    flex: 1,
+    paddingHorizontal: 32,
+    paddingTop: 32,
+    paddingBottom: 24,
+  },
+  welcomeTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  welcomeSubtitle: {
+    fontSize: 15,
     color: '#666',
+    textAlign: 'center',
+    marginBottom: 32,
   },
 
   // Primary Button
   primaryBtn: {
-    backgroundColor: COLORS.primary,
+    borderRadius: 28,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  primaryBtnGradient: {
     paddingVertical: 16,
-    borderRadius: 30,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   primaryBtnText: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  // Secondary Button
+  secondaryBtn: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: COLORS.primary,
+    borderRadius: 28,
+    marginBottom: 24,
+  },
+  secondaryBtnText: {
+    color: COLORS.primary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -498,7 +633,7 @@ const styles = StyleSheet.create({
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 32,
+    marginBottom: 24,
   },
   dividerLine: {
     flex: 1,
@@ -508,49 +643,101 @@ const styles = StyleSheet.create({
   dividerText: {
     paddingHorizontal: 16,
     color: '#999',
-    fontSize: 14,
+    fontSize: 13,
   },
 
   // Social Buttons
-  socialBtn: {
+  socialRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+    marginBottom: 32,
+  },
+  socialIconBtn: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Footer
+  footerText: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+
+  // Header
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    marginBottom: 12,
-    gap: 10,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
-  socialBtnText: {
-    fontSize: 15,
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  logoText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.primary,
+  },
+  logoAccent: {
+    fontSize: 18,
+    fontWeight: '300',
     color: '#333',
-    fontWeight: '500',
+    marginLeft: 4,
   },
 
   // Form
   formContent: {
     flexGrow: 1,
-    paddingHorizontal: 32,
-    paddingTop: 40,
+    paddingHorizontal: 24,
+    paddingTop: 24,
     paddingBottom: 40,
   },
-  formTitle: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  formSubtitle: {
-    fontSize: 15,
-    color: '#666',
-    textAlign: 'center',
+  formHeader: {
+    alignItems: 'center',
     marginBottom: 32,
   },
+  formIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#f0f7f4',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  formTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  formSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   inputLabel: {
     fontSize: 14,
@@ -558,34 +745,38 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 8,
   },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#e0e0e0',
+    borderRadius: 14,
+    backgroundColor: '#fafafa',
+  },
+  inputIcon: {
+    marginLeft: 16,
+  },
   input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    flex: 1,
+    paddingHorizontal: 12,
     paddingVertical: 14,
     fontSize: 16,
     color: '#1a1a1a',
-    backgroundColor: '#fafafa',
-  },
-  passwordWrapper: {
-    position: 'relative',
   },
   eyeBtn: {
-    position: 'absolute',
-    right: 16,
-    top: 14,
+    padding: 12,
   },
   forgotLink: {
     color: COLORS.primary,
     fontSize: 14,
     fontWeight: '500',
     textAlign: 'right',
+    marginBottom: 24,
   },
   switchRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 24,
+    marginTop: 16,
   },
   switchText: {
     color: '#666',
@@ -597,14 +788,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   termsText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#666',
     textAlign: 'center',
-    lineHeight: 20,
-    marginTop: 8,
+    lineHeight: 18,
+    marginBottom: 24,
   },
   termsLink: {
     color: COLORS.primary,
     fontWeight: '500',
+  },
+  backToLoginBtn: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  backToLoginText: {
+    color: '#666',
+    fontSize: 14,
   },
 });

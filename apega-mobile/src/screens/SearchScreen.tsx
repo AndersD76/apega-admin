@@ -10,10 +10,13 @@ import {
   StatusBar,
   Image,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
-import { BottomNavigation, AppHeader } from '../components';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { COLORS } from '../constants/theme';
+import { BottomNavigation } from '../components';
 import { getProducts, Product } from '../services/products';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
@@ -21,100 +24,41 @@ import type { RootStackParamList } from '../navigation/AppNavigator';
 type Props = NativeStackScreenProps<RootStackParamList, 'Search'>;
 
 const { width } = Dimensions.get('window');
-const ITEM_WIDTH = (width - 24) / 2;
-// Força reload com logos remotas
-
-const BRANDS = [
-  {
-    id: '1',
-    name: 'ZARA',
-    logo: 'https://logo.clearbit.com/zara.com',
-    filter: 'Zara'
-  },
-  {
-    id: '2',
-    name: 'FARM',
-    logo: 'https://logo.clearbit.com/farmrio.com.br',
-    filter: 'Farm'
-  },
-  {
-    id: '3',
-    name: 'AREZZO',
-    logo: 'https://logo.clearbit.com/arezzo.com.br',
-    filter: 'Arezzo'
-  },
-  {
-    id: '4',
-    name: 'SCHUTZ',
-    logo: 'https://logo.clearbit.com/schutz-shoes.com',
-    filter: 'Schutz'
-  },
-];
+const isWeb = Platform.OS === 'web';
+const isDesktop = isWeb && width > 768;
+const CARD_WIDTH = isDesktop ? (width - 120) / 4 : (width - 36) / 2;
 
 const CATEGORIES = [
-  { id: 'roupas', name: 'Roupas', icon: 'shirt-outline', filter: ['feminino', 'masculino'] },
-  { id: 'calcados', name: 'Calçados', icon: 'footsteps-outline', filter: ['calcados'] },
-  { id: 'bolsas', name: 'Bolsas', icon: 'bag-handle-outline', filter: ['bolsas'] },
-  { id: 'acessorios', name: 'Acessórios', icon: 'watch-outline', filter: ['acessorios'] },
+  { id: 'all', name: 'Tudo', icon: 'sparkles', color: '#FF6B6B' },
+  { id: 'vestidos', name: 'Vestidos', icon: 'shirt', color: '#4ECDC4' },
+  { id: 'blusas', name: 'Blusas', icon: 'shirt-outline', color: '#45B7D1' },
+  { id: 'calcas', name: 'Calças', icon: 'body', color: '#96CEB4' },
+  { id: 'saias', name: 'Saias', icon: 'flower', color: '#FFEAA7' },
+  { id: 'calcados', name: 'Calçados', icon: 'footsteps', color: '#DDA0DD' },
+  { id: 'bolsas', name: 'Bolsas', icon: 'bag-handle', color: '#F0E68C' },
+  { id: 'acessorios', name: 'Acessórios', icon: 'diamond', color: '#FFB6C1' },
 ];
 
-const PRICE_RANGES = [
-  { id: 'all', label: 'Todos', min: 0, max: 999999 },
-  { id: 'cheap', label: 'Até R$ 100', min: 0, max: 100 },
-  { id: 'medium', label: 'R$ 100 - R$ 300', min: 100, max: 300 },
-  { id: 'high', label: 'R$ 300 - R$ 500', min: 300, max: 500 },
-  { id: 'premium', label: 'Acima de R$ 500', min: 500, max: 999999 },
-];
-
-const CONDITIONS = [
-  { id: 'all', label: 'Todas' },
-  { id: 'novo', label: 'Novo' },
-  { id: 'seminovo', label: 'Seminovo' },
-  { id: 'usado', label: 'Usado' },
-];
-
-const SIZES = [
-  { id: 'all', label: 'Todos' },
-  { id: 'PP', label: 'PP' },
-  { id: 'P', label: 'P' },
-  { id: 'M', label: 'M' },
-  { id: 'G', label: 'G' },
-  { id: 'GG', label: 'GG' },
-];
-
-const SORT_OPTIONS = [
-  { id: 'recent', label: 'Mais recentes' },
-  { id: 'price_asc', label: 'Menor preço' },
-  { id: 'price_desc', label: 'Maior preço' },
-  { id: 'popular', label: 'Mais populares' },
-];
+const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG'];
+const CONDITIONS = ['Novo', 'Seminovo', 'Usado'];
 
 export default function SearchScreen({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedPrice, setSelectedPrice] = useState('all');
-  const [selectedCondition, setSelectedCondition] = useState('all');
-  const [selectedSize, setSelectedSize] = useState('all');
-  const [sortBy, setSortBy] = useState('recent');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedCondition, setSelectedCondition] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [failedLogos, setFailedLogos] = useState<Set<string>>(new Set());
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Carregar produtos da API
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
-      const priceRange = PRICE_RANGES.find(p => p.id === selectedPrice);
       const response = await getProducts({
         search: searchQuery || undefined,
-        brand: selectedBrand || undefined,
-        condition: selectedCondition !== 'all' ? selectedCondition : undefined,
-        size: selectedSize !== 'all' ? selectedSize : undefined,
-        minPrice: priceRange && priceRange.id !== 'all' ? priceRange.min : undefined,
-        maxPrice: priceRange && priceRange.id !== 'all' ? priceRange.max : undefined,
-        sort: sortBy as any,
+        condition: selectedCondition?.toLowerCase() || undefined,
+        size: selectedSize || undefined,
         limit: 50,
       });
       setProducts(response.products || []);
@@ -124,81 +68,29 @@ export default function SearchScreen({ navigation }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, selectedBrand, selectedCondition, selectedSize, selectedPrice, sortBy]);
+  }, [searchQuery, selectedCondition, selectedSize]);
 
-  // Carregar produtos ao iniciar e quando filtros mudarem
   useEffect(() => {
-    fetchProducts();
+    const timeout = setTimeout(() => {
+      fetchProducts();
+    }, 300);
+    return () => clearTimeout(timeout);
   }, [fetchProducts]);
 
   const formatPrice = (price: number | string | undefined | null) => {
-    if (price === undefined || price === null) return 'R$ 0,00';
+    if (price === undefined || price === null) return 'R$ 0';
     const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-    if (isNaN(numPrice)) return 'R$ 0,00';
-    return `R$ ${numPrice.toFixed(2).replace('.', ',')}`;
+    if (isNaN(numPrice)) return 'R$ 0';
+    return `R$ ${numPrice.toFixed(0)}`;
   };
 
-  // Filtrar produtos (filtragem local adicional se necessário)
   const getFilteredProducts = () => {
     let filtered = products;
 
-    // Filtrar por marca (se não foi feito na API)
-    if (selectedBrand) {
+    if (selectedCategory !== 'all') {
       filtered = filtered.filter(item =>
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description?.toLowerCase().includes(searchQuery.toLowerCase())
+        item.category_name?.toLowerCase() === selectedCategory.toLowerCase()
       );
-    }
-
-    // Filtrar por marca
-    if (selectedBrand) {
-      filtered = filtered.filter(item =>
-        item.brand?.toLowerCase() === selectedBrand.toLowerCase()
-      );
-    }
-
-    // Filtrar por categoria
-    if (selectedCategory) {
-      const category = CATEGORIES.find(c => c.id === selectedCategory);
-      if (category) {
-        filtered = filtered.filter(item =>
-          category.filter.includes(item.category)
-        );
-      }
-    }
-
-    // Filtrar por preço
-    if (selectedPrice !== 'all') {
-      const priceRange = PRICE_RANGES.find(p => p.id === selectedPrice);
-      if (priceRange) {
-        filtered = filtered.filter(item =>
-          item.price >= priceRange.min && item.price <= priceRange.max
-        );
-      }
-    }
-
-    // Filtrar por condição
-    if (selectedCondition !== 'all') {
-      filtered = filtered.filter(item =>
-        item.condition === selectedCondition
-      );
-    }
-
-    // Filtrar por tamanho
-    if (selectedSize !== 'all') {
-      filtered = filtered.filter(item =>
-        item.size === selectedSize
-      );
-    }
-
-    // Ordenar
-    if (sortBy === 'price_asc') {
-      filtered = [...filtered].sort((a, b) => a.price - b.price);
-    } else if (sortBy === 'price_desc') {
-      filtered = [...filtered].sort((a, b) => b.price - a.price);
-    } else if (sortBy === 'popular') {
-      filtered = [...filtered].sort((a, b) => (b.favorites || 0) - (a.favorites || 0));
     }
 
     return filtered;
@@ -206,66 +98,56 @@ export default function SearchScreen({ navigation }: Props) {
 
   const filteredProducts = getFilteredProducts();
 
-  const activeFiltersCount = [
-    selectedBrand,
-    selectedCategory,
-    selectedPrice !== 'all' ? selectedPrice : null,
-    selectedCondition !== 'all' ? selectedCondition : null,
-    selectedSize !== 'all' ? selectedSize : null,
-  ].filter(Boolean).length;
-
-  const handleBrandPress = (brand: typeof BRANDS[0]) => {
-    setSelectedBrand(selectedBrand === brand.filter ? null : brand.filter);
-  };
-
-  const handleCategoryPress = (categoryId: string) => {
-    setSelectedCategory(selectedCategory === categoryId ? null : categoryId);
-  };
-
-  const clearAllFilters = () => {
-    setSelectedBrand(null);
-    setSelectedCategory(null);
-    setSelectedPrice('all');
-    setSelectedCondition('all');
-    setSelectedSize('all');
-    setSearchQuery('');
-  };
-
-  const renderProductCard = (item: Product) => {
-    const discount = item.original_price
-      ? Math.round(((item.original_price - item.price) / item.original_price) * 100)
-      : 0;
-
-    // Usar image_url ou primeira imagem do array se disponível
+  const renderProductCard = (item: Product, index: number) => {
+    const imageHeight = index % 3 === 0 ? 240 : 180;
     const imageUrl = item.image_url || (item.images && item.images[0]?.image_url) || null;
+    const hasDiscount = item.original_price && item.original_price > item.price;
+    const discount = hasDiscount
+      ? Math.round(((item.original_price! - item.price) / item.original_price!) * 100)
+      : 0;
 
     return (
       <TouchableOpacity
         key={item.id}
-        style={styles.productCard}
-        onPress={() => navigation.navigate('ItemDetail', { item: { ...item, images: [imageUrl] } })}
-        activeOpacity={0.8}
+        style={[styles.productCard, { width: CARD_WIDTH }]}
+        onPress={() => navigation.navigate('ItemDetail', { item: { ...item, images: imageUrl ? [imageUrl] : [] } })}
+        activeOpacity={0.95}
       >
-        <Image source={{ uri: imageUrl }} style={styles.productImage} />
-        {discount > 0 && (
-          <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>-{discount}%</Text>
-          </View>
-        )}
-        <View style={styles.productContent}>
-          <Text style={styles.productBrand} numberOfLines={1}>
-            {item.brand || 'Marca'}
-          </Text>
-          <Text style={styles.productTitle} numberOfLines={2}>
-            {item.title}
-          </Text>
-          <View style={styles.priceContainer}>
-            {item.original_price && (
-              <Text style={styles.originalPrice}>
-                {formatPrice(item.original_price)}
-              </Text>
+        <View style={[styles.imageContainer, { height: imageHeight }]}>
+          {imageUrl ? (
+            <Image source={{ uri: imageUrl }} style={styles.productImage} />
+          ) : (
+            <LinearGradient
+              colors={['#f0f0f0', '#e0e0e0']}
+              style={[styles.productImage, styles.imagePlaceholder]}
+            >
+              <Ionicons name="image-outline" size={32} color="#bbb" />
+            </LinearGradient>
+          )}
+
+          {hasDiscount && (
+            <View style={styles.discountBadge}>
+              <Text style={styles.discountText}>-{discount}%</Text>
+            </View>
+          )}
+
+          {item.size && (
+            <View style={styles.sizeBadge}>
+              <Text style={styles.sizeText}>{item.size}</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.cardInfo}>
+          {item.brand && (
+            <Text style={styles.brandText} numberOfLines={1}>{item.brand}</Text>
+          )}
+          <Text style={styles.titleText} numberOfLines={1}>{item.title}</Text>
+          <View style={styles.priceRow}>
+            <Text style={styles.priceText}>{formatPrice(item.price)}</Text>
+            {hasDiscount && (
+              <Text style={styles.originalPriceText}>{formatPrice(item.original_price)}</Text>
             )}
-            <Text style={styles.productPrice}>{formatPrice(item.price)}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -274,300 +156,160 @@ export default function SearchScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <AppHeader navigation={navigation} />
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-      <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollView}>
-        <View style={styles.searchContainer}>
-          <View style={styles.searchInputContainer}>
-            <Ionicons name="search" size={22} color={COLORS.gray[500]} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="busque por peças, marcas..."
-              placeholderTextColor={COLORS.gray[400]}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={20} color={COLORS.gray[400]} />
-              </TouchableOpacity>
-            )}
-          </View>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#333" />
+        </TouchableOpacity>
+
+        <View style={styles.searchBar}>
+          <Ionicons name="search" size={18} color="#999" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Buscar peças, marcas..."
+            placeholderTextColor="#999"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={20} color="#999" />
+            </TouchableOpacity>
+          )}
         </View>
 
-        {/* Filtros Ativos */}
-        {activeFiltersCount > 0 && (
-          <View style={styles.activeFiltersContainer}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {selectedBrand && (
-                <TouchableOpacity
-                  style={styles.filterChip}
-                  onPress={() => setSelectedBrand(null)}
-                >
-                  <Text style={styles.filterChipText}>{selectedBrand}</Text>
-                  <Ionicons name="close" size={16} color={COLORS.primary} />
-                </TouchableOpacity>
-              )}
-              {selectedCategory && (
-                <TouchableOpacity
-                  style={styles.filterChip}
-                  onPress={() => setSelectedCategory(null)}
-                >
-                  <Text style={styles.filterChipText}>
-                    {CATEGORIES.find(c => c.id === selectedCategory)?.name}
-                  </Text>
-                  <Ionicons name="close" size={16} color={COLORS.primary} />
-                </TouchableOpacity>
-              )}
-              {selectedPrice !== 'all' && (
-                <TouchableOpacity
-                  style={styles.filterChip}
-                  onPress={() => setSelectedPrice('all')}
-                >
-                  <Text style={styles.filterChipText}>
-                    {PRICE_RANGES.find(p => p.id === selectedPrice)?.label}
-                  </Text>
-                  <Ionicons name="close" size={16} color={COLORS.primary} />
-                </TouchableOpacity>
-              )}
-              {selectedCondition !== 'all' && (
-                <TouchableOpacity
-                  style={styles.filterChip}
-                  onPress={() => setSelectedCondition('all')}
-                >
-                  <Text style={styles.filterChipText}>
-                    {CONDITIONS.find(c => c.id === selectedCondition)?.label}
-                  </Text>
-                  <Ionicons name="close" size={16} color={COLORS.primary} />
-                </TouchableOpacity>
-              )}
-              {selectedSize !== 'all' && (
-                <TouchableOpacity
-                  style={styles.filterChip}
-                  onPress={() => setSelectedSize('all')}
-                >
-                  <Text style={styles.filterChipText}>{selectedSize}</Text>
-                  <Ionicons name="close" size={16} color={COLORS.primary} />
-                </TouchableOpacity>
-              )}
+        <TouchableOpacity
+          style={[styles.filterButton, showFilters && styles.filterButtonActive]}
+          onPress={() => setShowFilters(!showFilters)}
+        >
+          <Ionicons
+            name="options-outline"
+            size={22}
+            color={showFilters ? '#fff' : '#333'}
+          />
+        </TouchableOpacity>
+      </View>
+
+      {/* Filters */}
+      {showFilters && (
+        <View style={styles.filtersSection}>
+          <Text style={styles.filterTitle}>Tamanho</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
+            {SIZES.map(size => (
               <TouchableOpacity
-                style={styles.clearAllChip}
-                onPress={clearAllFilters}
+                key={size}
+                style={[
+                  styles.filterChip,
+                  selectedSize === size && styles.filterChipActive
+                ]}
+                onPress={() => setSelectedSize(selectedSize === size ? null : size)}
               >
-                <Text style={styles.clearAllText}>limpar tudo</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
-        )}
-
-        {/* Filtros Expandidos */}
-        {showFilters && (
-          <View style={styles.filtersSection}>
-            {/* Preço */}
-            <View style={styles.filterGroup}>
-              <Text style={styles.filterGroupTitle}>Preço</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {PRICE_RANGES.map((range) => (
-                  <TouchableOpacity
-                    key={range.id}
-                    style={[
-                      styles.filterOption,
-                      selectedPrice === range.id && styles.filterOptionActive
-                    ]}
-                    onPress={() => setSelectedPrice(range.id)}
-                  >
-                    <Text style={[
-                      styles.filterOptionText,
-                      selectedPrice === range.id && styles.filterOptionTextActive
-                    ]}>
-                      {range.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-
-            {/* Condição */}
-            <View style={styles.filterGroup}>
-              <Text style={styles.filterGroupTitle}>Condição</Text>
-              <View style={styles.filterOptionsRow}>
-                {CONDITIONS.map((condition) => (
-                  <TouchableOpacity
-                    key={condition.id}
-                    style={[
-                      styles.filterOption,
-                      selectedCondition === condition.id && styles.filterOptionActive
-                    ]}
-                    onPress={() => setSelectedCondition(condition.id)}
-                  >
-                    <Text style={[
-                      styles.filterOptionText,
-                      selectedCondition === condition.id && styles.filterOptionTextActive
-                    ]}>
-                      {condition.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* Tamanho */}
-            <View style={styles.filterGroup}>
-              <Text style={styles.filterGroupTitle}>Tamanho</Text>
-              <View style={styles.filterOptionsRow}>
-                {SIZES.map((size) => (
-                  <TouchableOpacity
-                    key={size.id}
-                    style={[
-                      styles.filterOption,
-                      selectedSize === size.id && styles.filterOptionActive
-                    ]}
-                    onPress={() => setSelectedSize(size.id)}
-                  >
-                    <Text style={[
-                      styles.filterOptionText,
-                      selectedSize === size.id && styles.filterOptionTextActive
-                    ]}>
-                      {size.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* Ordenação */}
-            <View style={styles.filterGroup}>
-              <Text style={styles.filterGroupTitle}>Ordenar por</Text>
-              <View style={styles.filterOptionsRow}>
-                {SORT_OPTIONS.map((option) => (
-                  <TouchableOpacity
-                    key={option.id}
-                    style={[
-                      styles.filterOption,
-                      sortBy === option.id && styles.filterOptionActive
-                    ]}
-                    onPress={() => setSortBy(option.id)}
-                  >
-                    <Text style={[
-                      styles.filterOptionText,
-                      sortBy === option.id && styles.filterOptionTextActive
-                    ]}>
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          </View>
-        )}
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>marcas em destaque</Text>
-            <TouchableOpacity onPress={() => setShowFilters(!showFilters)}>
-              <Text style={styles.seeAllText}>ver todas</Text>
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.brandsContainer}
-          >
-            {BRANDS.map((brand) => (
-              <TouchableOpacity
-                key={brand.id}
-                style={styles.brandItem}
-                activeOpacity={0.7}
-                onPress={() => handleBrandPress(brand)}
-              >
-                <View style={[
-                  styles.brandCircle,
-                  selectedBrand === brand.filter && styles.brandCircleSelected
+                <Text style={[
+                  styles.filterChipText,
+                  selectedSize === size && styles.filterChipTextActive
                 ]}>
-                  {!failedLogos.has(brand.id) ? (
-                    <Image
-                      source={{ uri: brand.logo }}
-                      style={styles.brandLogo}
-                      resizeMode="contain"
-                      onError={() => {
-                        setFailedLogos(prev => new Set(prev).add(brand.id));
-                      }}
-                    />
-                  ) : (
-                    <Text style={styles.brandLogoFallback}>{brand.name[0]}</Text>
-                  )}
-                </View>
-                <Text style={styles.brandName}>{brand.name}</Text>
+                  {size}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          <Text style={styles.filterTitle}>Condição</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
+            {CONDITIONS.map(condition => (
+              <TouchableOpacity
+                key={condition}
+                style={[
+                  styles.filterChip,
+                  selectedCondition === condition && styles.filterChipActive
+                ]}
+                onPress={() => setSelectedCondition(selectedCondition === condition ? null : condition)}
+              >
+                <Text style={[
+                  styles.filterChipText,
+                  selectedCondition === condition && styles.filterChipTextActive
+                ]}>
+                  {condition}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
+      )}
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>categorias</Text>
-          </View>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Categories */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesScroll}
+        >
+          {CATEGORIES.map(cat => (
+            <TouchableOpacity
+              key={cat.id}
+              style={[
+                styles.categoryItem,
+                selectedCategory === cat.id && styles.categoryItemActive
+              ]}
+              onPress={() => setSelectedCategory(cat.id)}
+            >
+              <View style={[styles.categoryIcon, { backgroundColor: cat.color + '20' }]}>
+                <Ionicons name={cat.icon as any} size={20} color={cat.color} />
+              </View>
+              <Text style={[
+                styles.categoryName,
+                selectedCategory === cat.id && styles.categoryNameActive
+              ]}>
+                {cat.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
-          <View style={styles.categoriesGrid}>
-            {CATEGORIES.map((category) => (
-              <TouchableOpacity
-                key={category.id}
-                style={[
-                  styles.categoryCard,
-                  selectedCategory === category.id && styles.categoryCardSelected
-                ]}
-                activeOpacity={0.8}
-                onPress={() => handleCategoryPress(category.id)}
-              >
-                <Ionicons
-                  name={category.icon as any}
-                  size={28}
-                  color={selectedCategory === category.id ? COLORS.primary : COLORS.gray[600]}
-                />
-                <Text style={[
-                  styles.categoryName,
-                  selectedCategory === category.id && styles.categoryNameSelected
-                ]}>
-                  {category.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Sempre mostrar resultados */}
+        {/* Results */}
         <View style={styles.resultsSection}>
           <View style={styles.resultsHeader}>
             <Text style={styles.resultsTitle}>
-              {loading ? 'Buscando...' : `${filteredProducts.length} ${filteredProducts.length === 1 ? 'resultado' : 'resultados'}`}
+              {loading ? 'Buscando...' : `${filteredProducts.length} peças`}
             </Text>
-            {(selectedBrand || selectedCategory || searchQuery) && (
+            {(selectedSize || selectedCondition) && (
               <TouchableOpacity
                 onPress={() => {
-                  setSelectedBrand(null);
-                  setSelectedCategory(null);
-                  setSearchQuery('');
+                  setSelectedSize(null);
+                  setSelectedCondition(null);
                 }}
               >
-                <Text style={styles.clearFilters}>limpar filtros</Text>
+                <Text style={styles.clearFilters}>Limpar filtros</Text>
               </TouchableOpacity>
             )}
           </View>
 
           {loading ? (
-            <View style={{ padding: 40, alignItems: 'center' }}>
+            <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={COLORS.primary} />
+              <Text style={styles.loadingText}>Buscando peças...</Text>
             </View>
           ) : filteredProducts.length > 0 ? (
             <View style={styles.productsGrid}>
-              {filteredProducts.map(renderProductCard)}
+              {filteredProducts.map((item, index) => renderProductCard(item, index))}
             </View>
           ) : (
-            <View style={{ padding: 40, alignItems: 'center' }}>
-              <Ionicons name="search-outline" size={48} color={COLORS.textTertiary} />
-              <Text style={{ color: COLORS.textSecondary, marginTop: 12, textAlign: 'center' }}>
-                Nenhum produto encontrado
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIcon}>
+                <Ionicons name="search-outline" size={48} color="#ddd" />
+              </View>
+              <Text style={styles.emptyTitle}>Nenhuma peça encontrada</Text>
+              <Text style={styles.emptySubtitle}>
+                Tente buscar com outras palavras ou filtros
               </Text>
             </View>
           )}
@@ -584,279 +326,275 @@ export default function SearchScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#fff',
   },
-  scrollView: {
-    flex: 1,
-  },
-  searchContainer: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    backgroundColor: COLORS.white,
-  },
-  searchInputContainer: {
+
+  // Header
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
-    borderRadius: BORDER_RADIUS.full,
-    paddingHorizontal: SPACING.md,
-    height: 50,
-    gap: SPACING.sm,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+    gap: 12,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchBar: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 44,
+    gap: 8,
   },
   searchInput: {
     flex: 1,
-    fontSize: TYPOGRAPHY.sizes.base,
-    color: COLORS.textPrimary,
+    fontSize: 15,
+    color: '#1a1a1a',
   },
-  section: {
-    marginBottom: SPACING.lg,
-    backgroundColor: COLORS.white,
-    paddingTop: SPACING.lg,
-    paddingBottom: SPACING.md,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-    marginBottom: SPACING.md,
-  },
-  sectionTitle: {
-    fontSize: TYPOGRAPHY.sizes.xl,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  seeAllText: {
-    fontSize: TYPOGRAPHY.sizes.sm,
-    fontWeight: '600',
-    color: COLORS.primary,
-  },
-  brandsContainer: {
-    paddingHorizontal: SPACING.lg,
-    gap: SPACING.lg,
-  },
-  brandItem: {
-    alignItems: 'center',
-  },
-  brandCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+  filterButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#f5f5f5',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: SPACING.sm,
-    backgroundColor: COLORS.white,
-    borderWidth: 2,
-    borderColor: COLORS.gray[200],
-    ...SHADOWS.sm,
-    padding: SPACING.sm,
   },
-  brandCircleSelected: {
-    borderColor: COLORS.primary,
-    borderWidth: 3,
-    ...SHADOWS.md,
+  filterButtonActive: {
+    backgroundColor: COLORS.primary,
   },
-  brandLogo: {
-    width: 56,
-    height: 56,
+
+  // Filters
+  filtersSection: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
-  brandLogoFallback: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.gray[600],
-  },
-  brandName: {
-    fontSize: 12,
+  filterTitle: {
+    fontSize: 13,
     fontWeight: '600',
-    color: COLORS.gray[700],
+    color: '#666',
+    marginBottom: 8,
+    marginTop: 8,
   },
-  categoriesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: SPACING.md,
-    gap: SPACING.sm,
+  filterScroll: {
+    marginBottom: 8,
   },
-  categoryCard: {
-    width: (width - SPACING.lg * 2 - SPACING.sm) / 2,
-    height: 100,
-    borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.md,
+  filterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#f5f5f5',
+    marginRight: 8,
+  },
+  filterChipActive: {
+    backgroundColor: COLORS.primary,
+  },
+  filterChipText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#666',
+  },
+  filterChipTextActive: {
+    color: '#fff',
+  },
+
+  // Scroll Content
+  scrollContent: {
+    paddingTop: 16,
+  },
+
+  // Categories
+  categoriesScroll: {
+    paddingHorizontal: 16,
+    gap: 12,
+    marginBottom: 20,
+  },
+  categoryItem: {
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 16,
+    backgroundColor: '#f8f8f8',
+    minWidth: 80,
+  },
+  categoryItemActive: {
+    backgroundColor: COLORS.primary + '15',
+  },
+  categoryIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderWidth: 1.5,
-    borderColor: COLORS.gray[200],
-    ...SHADOWS.xs,
-  },
-  categoryCardSelected: {
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.primaryLight,
+    marginBottom: 8,
   },
   categoryName: {
-    fontSize: TYPOGRAPHY.sizes.sm,
-    fontWeight: '600',
-    color: COLORS.gray[700],
-    marginTop: SPACING.xs,
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#666',
   },
-  categoryNameSelected: {
+  categoryNameActive: {
     color: COLORS.primary,
-    fontWeight: '700',
+    fontWeight: '600',
   },
+
+  // Results
   resultsSection: {
-    backgroundColor: COLORS.white,
-    padding: SPACING.md,
-    marginTop: SPACING.md,
+    paddingHorizontal: isDesktop ? 40 : 12,
   },
   resultsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.md,
+    marginHorizontal: 4,
+    marginBottom: 16,
   },
   resultsTitle: {
-    fontSize: TYPOGRAPHY.sizes.lg,
+    fontSize: 18,
     fontWeight: '700',
-    color: COLORS.textPrimary,
+    color: '#1a1a1a',
   },
   clearFilters: {
-    fontSize: TYPOGRAPHY.sizes.sm,
+    fontSize: 13,
     fontWeight: '600',
     color: COLORS.primary,
   },
+
+  // Loading
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: '#666',
+  },
+
+  // Products Grid
   productsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: -6,
+    justifyContent: 'flex-start',
   },
+
+  // Product Card
   productCard: {
-    width: ITEM_WIDTH,
-    paddingHorizontal: 6,
-    marginBottom: SPACING.md,
+    marginHorizontal: 6,
+    marginBottom: 20,
+  },
+  imageContainer: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#f5f5f5',
+    position: 'relative',
   },
   productImage: {
     width: '100%',
-    aspectRatio: 0.95,
-    backgroundColor: COLORS.gray[200],
-    borderRadius: BORDER_RADIUS.lg,
+    height: '100%',
+  },
+  imagePlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   discountBadge: {
     position: 'absolute',
-    top: SPACING.sm,
-    right: SPACING.sm + 6,
-    backgroundColor: COLORS.primary,
+    top: 10,
+    left: 10,
+    backgroundColor: '#FF6B6B',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: BORDER_RADIUS.sm,
+    borderRadius: 8,
   },
   discountText: {
     fontSize: 11,
     fontWeight: '700',
-    color: COLORS.white,
+    color: '#fff',
   },
-  productContent: {
-    paddingTop: SPACING.xs,
+  sizeBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
-  productBrand: {
-    fontSize: 10,
+  sizeText: {
+    fontSize: 11,
     fontWeight: '600',
-    color: COLORS.gray[600],
+    color: '#fff',
+  },
+  cardInfo: {
+    paddingTop: 10,
+    paddingHorizontal: 4,
+  },
+  brandText: {
+    fontSize: 11,
+    color: '#999',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
     marginBottom: 2,
   },
-  productTitle: {
+  titleText: {
     fontSize: 13,
     fontWeight: '500',
-    color: COLORS.textPrimary,
+    color: '#333',
     marginBottom: 4,
-    lineHeight: 15,
   },
-  priceContainer: {
+  priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  originalPrice: {
+  priceText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  originalPriceText: {
     fontSize: 12,
-    color: COLORS.gray[500],
+    color: '#999',
     textDecorationLine: 'line-through',
   },
-  productPrice: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: COLORS.primary,
-  },
-  activeFiltersContainer: {
-    backgroundColor: COLORS.white,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray[200],
-  },
-  filterChip: {
-    flexDirection: 'row',
+
+  // Empty State
+  emptyState: {
     alignItems: 'center',
-    backgroundColor: COLORS.primaryLight,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-    borderRadius: BORDER_RADIUS.full,
-    marginRight: SPACING.sm,
-    gap: 4,
+    paddingVertical: 60,
+    paddingHorizontal: 24,
   },
-  filterChipText: {
-    fontSize: 13,
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#f8f8f8',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 18,
     fontWeight: '600',
-    color: COLORS.primary,
+    color: '#333',
+    marginBottom: 4,
   },
-  clearAllChip: {
-    backgroundColor: COLORS.gray[100],
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-    borderRadius: BORDER_RADIUS.full,
-  },
-  clearAllText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-  },
-  filtersSection: {
-    backgroundColor: COLORS.white,
-    padding: SPACING.md,
-    marginBottom: SPACING.sm,
-  },
-  filterGroup: {
-    marginBottom: SPACING.md,
-  },
-  filterGroupTitle: {
-    fontSize: TYPOGRAPHY.sizes.base,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.sm,
-  },
-  filterOptionsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.sm,
-  },
-  filterOption: {
-    backgroundColor: COLORS.gray[100],
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: BORDER_RADIUS.md,
-    borderWidth: 1.5,
-    borderColor: COLORS.gray[100],
-    marginRight: SPACING.sm,
-  },
-  filterOptionActive: {
-    backgroundColor: COLORS.primaryLight,
-    borderColor: COLORS.primary,
-  },
-  filterOptionText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-  },
-  filterOptionTextActive: {
-    color: COLORS.primary,
+  emptySubtitle: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
   },
 });
