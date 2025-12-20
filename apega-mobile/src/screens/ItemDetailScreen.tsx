@@ -470,7 +470,7 @@ export default function ItemDetailScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#FAF9F7',
   },
   loading: {
     flex: 1,
@@ -641,22 +641,27 @@ const styles = StyleSheet.create({
 
   // Content
   content: {
-    padding: isDesktop ? 0 : 20,
+    padding: isDesktop ? 0 : 24,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    marginTop: -24,
   },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: 24,
+    paddingTop: 28,
   },
   price: {
-    fontSize: 48,
-    fontWeight: '900',
-    color: COLORS.primary,
-    letterSpacing: -1,
+    fontSize: 42,
+    fontWeight: '700',
+    color: COLORS.gray[900],
+    letterSpacing: -0.5,
   },
   originalPrice: {
-    fontSize: 18,
+    fontSize: 16,
     color: COLORS.gray[400],
     textDecorationLine: 'line-through',
     marginTop: 6,
@@ -676,55 +681,56 @@ const styles = StyleSheet.create({
     color: COLORS.success,
   },
   titleSection: {
-    marginBottom: 24,
+    marginBottom: 28,
   },
   brandBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 10,
+    gap: 6,
+    marginBottom: 12,
   },
   brandText: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: COLORS.primary,
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray[400],
     textTransform: 'uppercase',
-    letterSpacing: 1.5,
+    letterSpacing: 0.5,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: '#1a1a1a',
-    lineHeight: 40,
+    fontSize: 26,
+    fontWeight: '700',
+    color: COLORS.gray[800],
+    lineHeight: 34,
   },
 
   // Atributos
   attributes: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
+    gap: 16,
+    marginBottom: 28,
   },
   attribute: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.gray[50],
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 14,
-    gap: 10,
+    backgroundColor: '#FAF9F7',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 20,
+    gap: 12,
     flex: 1,
   },
   attributeSuccess: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: COLORS.primaryExtraLight,
   },
   attrLabel: {
-    fontSize: 11,
+    fontSize: 12,
     color: COLORS.gray[500],
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    marginBottom: 2,
   },
   attrValue: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: COLORS.gray[800],
   },
@@ -739,21 +745,21 @@ const styles = StyleSheet.create({
 
   // CTAs
   mainCTA: {
-    borderRadius: 30,
+    borderRadius: 28,
     overflow: 'hidden',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   mainCTAGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 18,
-    gap: 10,
+    paddingVertical: 16,
+    gap: 8,
   },
   mainCTAText: {
     color: '#fff',
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
   },
   secondaryCTAs: {
     flexDirection: 'row',
@@ -779,7 +785,12 @@ const styles = StyleSheet.create({
 
   // Section
   section: {
-    marginBottom: 28,
+    marginBottom: 32,
+    backgroundColor: '#FAF9F7',
+    padding: 20,
+    borderRadius: 20,
+    marginHorizontal: -24,
+    paddingHorizontal: 24,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -788,7 +799,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
     color: COLORS.gray[800],
   },
@@ -802,9 +813,11 @@ const styles = StyleSheet.create({
   sellerCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.gray[50],
-    padding: 16,
-    borderRadius: 16,
+    backgroundColor: '#fff',
+    padding: 18,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.gray[200],
   },
   sellerAvatar: {
     width: 56,
@@ -840,16 +853,21 @@ const styles = StyleSheet.create({
 
   // Garantias
   guarantees: {
-    gap: 16,
+    gap: 12,
   },
   guarantee: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.gray[100],
   },
   guaranteeIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
@@ -858,14 +876,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   guaranteeTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: COLORS.gray[800],
     marginBottom: 4,
   },
   guaranteeText: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.gray[500],
+    lineHeight: 18,
   },
 
   // Footer
@@ -875,21 +894,21 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: COLORS.gray[200],
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     ...Platform.select({
-      web: { boxShadow: '0 -4px 20px rgba(0,0,0,0.1)' },
+      web: { boxShadow: '0 -4px 24px rgba(0,0,0,0.08)' },
       default: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 12,
+        shadowOpacity: 0.08,
+        shadowRadius: 16,
+        elevation: 16,
       },
     }),
   },
   footerContent: {
-    padding: 16,
+    padding: 20,
   },
   footerActions: {
     flexDirection: 'row',
