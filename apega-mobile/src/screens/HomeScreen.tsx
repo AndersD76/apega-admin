@@ -548,50 +548,37 @@ export default function HomeScreen({ navigation }: Props) {
 
         {/* SEÇÃO DE MARCAS - Grande e Impactante */}
         <View style={styles.brandsSection}>
-          <Text style={styles.brandsSectionTitle}>MARCAS EXCLUSIVAS</Text>
+          <View style={styles.brandsTitleRow}>
+            <Ionicons name="diamond" size={28} color={COLORS.primary} />
+            <Text style={styles.brandsSectionTitle}>MARCAS EXCLUSIVAS</Text>
+          </View>
           <Text style={styles.brandsSectionSubtitle}>
             Encontre peças das melhores marcas do mundo
           </Text>
 
-          {/* Primeira fileira de marcas */}
-          <View style={styles.brandsGrid}>
-            {BRAND_LOGOS.slice(0, 8).map((brand, index) => (
+          {/* Scroll horizontal de marcas */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.brandsScrollContainer}
+          >
+            {BRAND_LOGOS.map((brand, index) => (
               <TouchableOpacity
                 key={index}
                 style={styles.brandCard}
                 onPress={() => navigation.navigate('Search')}
               >
-                <View style={styles.brandLogoContainer}>
+                <Animated.View style={styles.brandLogoContainer}>
                   <Image
                     source={{ uri: brand.logo }}
                     style={styles.brandLogo}
                     resizeMode="contain"
                   />
-                </View>
+                </Animated.View>
                 <Text style={styles.brandName}>{brand.name}</Text>
               </TouchableOpacity>
             ))}
-          </View>
-
-          {/* Segunda fileira de marcas */}
-          <View style={styles.brandsGrid}>
-            {BRAND_LOGOS.slice(8, 16).map((brand, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.brandCard}
-                onPress={() => navigation.navigate('Search')}
-              >
-                <View style={styles.brandLogoContainer}>
-                  <Image
-                    source={{ uri: brand.logo }}
-                    style={styles.brandLogo}
-                    resizeMode="contain"
-                  />
-                </View>
-                <Text style={styles.brandName}>{brand.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          </ScrollView>
 
           <TouchableOpacity
             style={styles.viewAllBrandsBtn}
@@ -1333,13 +1320,24 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
     backgroundColor: '#fff',
   },
+  brandsTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
   brandsSectionTitle: {
-    fontSize: isDesktop ? 42 : 32,
+    fontSize: isDesktop ? 42 : 28,
     fontWeight: '800',
     color: COLORS.gray[800],
     textAlign: 'center',
-    marginBottom: 12,
     letterSpacing: 2,
+  },
+  brandsScrollContainer: {
+    paddingHorizontal: isDesktop ? 60 : 20,
+    gap: 20,
+    paddingVertical: 10,
   },
   brandsSectionSubtitle: {
     fontSize: 18,
@@ -1351,37 +1349,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: isDesktop ? 24 : 16,
-    marginBottom: 24,
+    gap: isDesktop ? 32 : 20,
+    marginBottom: 32,
   },
   brandCard: {
-    width: isDesktop ? 140 : 80,
+    width: isDesktop ? 160 : 100,
     alignItems: 'center',
   },
   brandLogoContainer: {
-    width: isDesktop ? 100 : 70,
-    height: isDesktop ? 100 : 70,
-    borderRadius: isDesktop ? 50 : 35,
+    width: isDesktop ? 120 : 85,
+    height: isDesktop ? 120 : 85,
+    borderRadius: isDesktop ? 60 : 42,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: COLORS.gray[100],
+    marginBottom: 14,
+    borderWidth: 3,
+    borderColor: COLORS.primaryLight,
     ...Platform.select({
-      web: { boxShadow: '0 4px 16px rgba(0,0,0,0.08)' },
+      web: {
+        boxShadow: '0 8px 32px rgba(107,144,128,0.2)',
+        transition: 'all 0.3s ease',
+      },
       default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-        elevation: 4,
+        shadowColor: COLORS.primary,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.2,
+        shadowRadius: 16,
+        elevation: 8,
       },
     }),
   },
   brandLogo: {
-    width: isDesktop ? 60 : 45,
-    height: isDesktop ? 60 : 45,
+    width: isDesktop ? 75 : 55,
+    height: isDesktop ? 75 : 55,
   },
   brandInitials: {
     fontSize: isDesktop ? 24 : 18,
