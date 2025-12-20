@@ -12,10 +12,7 @@ import {
   StatusBar,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS } from '../constants/theme';
 import { BottomNavigation } from '../components';
 import { getProducts, Product } from '../services/products';
 import { loadToken } from '../services/api';
@@ -24,21 +21,9 @@ import type { RootStackParamList } from '../navigation/AppNavigator';
 
 const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
-const isDesktop = isWeb && width > 768;
-const CARD_WIDTH = isDesktop ? (width - 120) / 4 : (width - 36) / 2;
+const isDesktop = isWeb && width > 900;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
-
-const CATEGORIES = [
-  { id: 'all', name: 'Tudo', icon: 'sparkles', color: '#FF6B6B' },
-  { id: 'vestidos', name: 'Vestidos', icon: 'shirt', color: '#4ECDC4' },
-  { id: 'blusas', name: 'Blusas', icon: 'shirt-outline', color: '#45B7D1' },
-  { id: 'calcas', name: 'Calças', icon: 'body', color: '#96CEB4' },
-  { id: 'saias', name: 'Saias', icon: 'flower', color: '#FFEAA7' },
-  { id: 'calcados', name: 'Calçados', icon: 'footsteps', color: '#DDA0DD' },
-  { id: 'bolsas', name: 'Bolsas', icon: 'bag-handle', color: '#F0E68C' },
-  { id: 'acessorios', name: 'Acessórios', icon: 'diamond', color: '#FFB6C1' },
-];
 
 interface DisplayItem {
   id: string;
@@ -47,9 +32,7 @@ interface DisplayItem {
   price: number;
   originalPrice?: number;
   images: string[];
-  category?: string;
   size?: string;
-  condition: string;
 }
 
 export default function HomeScreen({ navigation }: Props) {
@@ -57,7 +40,6 @@ export default function HomeScreen({ navigation }: Props) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('all');
 
   const handleSellPress = async () => {
     const token = await loadToken();
@@ -71,7 +53,7 @@ export default function HomeScreen({ navigation }: Props) {
   const fetchProducts = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
-      const response = await getProducts({ limit: 50, sort: 'recent' });
+      const response = await getProducts({ limit: 20, sort: 'recent' });
       setProducts(response.products || []);
     } catch (error) {
       console.error('Erro ao carregar produtos:', error);
@@ -100,181 +82,57 @@ export default function HomeScreen({ navigation }: Props) {
 
       return {
         id: product.id,
-        title: product.title || 'Sem título',
+        title: product.title || '',
         brand: product.brand,
         price: isNaN(price) ? 0 : price,
         originalPrice: originalPrice && !isNaN(originalPrice) ? originalPrice : undefined,
         images: product.images?.map(img => img.image_url) || (product.image_url ? [product.image_url] : []),
-        category: product.category_name,
         size: product.size,
-        condition: product.condition || 'usado',
       };
     });
   }, [products]);
 
-  const formatPrice = (price: number) => {
-    return `R$ ${price.toFixed(0)}`;
-  };
+  const formatPrice = (price: number) => `R$ ${price.toFixed(0)}`;
 
-  const getFilteredItems = () => {
-    let items = allItems;
-    if (selectedCategory !== 'all') {
-      items = items.filter(i => i.category?.toLowerCase() === selectedCategory);
-    }
-    return items;
-  };
-
-  const filteredItems = getFilteredItems();
-
-  const getDiscount = (original: number, current: number) => {
-    return Math.round(((original - current) / original) * 100);
-  };
-
-  const renderProductCard = (item: DisplayItem, index: number) => {
-    const imageHeight = index % 3 === 0 ? 260 : 200;
-    const hasDiscount = item.originalPrice && item.originalPrice > item.price;
-
-    return (
-      <TouchableOpacity
-        key={item.id}
-        style={[styles.productCard, { width: CARD_WIDTH }]}
-        onPress={() => navigation.navigate('ItemDetail', { item })}
-        activeOpacity={0.95}
-      >
-        <View style={[styles.imageContainer, { height: imageHeight }]}>
-          {item.images[0] ? (
-            <Image source={{ uri: item.images[0] }} style={styles.productImage} />
-          ) : (
-            <LinearGradient
-              colors={['#f0f0f0', '#e0e0e0']}
-              style={[styles.productImage, styles.imagePlaceholder]}
-            >
-              <Ionicons name="image-outline" size={32} color="#bbb" />
-            </LinearGradient>
-          )}
-
-          {/* Discount Badge */}
-          {hasDiscount && (
-            <View style={styles.discountBadge}>
-              <Text style={styles.discountText}>
-                -{getDiscount(item.originalPrice!, item.price)}%
-              </Text>
-            </View>
-          )}
-
-          {/* Size Badge */}
-          {item.size && (
-            <View style={styles.sizeBadge}>
-              <Text style={styles.sizeText}>{item.size}</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Card Info */}
-        <View style={styles.cardInfo}>
-          {item.brand && (
-            <Text style={styles.brandText} numberOfLines={1}>{item.brand}</Text>
-          )}
-          <Text style={styles.titleText} numberOfLines={1}>{item.title}</Text>
-          <View style={styles.priceRow}>
-            <Text style={styles.priceText}>{formatPrice(item.price)}</Text>
-            {hasDiscount && (
-              <Text style={styles.originalPriceText}>{formatPrice(item.originalPrice!)}</Text>
-            )}
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
+  // Loading
   if (loading) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+        <StatusBar barStyle="dark-content" backgroundColor="#FAFAF8" />
         <View style={styles.loadingContainer}>
-          <View style={styles.loadingIcon}>
-            <Ionicons name="leaf" size={32} color={COLORS.primary} />
-          </View>
-          <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 16 }} />
-          <Text style={styles.loadingText}>Carregando peças incríveis...</Text>
+          <ActivityIndicator size="small" color="#1a1a1a" />
         </View>
-        <BottomNavigation navigation={navigation} activeRoute="Home" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FAFAF8" />
 
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <View style={styles.headerTop}>
-          <View style={styles.logoContainer}>
-            <Text style={styles.logo}>Apega</Text>
-            <Text style={styles.logoAccent}>Desapega</Text>
-          </View>
+      {/* Header Minimalista */}
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+          <Text style={styles.logo}>apega</Text>
+        </TouchableOpacity>
 
-          {/* Desktop Navigation */}
-          {isDesktop && (
-            <View style={styles.desktopNav}>
-              <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Search')}>
-                <Text style={styles.navText}>Explorar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.navItem} onPress={handleSellPress}>
-                <Text style={styles.navText}>Vender</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Favorites')}>
-                <Text style={styles.navText}>Favoritos</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          <View style={styles.headerActions}>
-            {/* Search */}
-            <TouchableOpacity
-              style={styles.searchButton}
-              onPress={() => navigation.navigate('Search')}
-            >
-              <Ionicons name="search" size={20} color="#333" />
+        {isDesktop && (
+          <View style={styles.navDesktop}>
+            <TouchableOpacity onPress={() => navigation.navigate('Search')}>
+              <Text style={styles.navLink}>explorar</Text>
             </TouchableOpacity>
-
-            {/* Profile/Login */}
-            <TouchableOpacity
-              style={styles.profileButton}
-              onPress={() => navigation.navigate('Profile')}
-            >
-              <Ionicons name="person-circle-outline" size={28} color={COLORS.primary} />
+            <TouchableOpacity onPress={handleSellPress}>
+              <Text style={styles.navLink}>vender</Text>
             </TouchableOpacity>
-
-            {/* Sell Button Desktop */}
-            {isDesktop && (
-              <TouchableOpacity style={styles.sellButtonDesktop} onPress={handleSellPress}>
-                <LinearGradient
-                  colors={[COLORS.primary, '#4a7c59']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.sellGradient}
-                >
-                  <Ionicons name="add" size={18} color="#fff" />
-                  <Text style={styles.sellButtonText}>Anunciar</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity onPress={() => navigation.navigate('Favorites')}>
+              <Text style={styles.navLink}>salvos</Text>
+            </TouchableOpacity>
           </View>
-        </View>
-
-        {/* Search Bar Mobile */}
-        {!isDesktop && (
-          <TouchableOpacity
-            style={styles.searchBar}
-            onPress={() => navigation.navigate('Search')}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="search" size={18} color="#999" />
-            <Text style={styles.searchPlaceholder}>Buscar peças, marcas...</Text>
-          </TouchableOpacity>
         )}
+
+        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+          <Text style={styles.navLink}>entrar</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -283,148 +141,143 @@ export default function HomeScreen({ navigation }: Props) {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={COLORS.primary}
+            tintColor="#1a1a1a"
           />
         }
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Hero Banner */}
-        <View style={styles.heroBanner}>
-          <LinearGradient
-            colors={['#667eea', '#764ba2']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.heroGradient}
+        {/* Hero Editorial */}
+        <View style={styles.hero}>
+          <Text style={styles.heroTitle}>Moda circular{'\n'}para quem{'\n'}tem estilo</Text>
+          <Text style={styles.heroSubtitle}>
+            Peças únicas com história.{'\n'}De Passo Fundo para o seu closet.
+          </Text>
+          <TouchableOpacity
+            style={styles.heroButton}
+            onPress={() => navigation.navigate('Search')}
           >
-            <View style={styles.heroContent}>
-              <Text style={styles.heroTag}>NOVIDADE</Text>
-              <Text style={styles.heroTitle}>Moda com história</Text>
-              <Text style={styles.heroSubtitle}>
-                Cada peça conta uma história.{'\n'}Qual vai ser a sua?
-              </Text>
-              <TouchableOpacity style={styles.heroButton} onPress={() => navigation.navigate('Search')}>
-                <Text style={styles.heroButtonText}>Descobrir</Text>
-                <Ionicons name="arrow-forward" size={16} color="#764ba2" />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.heroDecor}>
-              <Ionicons name="leaf" size={120} color="rgba(255,255,255,0.1)" />
-            </View>
-          </LinearGradient>
+            <Text style={styles.heroButtonText}>Ver coleção</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Categories */}
-        <View style={styles.categoriesSection}>
-          <Text style={styles.sectionTitle}>Categorias</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoriesScroll}
-          >
-            {CATEGORIES.map(cat => (
+        {/* Grid Principal - Editorial Style */}
+        {allItems.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Novidades</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Search')}>
+                <Text style={styles.sectionLink}>Ver tudo</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Featured - Item Grande */}
+            {allItems[0] && (
               <TouchableOpacity
-                key={cat.id}
-                style={[
-                  styles.categoryItem,
-                  selectedCategory === cat.id && styles.categoryItemActive
-                ]}
-                onPress={() => setSelectedCategory(cat.id)}
+                style={styles.featuredCard}
+                onPress={() => navigation.navigate('ItemDetail', { item: allItems[0] })}
+                activeOpacity={0.9}
               >
-                <View style={[styles.categoryIcon, { backgroundColor: cat.color + '20' }]}>
-                  <Ionicons name={cat.icon as any} size={20} color={cat.color} />
+                <Image
+                  source={{ uri: allItems[0].images[0] }}
+                  style={styles.featuredImage}
+                />
+                <View style={styles.featuredInfo}>
+                  <Text style={styles.featuredBrand}>{allItems[0].brand || 'Marca'}</Text>
+                  <Text style={styles.featuredTitle} numberOfLines={1}>{allItems[0].title}</Text>
+                  <Text style={styles.featuredPrice}>{formatPrice(allItems[0].price)}</Text>
                 </View>
-                <Text style={[
-                  styles.categoryName,
-                  selectedCategory === cat.id && styles.categoryNameActive
-                ]}>
-                  {cat.name}
-                </Text>
               </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+            )}
 
-        {/* Products Section */}
-        <View style={styles.productsSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>
-              {selectedCategory === 'all' ? 'Acabou de chegar' : CATEGORIES.find(c => c.id === selectedCategory)?.name}
-            </Text>
-            <Text style={styles.productCount}>{filteredItems.length} peças</Text>
-          </View>
-
-          {filteredItems.length > 0 ? (
-            <View style={styles.productsGrid}>
-              {filteredItems.map((item, index) => renderProductCard(item, index))}
-            </View>
-          ) : (
-            <View style={styles.emptyState}>
-              <View style={styles.emptyIcon}>
-                <Ionicons name="shirt-outline" size={48} color="#ddd" />
-              </View>
-              <Text style={styles.emptyTitle}>Nenhuma peça ainda</Text>
-              <Text style={styles.emptySubtitle}>Seja a primeira a anunciar!</Text>
-              <TouchableOpacity style={styles.emptyButton} onPress={handleSellPress}>
-                <LinearGradient
-                  colors={[COLORS.primary, '#4a7c59']}
-                  style={styles.emptyButtonGradient}
+            {/* Grid 2 colunas */}
+            <View style={styles.grid}>
+              {allItems.slice(1, 7).map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.gridItem}
+                  onPress={() => navigation.navigate('ItemDetail', { item })}
+                  activeOpacity={0.9}
                 >
-                  <Ionicons name="add" size={20} color="#fff" />
-                  <Text style={styles.emptyButtonText}>Anunciar Agora</Text>
-                </LinearGradient>
+                  <View style={styles.gridImageContainer}>
+                    {item.images[0] ? (
+                      <Image source={{ uri: item.images[0] }} style={styles.gridImage} />
+                    ) : (
+                      <View style={[styles.gridImage, styles.placeholder]} />
+                    )}
+                  </View>
+                  <View style={styles.gridInfo}>
+                    <Text style={styles.gridBrand}>{item.brand || ''}</Text>
+                    <Text style={styles.gridPrice}>{formatPrice(item.price)}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* CTA Vender */}
+            <View style={styles.ctaSection}>
+              <Text style={styles.ctaTitle}>Desapegue do que{'\n'}não usa mais</Text>
+              <Text style={styles.ctaSubtitle}>
+                Venda suas peças e dê uma nova vida para elas
+              </Text>
+              <TouchableOpacity style={styles.ctaButton} onPress={handleSellPress}>
+                <Text style={styles.ctaButtonText}>Começar a vender</Text>
               </TouchableOpacity>
             </View>
-          )}
+
+            {/* Mais itens */}
+            {allItems.length > 7 && (
+              <>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Mais peças</Text>
+                </View>
+                <View style={styles.grid}>
+                  {allItems.slice(7, 15).map((item) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={styles.gridItem}
+                      onPress={() => navigation.navigate('ItemDetail', { item })}
+                      activeOpacity={0.9}
+                    >
+                      <View style={styles.gridImageContainer}>
+                        {item.images[0] ? (
+                          <Image source={{ uri: item.images[0] }} style={styles.gridImage} />
+                        ) : (
+                          <View style={[styles.gridImage, styles.placeholder]} />
+                        )}
+                      </View>
+                      <View style={styles.gridInfo}>
+                        <Text style={styles.gridBrand}>{item.brand || ''}</Text>
+                        <Text style={styles.gridPrice}>{formatPrice(item.price)}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
+          </>
+        )}
+
+        {/* Empty State */}
+        {allItems.length === 0 && (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyTitle}>Nenhuma peça ainda</Text>
+            <Text style={styles.emptySubtitle}>Seja a primeira a anunciar</Text>
+            <TouchableOpacity style={styles.emptyButton} onPress={handleSellPress}>
+              <Text style={styles.emptyButtonText}>Anunciar peça</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerLogo}>apega desapega</Text>
+          <Text style={styles.footerText}>
+            Nascemos em Passo Fundo, RS.{'\n'}
+            Fundado por Amanda Maier.
+          </Text>
+          <Text style={styles.footerMotto}>Moda com propósito.</Text>
         </View>
 
-        {/* About Section */}
-        <View style={styles.aboutSection}>
-          <LinearGradient
-            colors={['#f8f9fa', '#fff']}
-            style={styles.aboutGradient}
-          >
-            <View style={styles.aboutHeader}>
-              <Text style={styles.aboutTitle}>Sobre a Apega Desapega</Text>
-              <View style={styles.locationBadge}>
-                <Ionicons name="location" size={14} color={COLORS.primary} />
-                <Text style={styles.locationText}>Passo Fundo, RS</Text>
-              </View>
-            </View>
-
-            <Text style={styles.aboutText}>
-              Nascemos de uma lojinha física em Passo Fundo, Rio Grande do Sul.
-              O que começou pequeno, com a paixão da Amanda Maier por moda sustentável,
-              hoje é um dos brechós mais queridos do RS.
-            </Text>
-
-            <View style={styles.founderRow}>
-              <View style={styles.founderImage}>
-                <Ionicons name="person" size={28} color={COLORS.primary} />
-              </View>
-              <View style={styles.founderInfo}>
-                <Text style={styles.founderName}>Amanda Maier</Text>
-                <Text style={styles.founderRole}>Fundadora</Text>
-              </View>
-            </View>
-
-            <View style={styles.statsRow}>
-              <View style={styles.statItem}>
-                <Ionicons name="leaf" size={24} color="#4ECDC4" />
-                <Text style={styles.statLabel}>Moda Circular</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Ionicons name="heart" size={24} color="#FF6B6B" />
-                <Text style={styles.statLabel}>Feito com Amor</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Ionicons name="globe" size={24} color="#45B7D1" />
-                <Text style={styles.statLabel}>Sustentável</Text>
-              </View>
-            </View>
-          </LinearGradient>
-        </View>
-
-        {/* Bottom Spacing */}
         <View style={{ height: 100 }} />
       </ScrollView>
 
@@ -436,7 +289,7 @@ export default function HomeScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#FAFAF8',
   },
 
   // Loading
@@ -445,463 +298,252 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loadingIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#f0f7f4',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 14,
-    color: '#666',
-  },
 
   // Header
   header: {
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-    paddingBottom: 12,
-    paddingHorizontal: isDesktop ? 40 : 16,
-  },
-  headerTop: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: isDesktop ? 0 : 12,
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
+    paddingHorizontal: isDesktop ? 60 : 20,
+    paddingBottom: 16,
+    backgroundColor: '#FAFAF8',
   },
   logo: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: COLORS.primary,
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    fontSize: 28,
+    fontWeight: '400',
+    color: '#1a1a1a',
+    letterSpacing: -1,
   },
-  logoAccent: {
-    fontSize: 24,
-    fontWeight: '300',
-    color: '#333',
-    marginLeft: 4,
-  },
-  desktopNav: {
+  navDesktop: {
     flexDirection: 'row',
-    gap: 32,
+    gap: 40,
   },
-  navItem: {
-    paddingVertical: 8,
-  },
-  navText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#333',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  searchButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f5f5f5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    display: isDesktop ? 'flex' : 'none',
-  },
-  profileButton: {
-    padding: 4,
-  },
-  sellButtonDesktop: {
-    borderRadius: 24,
-    overflow: 'hidden',
-  },
-  sellGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    gap: 6,
-  },
-  sellButtonText: {
-    color: '#fff',
+  navLink: {
     fontSize: 14,
-    fontWeight: '600',
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 10,
-  },
-  searchPlaceholder: {
-    color: '#999',
-    fontSize: 15,
+    color: '#666',
+    letterSpacing: 0.5,
   },
 
-  // Scroll Content
+  // Scroll
   scrollContent: {
-    paddingTop: 16,
+    paddingBottom: 40,
   },
 
-  // Hero Banner
-  heroBanner: {
-    marginHorizontal: isDesktop ? 40 : 16,
-    marginBottom: 24,
-    borderRadius: 20,
-    overflow: 'hidden',
-    ...Platform.select({
-      web: { boxShadow: '0 8px 32px rgba(102, 126, 234, 0.25)' },
-      default: {
-        shadowColor: '#667eea',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.25,
-        shadowRadius: 16,
-        elevation: 8,
-      },
-    }),
-  },
-  heroGradient: {
-    padding: 24,
-    minHeight: 180,
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  heroContent: {
-    maxWidth: 280,
-  },
-  heroTag: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.8)',
-    letterSpacing: 1.5,
-    marginBottom: 8,
+  // Hero
+  hero: {
+    paddingHorizontal: isDesktop ? 60 : 20,
+    paddingTop: 40,
+    paddingBottom: 60,
   },
   heroTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#fff',
-    marginBottom: 8,
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    fontSize: isDesktop ? 64 : 42,
+    fontWeight: '400',
+    color: '#1a1a1a',
+    lineHeight: isDesktop ? 72 : 48,
+    letterSpacing: -2,
+    marginBottom: 20,
   },
   heroSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.9)',
-    lineHeight: 20,
-    marginBottom: 16,
+    fontSize: 16,
+    color: '#666',
+    lineHeight: 24,
+    marginBottom: 32,
   },
   heroButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
     alignSelf: 'flex-start',
-    gap: 6,
+    borderWidth: 1,
+    borderColor: '#1a1a1a',
+    paddingHorizontal: 32,
+    paddingVertical: 14,
   },
   heroButtonText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#764ba2',
-  },
-  heroDecor: {
-    position: 'absolute',
-    right: -20,
-    bottom: -20,
-    opacity: 0.5,
-  },
-
-  // Categories
-  categoriesSection: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
     color: '#1a1a1a',
-    marginHorizontal: isDesktop ? 40 : 16,
-    marginBottom: 16,
-  },
-  categoriesScroll: {
-    paddingHorizontal: isDesktop ? 40 : 16,
-    gap: 12,
-  },
-  categoryItem: {
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 16,
-    backgroundColor: '#f8f8f8',
-    minWidth: 80,
-  },
-  categoryItemActive: {
-    backgroundColor: COLORS.primary + '15',
-  },
-  categoryIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  categoryName: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#666',
-  },
-  categoryNameActive: {
-    color: COLORS.primary,
-    fontWeight: '600',
+    letterSpacing: 0.5,
   },
 
-  // Products Section
-  productsSection: {
-    paddingHorizontal: isDesktop ? 40 : 12,
-  },
+  // Section Header
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginHorizontal: 4,
-    marginBottom: 16,
+    paddingHorizontal: isDesktop ? 60 : 20,
+    marginBottom: 20,
+    marginTop: 20,
   },
-  productCount: {
-    fontSize: 13,
-    color: '#999',
+  sectionTitle: {
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    fontSize: 24,
+    fontWeight: '400',
+    color: '#1a1a1a',
+    letterSpacing: -0.5,
   },
-  productsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
+  sectionLink: {
+    fontSize: 14,
+    color: '#666',
+    textDecorationLine: 'underline',
   },
 
-  // Product Card
-  productCard: {
-    marginHorizontal: 6,
-    marginBottom: 20,
+  // Featured
+  featuredCard: {
+    marginHorizontal: isDesktop ? 60 : 20,
+    marginBottom: 24,
   },
-  imageContainer: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: '#f5f5f5',
-    position: 'relative',
+  featuredImage: {
+    width: '100%',
+    height: isDesktop ? 500 : 400,
+    backgroundColor: '#f0f0f0',
   },
-  productImage: {
+  featuredInfo: {
+    paddingTop: 16,
+  },
+  featuredBrand: {
+    fontSize: 12,
+    color: '#999',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  featuredTitle: {
+    fontSize: 18,
+    color: '#1a1a1a',
+    marginBottom: 6,
+  },
+  featuredPrice: {
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    fontSize: 20,
+    color: '#1a1a1a',
+  },
+
+  // Grid
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: isDesktop ? 52 : 12,
+  },
+  gridItem: {
+    width: isDesktop ? '25%' : '50%',
+    paddingHorizontal: 8,
+    marginBottom: 24,
+  },
+  gridImageContainer: {
+    aspectRatio: 0.75,
+    backgroundColor: '#f0f0f0',
+    marginBottom: 12,
+  },
+  gridImage: {
     width: '100%',
     height: '100%',
   },
-  imagePlaceholder: {
-    justifyContent: 'center',
-    alignItems: 'center',
+  placeholder: {
+    backgroundColor: '#e8e8e8',
   },
-  discountBadge: {
-    position: 'absolute',
-    top: 10,
-    left: 10,
-    backgroundColor: '#FF6B6B',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+  gridInfo: {
+    gap: 4,
   },
-  discountText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  sizeBadge: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  sizeText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  cardInfo: {
-    paddingTop: 10,
-    paddingHorizontal: 4,
-  },
-  brandText: {
+  gridBrand: {
     fontSize: 11,
     color: '#999',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 2,
   },
-  titleText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#333',
-    marginBottom: 4,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  priceText: {
+  gridPrice: {
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
     fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
-  originalPriceText: {
-    fontSize: 12,
-    color: '#999',
-    textDecorationLine: 'line-through',
+    color: '#1a1a1a',
   },
 
-  // Empty State
+  // CTA
+  ctaSection: {
+    backgroundColor: '#1a1a1a',
+    marginHorizontal: isDesktop ? 60 : 20,
+    marginVertical: 40,
+    padding: isDesktop ? 60 : 32,
+  },
+  ctaTitle: {
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    fontSize: isDesktop ? 36 : 28,
+    fontWeight: '400',
+    color: '#fff',
+    lineHeight: isDesktop ? 44 : 36,
+    letterSpacing: -1,
+    marginBottom: 16,
+  },
+  ctaSubtitle: {
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.7)',
+    marginBottom: 28,
+  },
+  ctaButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#fff',
+    paddingHorizontal: 28,
+    paddingVertical: 14,
+  },
+  ctaButtonText: {
+    fontSize: 14,
+    color: '#1a1a1a',
+    letterSpacing: 0.5,
+  },
+
+  // Empty
   emptyState: {
     alignItems: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 24,
-  },
-  emptyIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#f8f8f8',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
+    paddingVertical: 80,
+    paddingHorizontal: 40,
   },
   emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    fontSize: 24,
+    color: '#1a1a1a',
+    marginBottom: 8,
   },
   emptySubtitle: {
-    fontSize: 14,
-    color: '#999',
-    marginBottom: 24,
+    fontSize: 15,
+    color: '#666',
+    marginBottom: 32,
   },
   emptyButton: {
-    borderRadius: 24,
-    overflow: 'hidden',
-  },
-  emptyButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
+    borderWidth: 1,
+    borderColor: '#1a1a1a',
+    paddingHorizontal: 28,
     paddingVertical: 14,
-    gap: 8,
   },
   emptyButtonText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 14,
+    color: '#1a1a1a',
+    letterSpacing: 0.5,
   },
 
-  // About Section
-  aboutSection: {
-    marginHorizontal: isDesktop ? 40 : 16,
-    marginTop: 32,
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  aboutGradient: {
-    padding: 24,
-  },
-  aboutHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  // Footer
+  footer: {
     alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e8e8e8',
+    marginTop: 40,
+    marginHorizontal: isDesktop ? 60 : 20,
+  },
+  footerLogo: {
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    fontSize: 20,
+    color: '#1a1a1a',
     marginBottom: 16,
-    flexWrap: 'wrap',
-    gap: 8,
+    letterSpacing: -0.5,
   },
-  aboutTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1a1a1a',
-  },
-  locationBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.primary + '15',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 4,
-  },
-  locationText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: COLORS.primary,
-  },
-  aboutText: {
-    fontSize: 14,
-    color: '#555',
-    lineHeight: 22,
-    marginBottom: 20,
-  },
-  founderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    padding: 16,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    ...Platform.select({
-      web: { boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 4,
-        elevation: 2,
-      },
-    }),
-  },
-  founderImage: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#f0f7f4',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  founderInfo: {
-    flex: 1,
-  },
-  founderName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    marginBottom: 2,
-  },
-  founderRole: {
+  footerText: {
     fontSize: 13,
-    color: COLORS.primary,
-    fontWeight: '500',
+    color: '#999',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 12,
   },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  statLabel: {
+  footerMotto: {
     fontSize: 12,
     color: '#666',
-    fontWeight: '500',
+    fontStyle: 'italic',
   },
 });
