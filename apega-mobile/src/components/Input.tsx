@@ -20,6 +20,8 @@ interface InputProps extends TextInputProps {
   maxLength?: number;
   showCharCounter?: boolean;
   style?: ViewStyle;
+  hasLeftIcon?: boolean;
+  hasRightIcon?: boolean;
 }
 
 export default function Input({
@@ -33,6 +35,8 @@ export default function Input({
   style,
   value,
   onChangeText,
+  hasLeftIcon = false,
+  hasRightIcon = false,
   ...props
 }: InputProps) {
   const [isFocused, setIsFocused] = useState(false);
@@ -44,7 +48,7 @@ export default function Input({
   };
 
   const getInputStyle = () => {
-    const baseStyle = [styles.input];
+    const baseStyle: any[] = [styles.input];
 
     if (type === 'textarea') {
       baseStyle.push(styles.textarea);
@@ -56,6 +60,14 @@ export default function Input({
 
     if (error) {
       baseStyle.push(styles.inputError);
+    }
+
+    if (hasLeftIcon) {
+      baseStyle.push({ paddingLeft: 48 });
+    }
+
+    if (hasRightIcon) {
+      baseStyle.push({ paddingRight: 48 });
     }
 
     return baseStyle;
@@ -80,7 +92,7 @@ export default function Input({
         onChangeText={handleChangeText}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        placeholderTextColor={COLORS.textTertiary}
+        placeholderTextColor="#9CA3AF"
         maxLength={maxLength}
         multiline={type === 'textarea'}
         numberOfLines={type === 'textarea' ? 5 : 1}
@@ -111,7 +123,7 @@ export default function Input({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm,
   },
 
   labelContainer: {
@@ -131,14 +143,14 @@ const styles = StyleSheet.create({
 
   input: {
     width: '100%',
-    height: 44,
+    height: 52,
     paddingHorizontal: SPACING.md,
-    borderWidth: 2,
-    borderColor: COLORS.border,
-    borderRadius: BORDER_RADIUS.md,
-    fontSize: TYPOGRAPHY.sizes.sm,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray[200],
+    borderRadius: BORDER_RADIUS.lg,
+    fontSize: TYPOGRAPHY.sizes.base,
     color: COLORS.textPrimary,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.gray[50],
   },
 
   textarea: {
@@ -149,11 +161,7 @@ const styles = StyleSheet.create({
 
   inputFocused: {
     borderColor: COLORS.primary,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    backgroundColor: COLORS.white,
   },
 
   inputError: {

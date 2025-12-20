@@ -258,6 +258,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 placeholder="Seu e-mail"
                 keyboardType="email-address"
                 autoCapitalize="none"
+                hasLeftIcon
               />
             </View>
 
@@ -271,6 +272,8 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 onChangeText={setPassword}
                 placeholder="Sua senha"
                 secureTextEntry={!showPassword}
+                hasLeftIcon
+                hasRightIcon
               />
               <TouchableOpacity
                 style={styles.eyeButton}
@@ -367,6 +370,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
               value={signupName}
               onChangeText={setSignupName}
               placeholder="Nome completo"
+              hasLeftIcon
             />
           </View>
 
@@ -381,6 +385,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
               placeholder="E-mail"
               keyboardType="email-address"
               autoCapitalize="none"
+              hasLeftIcon
             />
           </View>
 
@@ -394,6 +399,8 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
               onChangeText={setSignupPassword}
               placeholder="Senha (mín. 8 caracteres)"
               secureTextEntry={!showSignupPassword}
+              hasLeftIcon
+              hasRightIcon
             />
             <TouchableOpacity
               style={styles.eyeButton}
@@ -417,6 +424,8 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
               onChangeText={setSignupPasswordConfirm}
               placeholder="Confirmar senha"
               secureTextEntry={!showSignupPasswordConfirm}
+              hasLeftIcon
+              hasRightIcon
             />
             <TouchableOpacity
               style={styles.eyeButton}
@@ -554,6 +563,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
               placeholder="Seu e-mail"
               keyboardType="email-address"
               autoCapitalize="none"
+              hasLeftIcon
             />
           </View>
 
@@ -665,18 +675,18 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     position: 'relative',
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.xs,
   },
   inputIcon: {
     position: 'absolute',
     left: 16,
-    top: 17,
+    top: 16,
     zIndex: 1,
   },
   eyeButton: {
     position: 'absolute',
     right: 16,
-    top: 17,
+    top: 16,
     zIndex: 1,
   },
   forgotButton: {
