@@ -53,7 +53,13 @@
       "Bash(powershell -Command:*)",
       "Bash(pip install:*)",
       "Bash(python banner_generator.py:*)",
-      "Bash(python advanced_templates.py:*)"
+      "Bash(python advanced_templates.py:*)",
+      "Bash(railway whoami:*)",
+      "Bash(set RAILWAY_TOKEN=15c37fc3-1fdb-495a-bdae-db4e3645e4f1)",
+      "Bash($env:RAILWAY_TOKEN=\"15c37fc3-1fdb-495a-bdae-db4e3645e4f1\")",
+      "Bash(export RAILWAY_TOKEN=\"15c37fc3-1fdb-495a-bdae-db4e3645e4f1\")",
+      "Bash(export RAILWAY_TOKEN=\"04ed6e5b-8844-4187-8813-e4d6b3882c42\")",
+      "Bash(export RAILWAY_TOKEN=\"0e7468a5-18f8-42f5-bd85-5cdc1265d7ad\")"
     ],
     "deny": [],
     "ask": []
