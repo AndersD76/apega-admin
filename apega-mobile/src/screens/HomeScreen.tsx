@@ -255,7 +255,10 @@ export default function HomeScreen({ navigation }: Props) {
               >
                 <Text style={styles.categoryTitle}>{cat.name}</Text>
                 <Text style={styles.categoryDesc}>{cat.desc}</Text>
-                <Image source={{ uri: cat.image }} style={styles.categoryImage} />
+                <View style={styles.categoryImageWrapper}>
+                  <View style={styles.categoryGeometry} />
+                  <Image source={{ uri: cat.image }} style={styles.categoryImage} />
+                </View>
               </TouchableOpacity>
             ))}
           </View>
@@ -651,9 +654,25 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     lineHeight: 18,
   },
-  categoryImage: {
+  categoryImageWrapper: {
+    position: 'relative',
     width: 100,
-    height: 120,
+    height: 130,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  categoryGeometry: {
+    position: 'absolute',
+    top: 0,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.primaryLight,
+    opacity: 0.4,
+  },
+  categoryImage: {
+    width: 90,
+    height: 110,
     borderRadius: 12,
     backgroundColor: COLORS.gray[100],
   },
