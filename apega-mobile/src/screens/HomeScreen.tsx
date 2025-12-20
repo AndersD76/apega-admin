@@ -625,11 +625,8 @@ const styles = StyleSheet.create({
     borderRadius: 24,
   },
   heroImage: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    width: '65%',
-    height: '80%',
+    width: '100%',
+    height: '100%',
     borderRadius: 20,
     backgroundColor: '#fff',
   },
@@ -648,6 +645,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     top: 0,
+    width: '65%',
+    height: '80%',
   },
   carouselLabel: {
     position: 'absolute',
