@@ -2,7 +2,17 @@
 nixPkgs = ["nodejs_20"]
 
 [phases.install]
-cmds = ["cd apega-backend && npm install"]
+cmds = [
+  "cd apega-mobile && npm install",
+  "cd apega-backend && npm install"
+]
+
+[phases.build]
+cmds = [
+  "cd apega-mobile && npx expo export --platform web",
+  "rm -rf apega-backend/public",
+  "cp -r apega-mobile/dist apega-backend/public"
+]
 
 [start]
 cmd = "cd apega-backend && node src/server.js"
