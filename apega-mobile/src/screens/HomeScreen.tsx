@@ -123,6 +123,11 @@ export default function HomeScreen({ navigation }: Props) {
   const infoSlideAnim = useRef(new Animated.Value(0)).current;
   const infoOpacityAnim = useRef(new Animated.Value(1)).current;
 
+  // Premium banner state
+  const [showPremiumBanner, setShowPremiumBanner] = useState(false);
+  const premiumBannerAnim = useRef(new Animated.Value(0)).current;
+  const premiumShineAnim = useRef(new Animated.Value(0)).current;
+
   // Auto-rotate carousel com transição mais suave
   useEffect(() => {
     const interval = setInterval(() => {
@@ -168,6 +173,44 @@ export default function HomeScreen({ navigation }: Props) {
     }, 6000);
     return () => clearInterval(interval);
   }, [fadeAnim, infoSlideAnim, infoOpacityAnim]);
+
+  // Mostrar banner premium após 5 segundos
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowPremiumBanner(true);
+      Animated.parallel([
+        Animated.spring(premiumBannerAnim, {
+          toValue: 1,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(premiumShineAnim, {
+              toValue: 1,
+              duration: 2000,
+              useNativeDriver: true,
+            }),
+            Animated.timing(premiumShineAnim, {
+              toValue: 0,
+              duration: 2000,
+              useNativeDriver: true,
+            }),
+          ])
+        ),
+      ]).start();
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [premiumBannerAnim, premiumShineAnim]);
+
+  const dismissPremiumBanner = () => {
+    Animated.timing(premiumBannerAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => setShowPremiumBanner(false));
+  };
 
   const handleSellPress = async () => {
     const token = await loadToken();
@@ -584,6 +627,98 @@ export default function HomeScreen({ navigation }: Props) {
               <Text style={styles.primaryButtonText}>Anunciar peça</Text>
             </TouchableOpacity>
           </View>
+        )}
+
+        {/* Premium Banner */}
+        {showPremiumBanner && (
+          <Animated.View
+            style={[
+              styles.premiumBanner,
+              {
+                opacity: premiumBannerAnim,
+                transform: [
+                  {
+                    translateY: premiumBannerAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [50, 0],
+                    }),
+                  },
+                  {
+                    scale: premiumBannerAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.95, 1],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            {/* Dismiss button */}
+            <TouchableOpacity style={styles.premiumDismiss} onPress={dismissPremiumBanner}>
+              <Ionicons name="close" size={18} color="#fff" />
+            </TouchableOpacity>
+
+            {/* Crown icon animado */}
+            <Animated.View
+              style={[
+                styles.premiumCrown,
+                {
+                  transform: [
+                    {
+                      scale: premiumShineAnim.interpolate({
+                        inputRange: [0, 0.5, 1],
+                        outputRange: [1, 1.15, 1],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            >
+              <Ionicons name="diamond" size={28} color="#FFD700" />
+            </Animated.View>
+
+            {/* Conteúdo principal */}
+            <View style={styles.premiumContent}>
+              <Text style={styles.premiumTitle}>Seja PREMIUM</Text>
+              <Text style={styles.premiumSubtitle}>
+                Acesso exclusivo às melhores peças antes de todo mundo
+              </Text>
+
+              {/* Fotos de produtos premium */}
+              <View style={styles.premiumProductsRow}>
+                <Image
+                  source={{ uri: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=200&q=80' }}
+                  style={styles.premiumProductImg}
+                />
+                <Image
+                  source={{ uri: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=200&q=80' }}
+                  style={styles.premiumProductImg}
+                />
+                <Image
+                  source={{ uri: 'https://images.unsplash.com/photo-1591561954557-26941169b49e?w=200&q=80' }}
+                  style={styles.premiumProductImg}
+                />
+              </View>
+
+              {/* Benefícios */}
+              <View style={styles.premiumBenefits}>
+                <View style={styles.premiumBenefit}>
+                  <Ionicons name="flash" size={14} color="#FFD700" />
+                  <Text style={styles.premiumBenefitText}>Acesso antecipado</Text>
+                </View>
+                <View style={styles.premiumBenefit}>
+                  <Ionicons name="pricetag" size={14} color="#FFD700" />
+                  <Text style={styles.premiumBenefitText}>Descontos exclusivos</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* CTA Button */}
+            <TouchableOpacity style={styles.premiumCTA} onPress={() => navigation.navigate('Profile')}>
+              <Text style={styles.premiumCTAText}>Quero ser Premium</Text>
+              <Ionicons name="arrow-forward" size={16} color="#1a1a1a" />
+            </TouchableOpacity>
+          </Animated.View>
         )}
 
         {/* Footer */}
@@ -1275,6 +1410,102 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#fff',
+  },
+
+  // Premium Banner
+  premiumBanner: {
+    marginHorizontal: isDesktop ? 60 : 16,
+    marginBottom: 32,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  premiumDismiss: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  premiumCrown: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,215,0,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  premiumContent: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  premiumTitle: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#FFD700',
+    letterSpacing: 2,
+    marginBottom: 8,
+  },
+  premiumSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 16,
+    maxWidth: 280,
+  },
+  premiumProductsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  premiumProductImg: {
+    width: 70,
+    height: 70,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(255,215,0,0.4)',
+  },
+  premiumBenefits: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  premiumBenefit: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  premiumBenefitText: {
+    fontSize: 12,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  premiumCTA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 28,
+    paddingVertical: 14,
+    borderRadius: 24,
+  },
+  premiumCTAText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1a1a1a',
   },
 
   // Footer
