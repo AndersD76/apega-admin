@@ -1383,6 +1383,12 @@ const styles = StyleSheet.create({
     width: isDesktop ? 60 : 45,
     height: isDesktop ? 60 : 45,
   },
+  brandInitials: {
+    fontSize: isDesktop ? 24 : 18,
+    fontWeight: '800',
+    color: '#fff',
+    letterSpacing: 1,
+  },
   brandName: {
     fontSize: isDesktop ? 14 : 11,
     fontWeight: '700',
