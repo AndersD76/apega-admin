@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,23 @@ import {
   Platform,
   StatusBar,
   TextInput,
+  Image,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
 import { login, register } from '../services/auth';
+
+// Imagens do carousel
+const CAROUSEL_IMAGES = [
+  { uri: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=80', label: 'Vestidos' },
+  { uri: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=400&q=80', label: 'Moda' },
+  { uri: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=80', label: 'Bolsas' },
+  { uri: 'https://images.unsplash.com/photo-1515347619252-60a4bf4fff4f?w=400&q=80', label: 'Calçados' },
+  { uri: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&q=80', label: 'Blusas' },
+];
 
 interface LoginScreenProps {
   navigation: any;
@@ -43,6 +54,35 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
   // Loading state
   const [isLoading, setIsLoading] = useState(false);
+
+  // Carousel state
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  // Auto-rotate carousel
+  useEffect(() => {
+    if (currentScreen !== 'main') return;
+
+    const interval = setInterval(() => {
+      // Fade out
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        // Change image
+        setCurrentImageIndex((prev) => (prev + 1) % CAROUSEL_IMAGES.length);
+        // Fade in
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+      });
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [currentScreen, fadeAnim]);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -100,36 +140,70 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   if (currentScreen === 'main') {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#667eea" />
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
 
-        {/* Hero Gradient */}
-        <LinearGradient
-          colors={['#667eea', '#764ba2']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.heroGradient, { paddingTop: insets.top + 20 }]}
-        >
+        {/* Hero with Image */}
+        <View style={[styles.heroSection, { paddingTop: insets.top }]}>
+          {/* Background Image */}
+          <Image
+            source={{ uri: 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=800&q=80' }}
+            style={styles.heroBackground}
+          />
+
+          {/* Overlay Gradient */}
+          <LinearGradient
+            colors={['rgba(107, 144, 128, 0.85)', 'rgba(82, 115, 99, 0.95)']}
+            style={styles.heroOverlay}
+          />
+
+          {/* Geometric Shapes */}
+          <View style={styles.heroGeometry1} />
+          <View style={styles.heroGeometry2} />
+
+          {/* Back Button */}
           <TouchableOpacity
             style={styles.backButtonLight}
             onPress={() => navigation.goBack()}
           >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Text style={styles.backArrow}>←</Text>
           </TouchableOpacity>
 
+          {/* Hero Content */}
           <View style={styles.heroContent}>
-            <View style={styles.heroIconContainer}>
-              <Ionicons name="leaf" size={48} color="#fff" />
-            </View>
-            <Text style={styles.heroTitle}>Apega Desapega</Text>
-            <Text style={styles.heroSubtitle}>
-              Moda com propósito.{'\n'}Sustentabilidade com estilo.
+            <Text style={styles.heroLogo}>apegadesapega</Text>
+            <Text style={styles.heroTagline}>
+              MODA SUSTENTÁVEL{'\n'}É NOSSO MODO DE{'\n'}MUDAR O MUNDO
             </Text>
           </View>
 
-          <View style={styles.heroDecor}>
-            <Ionicons name="shirt-outline" size={100} color="rgba(255,255,255,0.08)" />
+          {/* Hero Carousel */}
+          <View style={styles.heroImageArea}>
+            <View style={styles.heroImageCircle} />
+            <Animated.View style={[styles.carouselContainer, { opacity: fadeAnim }]}>
+              <Image
+                source={{ uri: CAROUSEL_IMAGES[currentImageIndex].uri }}
+                style={styles.heroImage}
+              />
+              <View style={styles.carouselLabel}>
+                <Text style={styles.carouselLabelText}>
+                  {CAROUSEL_IMAGES[currentImageIndex].label}
+                </Text>
+              </View>
+            </Animated.View>
+            {/* Dots indicator */}
+            <View style={styles.dotsContainer}>
+              {CAROUSEL_IMAGES.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.dot,
+                    currentImageIndex === index && styles.dotActive
+                  ]}
+                />
+              ))}
+            </View>
           </View>
-        </LinearGradient>
+        </View>
 
         {/* Content */}
         <View style={styles.mainContent}>
@@ -145,7 +219,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             activeOpacity={0.9}
           >
             <LinearGradient
-              colors={[COLORS.primary, '#4a7c59']}
+              colors={[COLORS.primary, COLORS.primaryDark]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.primaryBtnGradient}
@@ -176,27 +250,27 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
               style={styles.socialIconBtn}
               onPress={() => handleSocialLogin('Google')}
             >
-              <Ionicons name="logo-google" size={22} color="#EA4335" />
+              <Text style={styles.socialIconText}>G</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.socialIconBtn}
+              style={[styles.socialIconBtn, { backgroundColor: '#1877F2' }]}
               onPress={() => handleSocialLogin('Facebook')}
             >
-              <Ionicons name="logo-facebook" size={22} color="#1877F2" />
+              <Text style={[styles.socialIconText, { color: '#fff' }]}>f</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.socialIconBtn}
+              style={[styles.socialIconBtn, { backgroundColor: '#000' }]}
               onPress={() => handleSocialLogin('Apple')}
             >
-              <Ionicons name="logo-apple" size={22} color="#000" />
+              <Text style={[styles.socialIconText, { color: '#fff' }]}></Text>
             </TouchableOpacity>
           </View>
 
           {/* Footer */}
           <Text style={styles.footerText}>
-            De Passo Fundo para o mundo{'\n'}com amor e sustentabilidade
+            De Passo Fundo para o mundo{'\n'}com amor e sustentabilidade 💚
           </Text>
         </View>
       </View>
@@ -531,67 +605,142 @@ const styles = StyleSheet.create({
   },
 
   // Hero
-  heroGradient: {
-    paddingHorizontal: 24,
-    paddingBottom: 40,
+  heroSection: {
     position: 'relative',
+    height: 320,
     overflow: 'hidden',
   },
-  backButtonLight: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
+  heroBackground: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
   },
-  heroContent: {
-    alignItems: 'center',
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
   },
-  heroIconContainer: {
+  heroGeometry1: {
+    position: 'absolute',
+    top: 20,
+    right: -40,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  heroGeometry2: {
+    position: 'absolute',
+    bottom: -30,
+    left: -20,
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  backButtonLight: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.25)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    zIndex: 10,
   },
-  heroTitle: {
-    fontSize: 28,
+  backArrow: {
+    fontSize: 24,
+    color: '#fff',
+    fontWeight: '300',
+  },
+  heroContent: {
+    position: 'absolute',
+    left: 24,
+    top: 80,
+    maxWidth: '50%',
+  },
+  heroLogo: {
+    fontSize: 22,
     fontWeight: '800',
     color: '#fff',
-    marginBottom: 8,
+    marginBottom: 12,
+    letterSpacing: -0.5,
   },
-  heroSubtitle: {
-    fontSize: 15,
-    color: 'rgba(255,255,255,0.9)',
-    textAlign: 'center',
-    lineHeight: 22,
+  heroTagline: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#fff',
+    lineHeight: 26,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
-  heroDecor: {
+  heroImageArea: {
     position: 'absolute',
-    right: -30,
-    bottom: -20,
+    right: 16,
+    top: 60,
+    alignItems: 'center',
+  },
+  heroImageCircle: {
+    position: 'absolute',
+    top: -10,
+    right: 20,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+  },
+  carouselContainer: {
+    alignItems: 'center',
+  },
+  heroImage: {
+    width: 140,
+    height: 180,
+    borderRadius: 16,
+  },
+  carouselLabel: {
+    marginTop: 8,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  carouselLabelText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    marginTop: 12,
+    gap: 6,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.4)',
+  },
+  dotActive: {
+    backgroundColor: '#fff',
+    width: 18,
   },
 
   // Main Content
   mainContent: {
     flex: 1,
-    paddingHorizontal: 32,
-    paddingTop: 32,
+    paddingHorizontal: 28,
+    paddingTop: 28,
     paddingBottom: 24,
   },
   welcomeTitle: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 32,
+    fontWeight: '800',
     color: '#1a1a1a',
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   welcomeSubtitle: {
-    fontSize: 15,
+    fontSize: 18,
     color: '#666',
     textAlign: 'center',
     marginBottom: 32,
@@ -601,32 +750,37 @@ const styles = StyleSheet.create({
   primaryBtn: {
     borderRadius: 28,
     overflow: 'hidden',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   primaryBtnGradient: {
-    paddingVertical: 16,
+    paddingVertical: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
   primaryBtnText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
   },
 
   // Secondary Button
   secondaryBtn: {
-    paddingVertical: 16,
+    paddingVertical: 18,
     alignItems: 'center',
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: COLORS.primary,
     borderRadius: 28,
     marginBottom: 24,
   },
   secondaryBtnText: {
     color: COLORS.primary,
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  socialIconText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#EA4335',
   },
 
   // Divider
@@ -726,31 +880,31 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   formTitle: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '800',
     color: '#1a1a1a',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   formSubtitle: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666',
     textAlign: 'center',
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 18,
   },
   inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     color: '#333',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#e0e0e0',
-    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: COLORS.primaryLight,
+    borderRadius: 16,
     backgroundColor: '#fafafa',
   },
   inputIcon: {
@@ -758,9 +912,9 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 14,
-    fontSize: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 16,
+    fontSize: 17,
     color: '#1a1a1a',
   },
   eyeBtn: {
