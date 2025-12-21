@@ -176,10 +176,52 @@ export default function HomeScreen({ navigation }: Props) {
   // Category counts state
   const [categoryCounts, setCategoryCounts] = useState<{ [key: string]: number }>({});
 
-  // Promo popup state - mostra na primeira visita
+  // Onboarding modal state - multi-step flow
   const [showPromoPopup, setShowPromoPopup] = useState(true);
+  const [onboardingStep, setOnboardingStep] = useState(0);
   const promoScaleAnim = useRef(new Animated.Value(0)).current;
   const promoOpacityAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
+  // Onboarding slides data
+  const ONBOARDING_SLIDES = [
+    {
+      image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80',
+      icon: 'sparkles',
+      iconColor: '#FFD700',
+      title: 'Bem-vinda ao futuro da moda',
+      subtitle: 'A primeira plataforma de moda circular do Brasil com IA',
+      highlight: 'LANÇAMENTO',
+      highlightColor: COLORS.primary,
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80',
+      icon: 'camera',
+      iconColor: '#4CAF50',
+      title: 'Fotografe e venda',
+      subtitle: 'Nossa IA avalia suas peças automaticamente e sugere o melhor preço',
+      highlight: 'SIMPLES',
+      highlightColor: '#4CAF50',
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=800&q=80',
+      icon: 'pricetag',
+      iconColor: '#E91E63',
+      title: '0% de comissão',
+      subtitle: 'Para as primeiras 100 vendedoras. Para sempre.',
+      highlight: 'EXCLUSIVO',
+      highlightColor: '#E91E63',
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&q=80',
+      icon: 'diamond',
+      iconColor: '#F59E0B',
+      title: 'Premium grátis',
+      subtitle: '10 vagas com todos os recursos Premium por 1 ano',
+      highlight: 'LIMITADO',
+      highlightColor: '#F59E0B',
+    },
+  ];
 
   // Scroll animations
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -278,6 +320,31 @@ export default function HomeScreen({ navigation }: Props) {
         useNativeDriver: true,
       }),
     ]).start(() => setShowPromoPopup(false));
+  };
+
+  // Avançar para próximo slide do onboarding
+  const nextOnboardingSlide = () => {
+    if (onboardingStep < ONBOARDING_SLIDES.length - 1) {
+      // Animar saída
+      Animated.timing(slideAnim, {
+        toValue: -1,
+        duration: 250,
+        useNativeDriver: true,
+      }).start(() => {
+        setOnboardingStep(prev => prev + 1);
+        slideAnim.setValue(1);
+        // Animar entrada
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        }).start();
+      });
+    } else {
+      // Último slide - ir para cadastro
+      closePromoPopup();
+      navigation.navigate('Login', { redirectTo: 'NewItem' });
+    }
   };
 
   // Auto-rotate carousel com transição mais suave
@@ -428,112 +495,98 @@ export default function HomeScreen({ navigation }: Props) {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FAF9F7" />
 
-      {/* Modal de Lançamento - Design Premium */}
+      {/* Modal de Onboarding - Multi-step com transições */}
       <Modal
         visible={showPromoPopup}
         transparent={true}
         animationType="fade"
         onRequestClose={closePromoPopup}
       >
-        <View style={styles.launchOverlay}>
+        <View style={styles.onboardingOverlay}>
           <Animated.View
             style={[
-              styles.launchModal,
+              styles.onboardingModal,
               {
                 opacity: promoOpacityAnim,
-                transform: [{ scale: promoScaleAnim }],
+                transform: [
+                  { scale: promoScaleAnim },
+                  { translateX: slideAnim.interpolate({
+                    inputRange: [-1, 0, 1],
+                    outputRange: [-100, 0, 100],
+                  })},
+                ],
               },
             ]}
           >
-            {/* Left Side - Image */}
-            <View style={styles.launchImageSide}>
-              <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80' }}
-                style={styles.launchImage}
-              />
-              <LinearGradient
-                colors={['transparent', 'rgba(0,0,0,0.7)']}
-                style={styles.launchImageGradient}
-              />
-              <View style={styles.launchImageContent}>
-                <View style={styles.launchQuoteBox}>
-                  <Text style={styles.launchQuote}>"A moda mais consciente do Brasil"</Text>
-                  <View style={styles.launchStars}>
-                    {[1,2,3,4,5].map(i => (
-                      <Ionicons key={i} name="star" size={14} color="#FFD700" />
-                    ))}
-                  </View>
-                </View>
-              </View>
-            </View>
+            {/* Background Image */}
+            <Image
+              source={{ uri: ONBOARDING_SLIDES[onboardingStep].image }}
+              style={styles.onboardingBgImage}
+            />
+            <LinearGradient
+              colors={['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.85)']}
+              style={styles.onboardingGradient}
+            />
 
-            {/* Right Side - Content */}
-            <View style={styles.launchContentSide}>
-              {/* Logo */}
-              <Text style={styles.launchLogo}>
-                apega<Text style={styles.launchLogoLight}>desapega</Text>
-              </Text>
+            {/* Content */}
+            <View style={styles.onboardingContent}>
+              {/* Progress dots */}
+              <View style={styles.onboardingDots}>
+                {ONBOARDING_SLIDES.map((_, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.onboardingDot,
+                      index === onboardingStep && styles.onboardingDotActive,
+                      index < onboardingStep && styles.onboardingDotCompleted,
+                    ]}
+                  />
+                ))}
+              </View>
+
+              {/* Icon */}
+              <View style={[styles.onboardingIconBox, { backgroundColor: `${ONBOARDING_SLIDES[onboardingStep].iconColor}20` }]}>
+                <Ionicons
+                  name={ONBOARDING_SLIDES[onboardingStep].icon as any}
+                  size={48}
+                  color={ONBOARDING_SLIDES[onboardingStep].iconColor}
+                />
+              </View>
 
               {/* Badge */}
-              <View style={styles.launchBadge}>
-                <Ionicons name="gift" size={14} color={COLORS.primary} />
-                <Text style={styles.launchBadgeText}>LANÇAMENTO EXCLUSIVO</Text>
+              <View style={[styles.onboardingBadge, { backgroundColor: `${ONBOARDING_SLIDES[onboardingStep].highlightColor}20` }]}>
+                <Text style={[styles.onboardingBadgeText, { color: ONBOARDING_SLIDES[onboardingStep].highlightColor }]}>
+                  {ONBOARDING_SLIDES[onboardingStep].highlight}
+                </Text>
               </View>
 
               {/* Title */}
-              <Text style={styles.launchTitle}>
-                Seja uma das primeiras
-              </Text>
-              <Text style={styles.launchSubtitle}>
-                Garanta benefícios que nunca mais serão oferecidos
+              <Text style={styles.onboardingTitle}>
+                {ONBOARDING_SLIDES[onboardingStep].title}
               </Text>
 
-              {/* Benefits Cards */}
-              <View style={styles.launchBenefitsGrid}>
-                <View style={styles.launchBenefitCard}>
-                  <View style={styles.launchBenefitIconLarge}>
-                    <Ionicons name="pricetag" size={28} color="#4CAF50" />
-                  </View>
-                  <Text style={styles.launchBenefitNumber}>100</Text>
-                  <Text style={styles.launchBenefitLabel}>vagas</Text>
-                  <Text style={styles.launchBenefitDesc}>0% comissão para sempre</Text>
-                </View>
+              {/* Subtitle */}
+              <Text style={styles.onboardingSubtitle}>
+                {ONBOARDING_SLIDES[onboardingStep].subtitle}
+              </Text>
 
-                <View style={[styles.launchBenefitCard, styles.launchBenefitCardGold]}>
-                  <View style={[styles.launchBenefitIconLarge, { backgroundColor: 'rgba(255,193,7,0.15)' }]}>
-                    <Ionicons name="diamond" size={28} color="#F59E0B" />
-                  </View>
-                  <Text style={[styles.launchBenefitNumber, { color: '#F59E0B' }]}>10</Text>
-                  <Text style={styles.launchBenefitLabel}>vagas</Text>
-                  <Text style={styles.launchBenefitDesc}>Premium grátis por 1 ano</Text>
-                </View>
-              </View>
-
-              {/* CTA */}
+              {/* CTA Button */}
               <TouchableOpacity
-                style={styles.launchCTA}
-                onPress={() => {
-                  closePromoPopup();
-                  navigation.navigate('Login', { redirectTo: 'NewItem' });
-                }}
+                style={styles.onboardingCTA}
+                onPress={nextOnboardingSlide}
               >
-                <Text style={styles.launchCTAText}>Quero garantir minha vaga</Text>
-                <View style={styles.launchCTAArrow}>
-                  <Ionicons name="arrow-forward" size={20} color="#fff" />
+                <Text style={styles.onboardingCTAText}>
+                  {onboardingStep === ONBOARDING_SLIDES.length - 1 ? 'Garantir minha vaga' : 'Continuar'}
+                </Text>
+                <View style={styles.onboardingCTAArrow}>
+                  <Ionicons name="arrow-forward" size={22} color="#fff" />
                 </View>
               </TouchableOpacity>
 
-              {/* Footer */}
-              <View style={styles.launchFooterRow}>
-                <View style={styles.launchFooterItem}>
-                  <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
-                  <Text style={styles.launchFooterText}>Cadastro em 30 segundos</Text>
-                </View>
-                <View style={styles.launchFooterItem}>
-                  <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
-                  <Text style={styles.launchFooterText}>Sem compromisso</Text>
-                </View>
-              </View>
+              {/* Step counter */}
+              <Text style={styles.onboardingStepText}>
+                {onboardingStep + 1} de {ONBOARDING_SLIDES.length}
+              </Text>
             </View>
           </Animated.View>
         </View>
@@ -733,14 +786,8 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
         </View>
 
-        {/* Peças em Destaque - Scroll Horizontal with Fade In */}
-        <Animated.View style={[
-          styles.featuredPiecesSection,
-          {
-            opacity: featuredOpacity,
-            transform: [{ translateY: featuredTranslateY }]
-          }
-        ]}>
+        {/* Peças em Destaque */}
+        <View style={styles.featuredPiecesSection}>
           <Text style={styles.featuredPiecesTitle}>PEÇAS EM DESTAQUE</Text>
           <Text style={styles.featuredPiecesSubtitle}>
             Explore nossas categorias mais procuradas
@@ -785,16 +832,10 @@ export default function HomeScreen({ navigation }: Props) {
             <Text style={styles.featuredPiecesCTAText}>Ver todas as peças</Text>
             <Ionicons name="arrow-forward" size={18} color={COLORS.primary} />
           </TouchableOpacity>
-        </Animated.View>
+        </View>
 
-        {/* Como Funciona with Fade In */}
-        <Animated.View style={[
-          styles.howItWorks,
-          {
-            opacity: howItWorksOpacity,
-            transform: [{ translateY: howItWorksTranslateY }]
-          }
-        ]}>
+        {/* Como Funciona */}
+        <View style={styles.howItWorks}>
           <Text style={styles.sectionTitle}>Como funciona</Text>
           <Text style={styles.sectionSubtitle}>
             Venda seus desapegos em <Text style={styles.textHighlight}>3 passos simples:</Text>
@@ -842,10 +883,10 @@ export default function HomeScreen({ navigation }: Props) {
           <TouchableOpacity style={styles.secondaryButton} onPress={handleSellPress}>
             <Text style={styles.secondaryButtonText}>Quero vender minhas peças</Text>
           </TouchableOpacity>
-        </Animated.View>
+        </View>
 
-        {/* SEÇÃO DE MARCAS - Grande e Impactante with Fade In */}
-        <Animated.View style={[styles.brandsSection, { opacity: brandsOpacity }]}>
+        {/* SEÇÃO DE MARCAS */}
+        <View style={styles.brandsSection}>
           <View style={styles.brandsTitleRow}>
             <Ionicons name="diamond" size={28} color={COLORS.primary} />
             <Text style={styles.brandsSectionTitle}>MARCAS EXCLUSIVAS</Text>
@@ -885,17 +926,11 @@ export default function HomeScreen({ navigation }: Props) {
             <Text style={styles.viewAllBrandsText}>Ver todas as marcas</Text>
             <Ionicons name="arrow-forward" size={18} color={COLORS.primary} />
           </TouchableOpacity>
-        </Animated.View>
+        </View>
 
-        {/* Produtos with Fade In */}
+        {/* Produtos */}
         {allItems.length > 0 && (
-          <Animated.View style={[
-            styles.productsSection,
-            {
-              opacity: productsOpacity,
-              transform: [{ translateY: productsTranslateY }]
-            }
-          ]}>
+          <View style={styles.productsSection}>
             <View style={styles.productsSectionHeader}>
               <Text style={styles.sectionTitle}>Novidades</Text>
               <TouchableOpacity onPress={() => navigation.navigate('Search')}>
@@ -942,7 +977,7 @@ export default function HomeScreen({ navigation }: Props) {
                 </TouchableOpacity>
               ))}
             </View>
-          </Animated.View>
+          </View>
         )}
 
         {/* Estatísticas */}
@@ -2800,210 +2835,152 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  // Launch Modal - Design Premium Grande
-  launchOverlay: {
+  // Onboarding Modal - Multi-step com transições
+  onboardingOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
+    backgroundColor: 'rgba(0,0,0,0.9)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: isDesktop ? 40 : 16,
+    padding: isDesktop ? 40 : 20,
   },
-  launchModal: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    overflow: 'hidden',
+  onboardingModal: {
     width: '100%',
-    maxWidth: isDesktop ? 900 : 500,
-    flexDirection: isDesktop ? 'row' : 'column',
+    maxWidth: isDesktop ? 520 : 420,
+    height: isDesktop ? 600 : 560,
+    borderRadius: 32,
+    overflow: 'hidden',
+    position: 'relative',
     ...Platform.select({
-      web: { boxShadow: '0 25px 80px rgba(0,0,0,0.5)' },
+      web: { boxShadow: '0 30px 100px rgba(0,0,0,0.6)' },
       default: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 25 },
-        shadowOpacity: 0.5,
-        shadowRadius: 40,
-        elevation: 25,
+        shadowOffset: { width: 0, height: 30 },
+        shadowOpacity: 0.6,
+        shadowRadius: 50,
+        elevation: 30,
       },
     }),
   },
-  launchImageSide: {
-    width: isDesktop ? '45%' : '100%',
-    height: isDesktop ? 'auto' : 200,
-    minHeight: isDesktop ? 500 : 200,
-    position: 'relative',
-  },
-  launchImage: {
+  onboardingBgImage: {
+    position: 'absolute',
     width: '100%',
     height: '100%',
-    position: 'absolute',
   },
-  launchImageGradient: {
+  onboardingGradient: {
     position: 'absolute',
-    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  onboardingContent: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    padding: isDesktop ? 48 : 32,
+    paddingBottom: isDesktop ? 48 : 40,
+  },
+  onboardingDots: {
+    flexDirection: 'row',
+    gap: 10,
+    position: 'absolute',
+    top: 32,
     left: 0,
     right: 0,
-    height: '60%',
-  },
-  launchImageContent: {
-    position: 'absolute',
-    bottom: 24,
-    left: 24,
-    right: 24,
-  },
-  launchQuoteBox: {
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    borderRadius: 16,
-    padding: 16,
-  },
-  launchQuote: {
-    fontSize: 14,
-    fontStyle: 'italic',
-    color: '#333',
-    marginBottom: 8,
-  },
-  launchStars: {
-    flexDirection: 'row',
-    gap: 2,
-  },
-  launchContentSide: {
-    flex: 1,
-    padding: isDesktop ? 48 : 32,
     justifyContent: 'center',
   },
-  launchLogo: {
-    fontSize: isDesktop ? 28 : 24,
-    fontWeight: '800',
-    color: '#1a1a1a',
+  onboardingDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+  },
+  onboardingDotActive: {
+    backgroundColor: '#fff',
+    width: 32,
+  },
+  onboardingDotCompleted: {
+    backgroundColor: COLORS.primary,
+  },
+  onboardingIconBox: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  onboardingBadge: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 30,
     marginBottom: 20,
   },
-  launchLogoLight: {
-    fontWeight: '400',
-    color: '#999',
-  },
-  launchBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: COLORS.primaryExtraLight,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    alignSelf: 'flex-start',
-    marginBottom: 24,
-  },
-  launchBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.primary,
-    letterSpacing: 1,
-  },
-  launchTitle: {
-    fontSize: isDesktop ? 36 : 28,
+  onboardingBadgeText: {
+    fontSize: 13,
     fontWeight: '800',
-    color: '#1a1a1a',
-    marginBottom: 12,
-    lineHeight: isDesktop ? 44 : 36,
+    letterSpacing: 2,
   },
-  launchSubtitle: {
-    fontSize: isDesktop ? 18 : 16,
-    color: '#666',
-    marginBottom: 32,
-    lineHeight: 26,
-  },
-  launchBenefitsGrid: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 32,
-  },
-  launchBenefitCard: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 20,
-    padding: 20,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  launchBenefitCardGold: {
-    backgroundColor: '#FFFBEB',
-    borderColor: '#FCD34D',
-  },
-  launchBenefitIconLarge: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(76,175,80,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  launchBenefitNumber: {
-    fontSize: 40,
+  onboardingTitle: {
+    fontSize: isDesktop ? 36 : 32,
     fontWeight: '800',
-    color: '#4CAF50',
-    lineHeight: 44,
-  },
-  launchBenefitLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 4,
-  },
-  launchBenefitDesc: {
-    fontSize: 12,
-    color: '#888',
+    color: '#fff',
     textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: isDesktop ? 44 : 40,
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
-  launchCTA: {
+  onboardingSubtitle: {
+    fontSize: isDesktop ? 18 : 16,
+    color: 'rgba(255,255,255,0.85)',
+    textAlign: 'center',
+    marginBottom: 36,
+    lineHeight: 26,
+    maxWidth: 340,
+  },
+  onboardingCTA: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#fff',
     paddingVertical: 18,
-    paddingHorizontal: 32,
-    borderRadius: 16,
+    paddingLeft: 32,
+    paddingRight: 8,
+    borderRadius: 50,
     width: '100%',
-    gap: 12,
-    marginBottom: 24,
+    gap: 16,
+    marginBottom: 20,
     ...Platform.select({
       web: {
-        boxShadow: '0 8px 24px rgba(107,144,128,0.4)',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
         transition: 'all 0.3s ease',
       },
       default: {
-        shadowColor: COLORS.primary,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.4,
-        shadowRadius: 12,
-        elevation: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 15,
+        elevation: 10,
       },
     }),
   },
-  launchCTAText: {
+  onboardingCTAText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#fff',
+    color: '#1a1a1a',
+    flex: 1,
   },
-  launchCTAArrow: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+  onboardingCTAArrow: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  launchFooterRow: {
-    flexDirection: isDesktop ? 'row' : 'column',
-    gap: 16,
-  },
-  launchFooterItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  launchFooterText: {
+  onboardingStepText: {
     fontSize: 14,
-    color: '#666',
+    color: 'rgba(255,255,255,0.5)',
   },
   // Promo Screen styles (legacy, keeping for compatibility)
   promoScreen: {
