@@ -27,6 +27,11 @@ const isDesktop = isWeb && width > 768;
 
 interface LoginScreenProps {
   navigation: any;
+  route?: {
+    params?: {
+      redirectTo?: string;
+    };
+  };
 }
 
 type Screen = 'main' | 'email-login' | 'email-signup' | 'forgot';
@@ -38,9 +43,12 @@ const FASHION_IMAGES = [
   'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=800&q=80',
 ];
 
-export default function LoginScreen({ navigation }: LoginScreenProps) {
+export default function LoginScreen({ navigation, route }: LoginScreenProps) {
+  // Parâmetro de redirecionamento após cadastro
+  const redirectTo = route?.params?.redirectTo || null;
   const insets = useSafeAreaInsets();
-  const [currentScreen, setCurrentScreen] = useState<Screen>('main');
+  // Se tem redirectTo, vai direto para signup
+  const [currentScreen, setCurrentScreen] = useState<Screen>(redirectTo ? 'email-signup' : 'main');
 
   // Login state
   const [email, setEmail] = useState('');
@@ -156,10 +164,21 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     setIsLoading(true);
     try {
       await register(signupEmail.trim().toLowerCase(), signupPassword, signupName.trim());
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Home' }],
-      });
+      // Se tem redirectTo, vai para lá após criar conta
+      if (redirectTo) {
+        navigation.reset({
+          index: 1,
+          routes: [
+            { name: 'Home' },
+            { name: redirectTo },
+          ],
+        });
+      } else {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Home' }],
+        });
+      }
     } catch (error: any) {
       console.error('Signup error:', error);
       Alert.alert('Erro no Cadastro', error.message || 'Não foi possível criar sua conta. Tente novamente.');

@@ -172,10 +172,13 @@ export default function HomeScreen({ navigation }: Props) {
   const infoSlideAnim = useRef(new Animated.Value(0)).current;
   const infoOpacityAnim = useRef(new Animated.Value(1)).current;
 
-  // Premium banner state
+  // Premium banner state - DESATIVADO TEMPORARIAMENTE
   const [showPremiumBanner, setShowPremiumBanner] = useState(false);
   const premiumBannerAnim = useRef(new Animated.Value(0)).current;
   const premiumShineAnim = useRef(new Animated.Value(0)).current;
+
+  // Secret bypass - sequência de teclas para pular modal
+  const [secretSequence, setSecretSequence] = useState('');
 
   // Category counts state
   const [categoryCounts, setCategoryCounts] = useState<{ [key: string]: number }>({});
@@ -330,43 +333,32 @@ export default function HomeScreen({ navigation }: Props) {
     return () => clearInterval(interval);
   }, [fadeAnim, infoSlideAnim, infoOpacityAnim]);
 
-  // Mostrar banner premium após 5 segundos
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowPremiumBanner(true);
-      Animated.parallel([
-        Animated.spring(premiumBannerAnim, {
-          toValue: 1,
-          friction: 8,
-          tension: 40,
-          useNativeDriver: true,
-        }),
-        Animated.loop(
-          Animated.sequence([
-            Animated.timing(premiumShineAnim, {
-              toValue: 1,
-              duration: 2000,
-              useNativeDriver: true,
-            }),
-            Animated.timing(premiumShineAnim, {
-              toValue: 0,
-              duration: 2000,
-              useNativeDriver: true,
-            }),
-          ])
-        ),
-      ]).start();
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [premiumBannerAnim, premiumShineAnim]);
+  // Premium banner DESATIVADO temporariamente
+  // useEffect(() => {
+  //   const timer = setTimeout(() => setShowPremiumBanner(true), 5000);
+  //   return () => clearTimeout(timer);
+  // }, []);
 
-  const dismissPremiumBanner = () => {
-    Animated.timing(premiumBannerAnim, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => setShowPremiumBanner(false));
-  };
+  const dismissPremiumBanner = () => setShowPremiumBanner(false);
+
+  // Secret bypass - digitar "apega" para pular o modal de lançamento
+  useEffect(() => {
+    if (!isWeb) return;
+
+    const handleKeyPress = (e: KeyboardEvent) => {
+      const newSequence = (secretSequence + e.key.toLowerCase()).slice(-5);
+      setSecretSequence(newSequence);
+
+      // Sequência secreta: "apega"
+      if (newSequence === 'apega') {
+        setShowPromoPopup(false);
+        setSecretSequence('');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [secretSequence]);
 
   const handleSellPress = async () => {
     const token = await loadToken();
@@ -460,77 +452,78 @@ export default function HomeScreen({ navigation }: Props) {
               },
             ]}
           >
-            {/* Botão fechar */}
-            <TouchableOpacity style={styles.launchModalClose} onPress={closePromoPopup}>
-              <Ionicons name="close" size={22} color="#666" />
-            </TouchableOpacity>
+            {/* Logo */}
+            <Text style={styles.launchLogo}>
+              apega<Text style={styles.launchLogoLight}>desapega</Text>
+            </Text>
 
-            {/* Badge de lançamento */}
-            <View style={styles.launchBadge}>
-              <Ionicons name="rocket" size={14} color="#fff" />
-              <Text style={styles.launchBadgeText}>LANÇAMENTO</Text>
+            {/* Imagem decorativa */}
+            <View style={styles.launchImageContainer}>
+              <Image
+                source={{ uri: 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=600&q=80' }}
+                style={styles.launchImage}
+              />
+              <View style={styles.launchImageOverlay} />
+              <View style={styles.launchBadgeFloat}>
+                <Ionicons name="rocket" size={16} color="#fff" />
+                <Text style={styles.launchBadgeFloatText}>LANÇAMENTO EXCLUSIVO</Text>
+              </View>
             </View>
 
             {/* Título */}
             <Text style={styles.launchModalTitle}>
-              Faça parte do{'\n'}
-              <Text style={styles.launchModalTitleHighlight}>início!</Text>
+              Seja uma das{'\n'}
+              <Text style={styles.launchModalTitleHighlight}>primeiras!</Text>
             </Text>
 
             <Text style={styles.launchModalSubtitle}>
-              Ofertas exclusivas para quem entrar agora
+              Cadastre-se agora e garanta benefícios exclusivos de lançamento
             </Text>
 
-            {/* Benefícios */}
-            <View style={styles.launchBenefits}>
-              <View style={styles.launchBenefitItem}>
-                <View style={[styles.launchBenefitIcon, { backgroundColor: '#E8F5E9' }]}>
-                  <Ionicons name="pricetag" size={20} color="#4CAF50" />
-                </View>
-                <View style={styles.launchBenefitText}>
-                  <Text style={styles.launchBenefitTitle}>0% de comissão</Text>
-                  <Text style={styles.launchBenefitDesc}>Para os 500 primeiros</Text>
-                </View>
+            {/* Contador de vagas */}
+            <View style={styles.launchCounter}>
+              <View style={styles.launchCounterItem}>
+                <Text style={styles.launchCounterNumber}>500</Text>
+                <Text style={styles.launchCounterLabel}>vagas sem comissão</Text>
               </View>
-
-              <View style={styles.launchBenefitItem}>
-                <View style={[styles.launchBenefitIcon, { backgroundColor: '#FFF8E1' }]}>
-                  <Ionicons name="diamond" size={20} color="#FFB300" />
-                </View>
-                <View style={styles.launchBenefitText}>
-                  <Text style={styles.launchBenefitTitle}>Premium grátis</Text>
-                  <Text style={styles.launchBenefitDesc}>1 ano para os 50 primeiros</Text>
-                </View>
-              </View>
-
-              <View style={styles.launchBenefitItem}>
-                <View style={[styles.launchBenefitIcon, { backgroundColor: '#E3F2FD' }]}>
-                  <Ionicons name="shield-checkmark" size={20} color="#2196F3" />
-                </View>
-                <View style={styles.launchBenefitText}>
-                  <Text style={styles.launchBenefitTitle}>Compra garantida</Text>
-                  <Text style={styles.launchBenefitDesc}>100% seguro</Text>
-                </View>
+              <View style={styles.launchCounterDivider} />
+              <View style={styles.launchCounterItem}>
+                <Text style={[styles.launchCounterNumber, { color: '#FFB300' }]}>50</Text>
+                <Text style={styles.launchCounterLabel}>Premium grátis</Text>
               </View>
             </View>
 
-            {/* CTA Buttons */}
+            {/* Benefícios compactos */}
+            <View style={styles.launchBenefitsCompact}>
+              <View style={styles.launchBenefitCompact}>
+                <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
+                <Text style={styles.launchBenefitCompactText}>Venda sem taxas</Text>
+              </View>
+              <View style={styles.launchBenefitCompact}>
+                <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
+                <Text style={styles.launchBenefitCompactText}>Acesso antecipado</Text>
+              </View>
+              <View style={styles.launchBenefitCompact}>
+                <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
+                <Text style={styles.launchBenefitCompactText}>Suporte prioritário</Text>
+              </View>
+            </View>
+
+            {/* CTA único */}
             <TouchableOpacity
               style={styles.launchModalCTA}
               onPress={() => {
                 closePromoPopup();
-                navigation.navigate('Login');
+                navigation.navigate('Login', { redirectTo: 'NewItem' });
               }}
             >
               <Text style={styles.launchModalCTAText}>Quero participar</Text>
-              <Ionicons name="arrow-forward" size={18} color="#fff" />
+              <Ionicons name="arrow-forward" size={20} color="#fff" />
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={closePromoPopup}>
-              <Text style={styles.launchModalSkip}>Explorar primeiro</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.launchModalDisclaimer}>*Válido enquanto durarem as vagas</Text>
+            <Text style={styles.launchModalDisclaimer}>
+              *Vagas limitadas. Garanta a sua agora!
+            </Text>
           </Animated.View>
         </View>
       </Modal>
@@ -2713,100 +2706,142 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  // Launch Modal - Popup Centralizado
+  // Launch Modal - Popup Centralizado Premium
   launchModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.85)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 16,
   },
   launchModalContent: {
     backgroundColor: '#fff',
-    borderRadius: 28,
-    padding: isDesktop ? 40 : 28,
+    borderRadius: 32,
+    padding: 0,
     alignItems: 'center',
-    maxWidth: 420,
+    maxWidth: 400,
     width: '100%',
+    overflow: 'hidden',
+  },
+  launchLogo: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1a1a1a',
+    paddingTop: 24,
+    paddingBottom: 16,
+  },
+  launchLogoLight: {
+    fontWeight: '400',
+    color: COLORS.gray[500],
+  },
+  launchImageContainer: {
+    width: '100%',
+    height: 160,
     position: 'relative',
-  },
-  launchModalClose: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f5f5f5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  launchBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
     marginBottom: 20,
   },
-  launchBadgeText: {
+  launchImage: {
+    width: '100%',
+    height: '100%',
+  },
+  launchImageOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  launchBadgeFloat: {
+    position: 'absolute',
+    bottom: -16,
+    left: '50%',
+    transform: [{ translateX: -85 }],
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 24,
+  },
+  launchBadgeFloatText: {
     fontSize: 12,
     fontWeight: '800',
     color: '#fff',
     letterSpacing: 1,
   },
   launchModalTitle: {
-    fontSize: isDesktop ? 36 : 28,
+    fontSize: isDesktop ? 32 : 26,
     fontWeight: '800',
     color: COLORS.gray[900],
     textAlign: 'center',
-    lineHeight: isDesktop ? 44 : 36,
-    marginBottom: 12,
+    lineHeight: isDesktop ? 40 : 34,
+    marginBottom: 8,
+    paddingHorizontal: 24,
   },
   launchModalTitleHighlight: {
     color: COLORS.primary,
   },
   launchModalSubtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: COLORS.gray[500],
     textAlign: 'center',
-    marginBottom: 28,
+    marginBottom: 20,
+    paddingHorizontal: 24,
+    lineHeight: 20,
   },
-  launchBenefits: {
-    width: '100%',
-    gap: 16,
-    marginBottom: 28,
-  },
-  launchBenefitItem: {
+  launchCounter: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    backgroundColor: '#FAFAFA',
-    padding: 16,
-    borderRadius: 16,
-  },
-  launchBenefitIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
     justifyContent: 'center',
+    backgroundColor: '#FAF9F7',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    marginHorizontal: 24,
+    borderRadius: 16,
+    marginBottom: 20,
+  },
+  launchCounterItem: {
+    flex: 1,
     alignItems: 'center',
   },
-  launchBenefitText: {
-    flex: 1,
+  launchCounterNumber: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: COLORS.primary,
+    marginBottom: 4,
   },
-  launchBenefitTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.gray[800],
-    marginBottom: 2,
-  },
-  launchBenefitDesc: {
-    fontSize: 13,
+  launchCounterLabel: {
+    fontSize: 11,
     color: COLORS.gray[500],
+    textTransform: 'uppercase',
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  launchCounterDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: COLORS.gray[300],
+    marginHorizontal: 16,
+  },
+  launchBenefitsCompact: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 24,
+    paddingHorizontal: 24,
+  },
+  launchBenefitCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  launchBenefitCompactText: {
+    fontSize: 13,
+    color: COLORS.gray[600],
+    fontWeight: '500',
   },
   launchModalCTA: {
     flexDirection: 'row',
@@ -2814,10 +2849,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 10,
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 36,
-    paddingVertical: 16,
+    paddingHorizontal: 32,
+    paddingVertical: 18,
     borderRadius: 28,
-    width: '100%',
+    marginHorizontal: 24,
     marginBottom: 16,
   },
   launchModalCTAText: {
@@ -2825,16 +2860,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#fff',
   },
-  launchModalSkip: {
-    fontSize: 15,
-    color: COLORS.gray[500],
-    fontWeight: '500',
-    marginBottom: 16,
-  },
   launchModalDisclaimer: {
     fontSize: 11,
     color: COLORS.gray[400],
     fontStyle: 'italic',
+    paddingBottom: 24,
   },
 
   // Promo Screen styles (legacy, keeping for compatibility)
