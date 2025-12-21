@@ -435,88 +435,88 @@ export default function HomeScreen({ navigation }: Props) {
         onRequestClose={closePromoPopup}
       >
         <View style={styles.launchModalOverlay}>
-          <Animated.View
-            style={[
-              styles.launchModalContent,
-              {
-                opacity: promoOpacityAnim,
-                transform: [{ scale: promoScaleAnim }],
-              },
-            ]}
-          >
-            {/* Logo */}
-            <Text style={styles.launchLogo}>
-              apega<Text style={styles.launchLogoLight}>desapega</Text>
-            </Text>
+          <View style={styles.launchFullScreen}>
+            {/* Background Image */}
+            <Image
+              source={{ uri: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&q=80' }}
+              style={styles.launchBgImage}
+            />
+            <LinearGradient
+              colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.85)']}
+              style={styles.launchBgGradient}
+            />
 
-            {/* Imagem decorativa */}
-            <View style={styles.launchImageContainer}>
-              <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=600&q=80' }}
-                style={styles.launchImage}
-              />
-              <View style={styles.launchImageOverlay} />
-              <View style={styles.launchBadgeFloat}>
-                <Ionicons name="rocket" size={16} color="#fff" />
-                <Text style={styles.launchBadgeFloatText}>LANÇAMENTO EXCLUSIVO</Text>
-              </View>
-            </View>
-
-            {/* Título */}
-            <Text style={styles.launchModalTitle}>
-              Seja uma das{'\n'}
-              <Text style={styles.launchModalTitleHighlight}>primeiras!</Text>
-            </Text>
-
-            <Text style={styles.launchModalSubtitle}>
-              Cadastre-se agora e garanta benefícios exclusivos de lançamento
-            </Text>
-
-            {/* Contador de vagas */}
-            <View style={styles.launchCounter}>
-              <View style={styles.launchCounterItem}>
-                <Text style={styles.launchCounterNumber}>100</Text>
-                <Text style={styles.launchCounterLabel}>vagas sem comissão</Text>
-              </View>
-              <View style={styles.launchCounterDivider} />
-              <View style={styles.launchCounterItem}>
-                <Text style={[styles.launchCounterNumber, { color: '#FFB300' }]}>10</Text>
-                <Text style={styles.launchCounterLabel}>Premium grátis</Text>
-              </View>
-            </View>
-
-            {/* Benefícios compactos */}
-            <View style={styles.launchBenefitsCompact}>
-              <View style={styles.launchBenefitCompact}>
-                <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
-                <Text style={styles.launchBenefitCompactText}>Venda sem taxas</Text>
-              </View>
-              <View style={styles.launchBenefitCompact}>
-                <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
-                <Text style={styles.launchBenefitCompactText}>Acesso antecipado</Text>
-              </View>
-              <View style={styles.launchBenefitCompact}>
-                <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
-                <Text style={styles.launchBenefitCompactText}>Suporte prioritário</Text>
-              </View>
-            </View>
-
-            {/* CTA único */}
-            <TouchableOpacity
-              style={styles.launchModalCTA}
-              onPress={() => {
-                closePromoPopup();
-                navigation.navigate('Login', { redirectTo: 'NewItem' });
-              }}
+            {/* Content */}
+            <Animated.View
+              style={[
+                styles.launchContentWrapper,
+                {
+                  opacity: promoOpacityAnim,
+                  transform: [{ translateY: Animated.multiply(promoScaleAnim, -20).interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [20, 0],
+                  }) }],
+                },
+              ]}
             >
-              <Text style={styles.launchModalCTAText}>Quero participar</Text>
-              <Ionicons name="arrow-forward" size={20} color="#fff" />
-            </TouchableOpacity>
+              {/* Logo */}
+              <View style={styles.launchLogoWrapper}>
+                <Text style={styles.launchLogoPremium}>
+                  apega<Text style={styles.launchLogoPremiumLight}>desapega</Text>
+                </Text>
+              </View>
 
-            <Text style={styles.launchModalDisclaimer}>
-              *Vagas limitadas. Garanta a sua agora!
-            </Text>
-          </Animated.View>
+              {/* Hero Text */}
+              <View style={styles.launchHeroText}>
+                <Text style={styles.launchPreTitle}>CONVITE EXCLUSIVO</Text>
+                <Text style={styles.launchMainTitle}>
+                  Faça parte do{'\n'}lançamento
+                </Text>
+                <Text style={styles.launchHeroSubtitle}>
+                  As primeiras vendedoras terão benefícios únicos que nunca mais serão oferecidos
+                </Text>
+              </View>
+
+              {/* Cards de benefícios */}
+              <View style={styles.launchCardsRow}>
+                <View style={styles.launchCard}>
+                  <View style={styles.launchCardIconBg}>
+                    <Ionicons name="pricetag" size={24} color="#4CAF50" />
+                  </View>
+                  <Text style={styles.launchCardNumber}>100</Text>
+                  <Text style={styles.launchCardTitle}>Vagas</Text>
+                  <Text style={styles.launchCardDesc}>0% comissão para sempre</Text>
+                </View>
+
+                <View style={[styles.launchCard, styles.launchCardGold]}>
+                  <View style={[styles.launchCardIconBg, { backgroundColor: 'rgba(255,193,7,0.2)' }]}>
+                    <Ionicons name="diamond" size={24} color="#FFC107" />
+                  </View>
+                  <Text style={[styles.launchCardNumber, { color: '#FFC107' }]}>10</Text>
+                  <Text style={styles.launchCardTitle}>Vagas</Text>
+                  <Text style={styles.launchCardDesc}>Premium grátis 1 ano</Text>
+                </View>
+              </View>
+
+              {/* CTA */}
+              <TouchableOpacity
+                style={styles.launchCTAPremium}
+                onPress={() => {
+                  closePromoPopup();
+                  navigation.navigate('Login', { redirectTo: 'NewItem' });
+                }}
+              >
+                <Text style={styles.launchCTAPremiumText}>Garantir minha vaga</Text>
+                <View style={styles.launchCTAArrow}>
+                  <Ionicons name="arrow-forward" size={20} color={COLORS.primary} />
+                </View>
+              </TouchableOpacity>
+
+              <Text style={styles.launchFooterText}>
+                Cadastro rápido • Sem compromisso • Vagas limitadas
+              </Text>
+            </Animated.View>
+          </View>
         </View>
       </Modal>
 
@@ -2768,154 +2768,159 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  // Launch Modal - Popup Centralizado Premium
+  // Launch Modal - Full Screen Premium Design
   launchModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
   },
-  launchModalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 32,
-    padding: 0,
-    alignItems: 'center',
-    maxWidth: 400,
-    width: '100%',
-    overflow: 'hidden',
-  },
-  launchLogo: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#1a1a1a',
-    paddingTop: 24,
-    paddingBottom: 16,
-  },
-  launchLogoLight: {
-    fontWeight: '400',
-    color: COLORS.gray[500],
-  },
-  launchImageContainer: {
-    width: '100%',
-    height: 160,
+  launchFullScreen: {
+    flex: 1,
     position: 'relative',
-    marginBottom: 20,
   },
-  launchImage: {
-    width: '100%',
-    height: '100%',
-  },
-  launchImageOverlay: {
+  launchBgImage: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    width: '100%',
+    height: '100%',
   },
-  launchBadgeFloat: {
+  launchBgGradient: {
     position: 'absolute',
-    bottom: -16,
-    left: '50%',
-    transform: [{ translateX: -85 }],
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 24,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
-  launchBadgeFloatText: {
-    fontSize: 12,
+  launchContentWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: isDesktop ? 60 : 24,
+  },
+  launchLogoWrapper: {
+    marginBottom: isDesktop ? 40 : 24,
+  },
+  launchLogoPremium: {
+    fontSize: isDesktop ? 36 : 28,
     fontWeight: '800',
     color: '#fff',
-    letterSpacing: 1,
+    letterSpacing: -0.5,
   },
-  launchModalTitle: {
-    fontSize: isDesktop ? 32 : 26,
-    fontWeight: '800',
-    color: COLORS.gray[900],
-    textAlign: 'center',
-    lineHeight: isDesktop ? 40 : 34,
-    marginBottom: 8,
-    paddingHorizontal: 24,
+  launchLogoPremiumLight: {
+    fontWeight: '400',
+    color: 'rgba(255,255,255,0.7)',
   },
-  launchModalTitleHighlight: {
+  launchHeroText: {
+    alignItems: 'center',
+    marginBottom: isDesktop ? 48 : 32,
+    maxWidth: 500,
+  },
+  launchPreTitle: {
+    fontSize: 12,
+    fontWeight: '700',
     color: COLORS.primary,
+    letterSpacing: 3,
+    marginBottom: 16,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
-  launchModalSubtitle: {
-    fontSize: 14,
-    color: COLORS.gray[500],
+  launchMainTitle: {
+    fontSize: isDesktop ? 52 : 36,
+    fontWeight: '800',
+    color: '#fff',
     textAlign: 'center',
-    marginBottom: 20,
-    paddingHorizontal: 24,
-    lineHeight: 20,
+    lineHeight: isDesktop ? 60 : 44,
+    marginBottom: 16,
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
-  launchCounter: {
+  launchHeroSubtitle: {
+    fontSize: isDesktop ? 18 : 15,
+    color: 'rgba(255,255,255,0.85)',
+    textAlign: 'center',
+    lineHeight: isDesktop ? 28 : 24,
+  },
+  launchCardsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    gap: 16,
+    marginBottom: isDesktop ? 48 : 32,
+    width: '100%',
+    maxWidth: 420,
     justifyContent: 'center',
-    backgroundColor: '#FAF9F7',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    marginHorizontal: 24,
-    borderRadius: 16,
-    marginBottom: 20,
   },
-  launchCounterItem: {
+  launchCard: {
     flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 20,
+    padding: isDesktop ? 24 : 20,
     alignItems: 'center',
+    maxWidth: 200,
   },
-  launchCounterNumber: {
-    fontSize: 32,
+  launchCardGold: {
+    backgroundColor: 'rgba(255,255,255,0.98)',
+    borderWidth: 2,
+    borderColor: '#FFC107',
+  },
+  launchCardIconBg: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(76,175,80,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  launchCardNumber: {
+    fontSize: 36,
     fontWeight: '800',
     color: COLORS.primary,
+    marginBottom: 0,
+  },
+  launchCardTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.gray[600],
+    textTransform: 'uppercase',
+    letterSpacing: 1,
     marginBottom: 4,
   },
-  launchCounterLabel: {
-    fontSize: 11,
+  launchCardDesc: {
+    fontSize: 12,
     color: COLORS.gray[500],
-    textTransform: 'uppercase',
-    fontWeight: '600',
-    letterSpacing: 0.5,
+    textAlign: 'center',
   },
-  launchCounterDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: COLORS.gray[300],
-    marginHorizontal: 16,
-  },
-  launchBenefitsCompact: {
+  launchCTAPremium: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 8,
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#fff',
+    paddingLeft: isDesktop ? 36 : 28,
+    paddingRight: isDesktop ? 8 : 6,
+    paddingVertical: isDesktop ? 8 : 6,
+    borderRadius: 40,
     marginBottom: 24,
-    paddingHorizontal: 24,
   },
-  launchBenefitCompact: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+  launchCTAPremiumText: {
+    fontSize: isDesktop ? 18 : 16,
+    fontWeight: '700',
+    color: COLORS.gray[800],
   },
-  launchBenefitCompactText: {
-    fontSize: 13,
-    color: COLORS.gray[600],
-    fontWeight: '500',
-  },
-  launchModalCTA: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
+  launchCTAArrow: {
+    width: isDesktop ? 48 : 42,
+    height: isDesktop ? 48 : 42,
+    borderRadius: 24,
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 32,
-    paddingVertical: 18,
-    borderRadius: 28,
-    marginHorizontal: 24,
-    marginBottom: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  launchFooterText: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.6)',
+    textAlign: 'center',
   },
   launchModalCTAText: {
     fontSize: 17,
