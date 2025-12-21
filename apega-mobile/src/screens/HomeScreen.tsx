@@ -552,7 +552,7 @@ export default function HomeScreen({ navigation }: Props) {
               <View style={[styles.onboardingIconBox, { backgroundColor: `${ONBOARDING_SLIDES[onboardingStep].iconColor}20` }]}>
                 <Ionicons
                   name={ONBOARDING_SLIDES[onboardingStep].icon as any}
-                  size={48}
+                  size={56}
                   color={ONBOARDING_SLIDES[onboardingStep].iconColor}
                 />
               </View>
@@ -583,7 +583,7 @@ export default function HomeScreen({ navigation }: Props) {
                   {onboardingStep === ONBOARDING_SLIDES.length - 1 ? 'Garantir minha vaga' : 'Continuar'}
                 </Text>
                 <View style={styles.onboardingCTAArrow}>
-                  <Ionicons name="arrow-forward" size={22} color="#fff" />
+                  <Ionicons name="arrow-forward" size={18} color="#fff" />
                 </View>
               </TouchableOpacity>
 
@@ -2849,8 +2849,8 @@ const styles = StyleSheet.create({
   },
   onboardingModal: {
     width: '100%',
-    maxWidth: isDesktop ? 520 : 420,
-    height: isDesktop ? 600 : 560,
+    maxWidth: isDesktop ? 680 : 500,
+    height: isDesktop ? 750 : 700,
     borderRadius: 32,
     overflow: 'hidden',
     position: 'relative',
@@ -2905,12 +2905,12 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
   },
   onboardingIconBox: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 28,
   },
   onboardingBadge: {
     paddingHorizontal: 20,
@@ -2924,60 +2924,59 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
   onboardingTitle: {
-    fontSize: isDesktop ? 36 : 32,
+    fontSize: isDesktop ? 42 : 36,
     fontWeight: '800',
     color: '#fff',
     textAlign: 'center',
-    marginBottom: 16,
-    lineHeight: isDesktop ? 44 : 40,
+    marginBottom: 20,
+    lineHeight: isDesktop ? 52 : 44,
     textShadowColor: 'rgba(0,0,0,0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
   },
   onboardingSubtitle: {
-    fontSize: isDesktop ? 18 : 16,
-    color: 'rgba(255,255,255,0.85)',
+    fontSize: isDesktop ? 20 : 18,
+    color: 'rgba(255,255,255,0.9)',
     textAlign: 'center',
-    marginBottom: 36,
-    lineHeight: 26,
-    maxWidth: 340,
+    marginBottom: 40,
+    lineHeight: 30,
+    maxWidth: 400,
   },
   onboardingCTA: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',
-    paddingVertical: 18,
-    paddingLeft: 32,
-    paddingRight: 8,
-    borderRadius: 50,
-    width: '100%',
-    gap: 16,
+    paddingVertical: 12,
+    paddingLeft: 24,
+    paddingRight: 6,
+    borderRadius: 30,
+    maxWidth: 280,
+    gap: 12,
     marginBottom: 20,
     ...Platform.select({
       web: {
-        boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
         transition: 'all 0.3s ease',
       },
       default: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.3,
-        shadowRadius: 15,
-        elevation: 10,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
+        elevation: 8,
       },
     }),
   },
   onboardingCTAText: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '700',
     color: '#1a1a1a',
-    flex: 1,
   },
   onboardingCTAArrow: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
