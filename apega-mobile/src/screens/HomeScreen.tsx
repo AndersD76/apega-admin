@@ -428,35 +428,47 @@ export default function HomeScreen({ navigation }: Props) {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FAF9F7" />
 
-      {/* Modal de Lançamento - Card Centralizado */}
+      {/* Modal de Lançamento - Design Premium */}
       <Modal
         visible={showPromoPopup}
         transparent={true}
         animationType="fade"
         onRequestClose={closePromoPopup}
       >
-        <View style={styles.launchModalOverlay}>
+        <View style={styles.launchOverlay}>
           <Animated.View
             style={[
-              styles.launchCard,
+              styles.launchModal,
               {
                 opacity: promoOpacityAnim,
                 transform: [{ scale: promoScaleAnim }],
               },
             ]}
           >
-            {/* Background Image */}
-            <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80' }}
-              style={styles.launchCardImage}
-            />
-            <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.8)']}
-              style={styles.launchCardGradient}
-            />
+            {/* Left Side - Image */}
+            <View style={styles.launchImageSide}>
+              <Image
+                source={{ uri: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80' }}
+                style={styles.launchImage}
+              />
+              <LinearGradient
+                colors={['transparent', 'rgba(0,0,0,0.7)']}
+                style={styles.launchImageGradient}
+              />
+              <View style={styles.launchImageContent}>
+                <View style={styles.launchQuoteBox}>
+                  <Text style={styles.launchQuote}>"A moda mais consciente do Brasil"</Text>
+                  <View style={styles.launchStars}>
+                    {[1,2,3,4,5].map(i => (
+                      <Ionicons key={i} name="star" size={14} color="#FFD700" />
+                    ))}
+                  </View>
+                </View>
+              </View>
+            </View>
 
-            {/* Content */}
-            <View style={styles.launchCardContent}>
+            {/* Right Side - Content */}
+            <View style={styles.launchContentSide}>
               {/* Logo */}
               <Text style={styles.launchLogo}>
                 apega<Text style={styles.launchLogoLight}>desapega</Text>
@@ -464,35 +476,36 @@ export default function HomeScreen({ navigation }: Props) {
 
               {/* Badge */}
               <View style={styles.launchBadge}>
-                <Text style={styles.launchBadgeText}>CONVITE EXCLUSIVO</Text>
+                <Ionicons name="gift" size={14} color={COLORS.primary} />
+                <Text style={styles.launchBadgeText}>LANÇAMENTO EXCLUSIVO</Text>
               </View>
 
               {/* Title */}
               <Text style={styles.launchTitle}>
-                Faça parte do lançamento
+                Seja uma das primeiras
               </Text>
               <Text style={styles.launchSubtitle}>
-                Benefícios únicos para as primeiras vendedoras
+                Garanta benefícios que nunca mais serão oferecidos
               </Text>
 
-              {/* Benefits Row */}
-              <View style={styles.launchBenefitsRow}>
-                <View style={styles.launchBenefit}>
-                  <View style={styles.launchBenefitIcon}>
-                    <Ionicons name="pricetag" size={18} color="#4CAF50" />
+              {/* Benefits Cards */}
+              <View style={styles.launchBenefitsGrid}>
+                <View style={styles.launchBenefitCard}>
+                  <View style={styles.launchBenefitIconLarge}>
+                    <Ionicons name="pricetag" size={28} color="#4CAF50" />
                   </View>
                   <Text style={styles.launchBenefitNumber}>100</Text>
-                  <Text style={styles.launchBenefitText}>vagas sem comissão</Text>
+                  <Text style={styles.launchBenefitLabel}>vagas</Text>
+                  <Text style={styles.launchBenefitDesc}>0% comissão para sempre</Text>
                 </View>
 
-                <View style={styles.launchBenefitDivider} />
-
-                <View style={styles.launchBenefit}>
-                  <View style={[styles.launchBenefitIcon, { backgroundColor: 'rgba(255,193,7,0.2)' }]}>
-                    <Ionicons name="diamond" size={18} color="#FFC107" />
+                <View style={[styles.launchBenefitCard, styles.launchBenefitCardGold]}>
+                  <View style={[styles.launchBenefitIconLarge, { backgroundColor: 'rgba(255,193,7,0.15)' }]}>
+                    <Ionicons name="diamond" size={28} color="#F59E0B" />
                   </View>
-                  <Text style={[styles.launchBenefitNumber, { color: '#FFC107' }]}>10</Text>
-                  <Text style={styles.launchBenefitText}>Premium grátis</Text>
+                  <Text style={[styles.launchBenefitNumber, { color: '#F59E0B' }]}>10</Text>
+                  <Text style={styles.launchBenefitLabel}>vagas</Text>
+                  <Text style={styles.launchBenefitDesc}>Premium grátis por 1 ano</Text>
                 </View>
               </View>
 
@@ -504,13 +517,23 @@ export default function HomeScreen({ navigation }: Props) {
                   navigation.navigate('Login', { redirectTo: 'NewItem' });
                 }}
               >
-                <Text style={styles.launchCTAText}>Garantir minha vaga</Text>
-                <Ionicons name="arrow-forward" size={18} color="#fff" />
+                <Text style={styles.launchCTAText}>Quero garantir minha vaga</Text>
+                <View style={styles.launchCTAArrow}>
+                  <Ionicons name="arrow-forward" size={20} color="#fff" />
+                </View>
               </TouchableOpacity>
 
-              <Text style={styles.launchFooter}>
-                Vagas limitadas • Cadastro rápido
-              </Text>
+              {/* Footer */}
+              <View style={styles.launchFooterRow}>
+                <View style={styles.launchFooterItem}>
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
+                  <Text style={styles.launchFooterText}>Cadastro em 30 segundos</Text>
+                </View>
+                <View style={styles.launchFooterItem}>
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
+                  <Text style={styles.launchFooterText}>Sem compromisso</Text>
+                </View>
+              </View>
             </View>
           </Animated.View>
         </View>
@@ -2777,132 +2800,210 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  // Launch Modal - Card Centralizado
-  launchModalOverlay: {
+  // Launch Modal - Design Premium Grande
+  launchOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(0,0,0,0.85)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: isDesktop ? 40 : 16,
   },
-  launchCard: {
+  launchModal: {
     backgroundColor: '#fff',
     borderRadius: 24,
     overflow: 'hidden',
     width: '100%',
-    maxWidth: isDesktop ? 420 : 380,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
+    maxWidth: isDesktop ? 900 : 500,
+    flexDirection: isDesktop ? 'row' : 'column',
+    ...Platform.select({
+      web: { boxShadow: '0 25px 80px rgba(0,0,0,0.5)' },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 25 },
+        shadowOpacity: 0.5,
+        shadowRadius: 40,
+        elevation: 25,
+      },
+    }),
   },
-  launchCardImage: {
+  launchImageSide: {
+    width: isDesktop ? '45%' : '100%',
+    height: isDesktop ? 'auto' : 200,
+    minHeight: isDesktop ? 500 : 200,
+    position: 'relative',
+  },
+  launchImage: {
     width: '100%',
-    height: 180,
-  },
-  launchCardGradient: {
+    height: '100%',
     position: 'absolute',
-    top: 0,
+  },
+  launchImageGradient: {
+    position: 'absolute',
+    bottom: 0,
     left: 0,
     right: 0,
-    height: 180,
+    height: '60%',
   },
-  launchCardContent: {
-    padding: 24,
-    alignItems: 'center',
+  launchImageContent: {
+    position: 'absolute',
+    bottom: 24,
+    left: 24,
+    right: 24,
+  },
+  launchQuoteBox: {
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 16,
+    padding: 16,
+  },
+  launchQuote: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    color: '#333',
+    marginBottom: 8,
+  },
+  launchStars: {
+    flexDirection: 'row',
+    gap: 2,
+  },
+  launchContentSide: {
+    flex: 1,
+    padding: isDesktop ? 48 : 32,
+    justifyContent: 'center',
   },
   launchLogo: {
-    fontSize: 22,
+    fontSize: isDesktop ? 28 : 24,
     fontWeight: '800',
     color: '#1a1a1a',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   launchLogoLight: {
     fontWeight: '400',
-    color: '#888',
+    color: '#999',
   },
   launchBadge: {
-    backgroundColor: COLORS.primaryExtraLight,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginBottom: 16,
-  },
-  launchBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.primary,
-    letterSpacing: 1.5,
-  },
-  launchTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#1a1a1a',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  launchSubtitle: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  launchBenefitsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
-    width: '100%',
-  },
-  launchBenefit: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  launchBenefitIcon: {
-    width: 40,
-    height: 40,
+    gap: 8,
+    backgroundColor: COLORS.primaryExtraLight,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: 20,
+    alignSelf: 'flex-start',
+    marginBottom: 24,
+  },
+  launchBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.primary,
+    letterSpacing: 1,
+  },
+  launchTitle: {
+    fontSize: isDesktop ? 36 : 28,
+    fontWeight: '800',
+    color: '#1a1a1a',
+    marginBottom: 12,
+    lineHeight: isDesktop ? 44 : 36,
+  },
+  launchSubtitle: {
+    fontSize: isDesktop ? 18 : 16,
+    color: '#666',
+    marginBottom: 32,
+    lineHeight: 26,
+  },
+  launchBenefitsGrid: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 32,
+  },
+  launchBenefitCard: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  launchBenefitCardGold: {
+    backgroundColor: '#FFFBEB',
+    borderColor: '#FCD34D',
+  },
+  launchBenefitIconLarge: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: 'rgba(76,175,80,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   launchBenefitNumber: {
-    fontSize: 28,
+    fontSize: 40,
     fontWeight: '800',
     color: '#4CAF50',
+    lineHeight: 44,
   },
-  launchBenefitText: {
-    fontSize: 12,
+  launchBenefitLabel: {
+    fontSize: 14,
+    fontWeight: '600',
     color: '#666',
-    textAlign: 'center',
+    marginBottom: 4,
   },
-  launchBenefitDivider: {
-    width: 1,
-    height: 60,
-    backgroundColor: '#eee',
-    marginHorizontal: 16,
+  launchBenefitDesc: {
+    fontSize: 12,
+    color: '#888',
+    textAlign: 'center',
   },
   launchCTA: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.primary,
-    paddingVertical: 16,
+    paddingVertical: 18,
     paddingHorizontal: 32,
-    borderRadius: 30,
+    borderRadius: 16,
     width: '100%',
-    gap: 8,
+    gap: 12,
+    marginBottom: 24,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 8px 24px rgba(107,144,128,0.4)',
+        transition: 'all 0.3s ease',
+      },
+      default: {
+        shadowColor: COLORS.primary,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.4,
+        shadowRadius: 12,
+        elevation: 8,
+      },
+    }),
   },
   launchCTAText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
     color: '#fff',
   },
-  launchFooter: {
-    fontSize: 12,
-    color: '#999',
-    marginTop: 16,
+  launchCTAArrow: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  launchFooterRow: {
+    flexDirection: isDesktop ? 'row' : 'column',
+    gap: 16,
+  },
+  launchFooterItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  launchFooterText: {
+    fontSize: 14,
+    color: '#666',
   },
   // Promo Screen styles (legacy, keeping for compatibility)
   promoScreen: {
