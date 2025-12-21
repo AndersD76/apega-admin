@@ -116,23 +116,24 @@ const FEATURED_PIECES = [
   },
 ];
 
+// Usando img.logo.dev para logos confiáveis
 const BRAND_LOGOS = [
-  { name: 'Zara', logo: 'https://logo.clearbit.com/zara.com' },
-  { name: 'Farm', logo: 'https://logo.clearbit.com/farmrio.com.br' },
-  { name: 'Animale', logo: 'https://logo.clearbit.com/animale.com.br' },
-  { name: 'Renner', logo: 'https://logo.clearbit.com/lojasrenner.com.br' },
-  { name: 'C&A', logo: 'https://logo.clearbit.com/cea.com.br' },
-  { name: 'Forever 21', logo: 'https://logo.clearbit.com/forever21.com' },
-  { name: 'H&M', logo: 'https://logo.clearbit.com/hm.com' },
-  { name: 'Gucci', logo: 'https://logo.clearbit.com/gucci.com' },
-  { name: 'Louis Vuitton', logo: 'https://logo.clearbit.com/louisvuitton.com' },
-  { name: 'Prada', logo: 'https://logo.clearbit.com/prada.com' },
-  { name: 'Chanel', logo: 'https://logo.clearbit.com/chanel.com' },
-  { name: 'Michael Kors', logo: 'https://logo.clearbit.com/michaelkors.com' },
-  { name: 'Tommy Hilfiger', logo: 'https://logo.clearbit.com/tommy.com' },
-  { name: 'Calvin Klein', logo: 'https://logo.clearbit.com/calvinklein.com' },
-  { name: 'Lacoste', logo: 'https://logo.clearbit.com/lacoste.com' },
-  { name: 'Nike', logo: 'https://logo.clearbit.com/nike.com' },
+  { name: 'Zara', logo: 'https://img.logo.dev/zara.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
+  { name: 'Farm', logo: 'https://img.logo.dev/farmrio.com.br?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
+  { name: 'Animale', logo: 'https://img.logo.dev/animale.com.br?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
+  { name: 'Renner', logo: 'https://img.logo.dev/lojasrenner.com.br?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
+  { name: 'C&A', logo: 'https://img.logo.dev/cea.com.br?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
+  { name: 'Forever 21', logo: 'https://img.logo.dev/forever21.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
+  { name: 'H&M', logo: 'https://img.logo.dev/hm.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
+  { name: 'Gucci', logo: 'https://img.logo.dev/gucci.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
+  { name: 'Louis Vuitton', logo: 'https://img.logo.dev/louisvuitton.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
+  { name: 'Prada', logo: 'https://img.logo.dev/prada.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
+  { name: 'Chanel', logo: 'https://img.logo.dev/chanel.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
+  { name: 'Michael Kors', logo: 'https://img.logo.dev/michaelkors.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
+  { name: 'Tommy Hilfiger', logo: 'https://img.logo.dev/tommy.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
+  { name: 'Calvin Klein', logo: 'https://img.logo.dev/calvinklein.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
+  { name: 'Lacoste', logo: 'https://img.logo.dev/lacoste.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
+  { name: 'Nike', logo: 'https://img.logo.dev/nike.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
 ];
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
