@@ -1,4 +1,5 @@
 import api from './api';
+import { trackProductView } from './analytics';
 
 export interface Product {
   id: string;
@@ -81,7 +82,10 @@ export const getProducts = async (filters: ProductFilters = {}): Promise<Product
 };
 
 // Obter produto por ID
-export const getProduct = async (id: string): Promise<{ product: Product }> => {
+export const getProduct = async (id: string, source?: string): Promise<{ product: Product }> => {
+  // Track product view for analytics
+  trackProductView(id, source);
+
   return api.get<{ product: Product }>(`/products/${id}`);
 };
 

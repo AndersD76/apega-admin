@@ -5,6 +5,7 @@ export * from './products';
 export * from './orders';
 export * from './cart';
 export * from './favorites';
+export * from './analytics';
 
 // Importar serviços como módulos
 import api from './api';
@@ -13,6 +14,7 @@ import products from './products';
 import orders from './orders';
 import cart from './cart';
 import favorites from './favorites';
+import analytics from './analytics';
 
 export default {
   api,
@@ -21,4 +23,5 @@ export default {
   orders,
   cart,
   favorites,
+  analytics,
 };
