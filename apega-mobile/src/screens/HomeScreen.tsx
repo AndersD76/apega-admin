@@ -428,7 +428,7 @@ export default function HomeScreen({ navigation }: Props) {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FAF9F7" />
 
-      {/* Modal de Lançamento - Popup Centralizado */}
+      {/* Modal de Lançamento - Card Centralizado */}
       <Modal
         visible={showPromoPopup}
         transparent={true}
@@ -436,88 +436,83 @@ export default function HomeScreen({ navigation }: Props) {
         onRequestClose={closePromoPopup}
       >
         <View style={styles.launchModalOverlay}>
-          <View style={styles.launchFullScreen}>
+          <Animated.View
+            style={[
+              styles.launchCard,
+              {
+                opacity: promoOpacityAnim,
+                transform: [{ scale: promoScaleAnim }],
+              },
+            ]}
+          >
             {/* Background Image */}
             <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600&q=80' }}
-              style={styles.launchBgImage}
+              source={{ uri: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80' }}
+              style={styles.launchCardImage}
             />
             <LinearGradient
-              colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.85)']}
-              style={styles.launchBgGradient}
+              colors={['transparent', 'rgba(0,0,0,0.8)']}
+              style={styles.launchCardGradient}
             />
 
             {/* Content */}
-            <Animated.View
-              style={[
-                styles.launchContentWrapper,
-                {
-                  opacity: promoOpacityAnim,
-                  transform: [{ translateY: Animated.multiply(promoScaleAnim, -20).interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [20, 0],
-                  }) }],
-                },
-              ]}
-            >
+            <View style={styles.launchCardContent}>
               {/* Logo */}
-              <View style={styles.launchLogoWrapper}>
-                <Text style={styles.launchLogoPremium}>
-                  apega<Text style={styles.launchLogoPremiumLight}>desapega</Text>
-                </Text>
+              <Text style={styles.launchLogo}>
+                apega<Text style={styles.launchLogoLight}>desapega</Text>
+              </Text>
+
+              {/* Badge */}
+              <View style={styles.launchBadge}>
+                <Text style={styles.launchBadgeText}>CONVITE EXCLUSIVO</Text>
               </View>
 
-              {/* Hero Text */}
-              <View style={styles.launchHeroText}>
-                <Text style={styles.launchPreTitle}>CONVITE EXCLUSIVO</Text>
-                <Text style={styles.launchMainTitle}>
-                  Faça parte do{'\n'}lançamento
-                </Text>
-                <Text style={styles.launchHeroSubtitle}>
-                  As primeiras vendedoras terão benefícios únicos que nunca mais serão oferecidos
-                </Text>
-              </View>
+              {/* Title */}
+              <Text style={styles.launchTitle}>
+                Faça parte do lançamento
+              </Text>
+              <Text style={styles.launchSubtitle}>
+                Benefícios únicos para as primeiras vendedoras
+              </Text>
 
-              {/* Cards de benefícios */}
-              <View style={styles.launchCardsRow}>
-                <View style={styles.launchCard}>
-                  <View style={styles.launchCardIconBg}>
-                    <Ionicons name="pricetag" size={24} color="#4CAF50" />
+              {/* Benefits Row */}
+              <View style={styles.launchBenefitsRow}>
+                <View style={styles.launchBenefit}>
+                  <View style={styles.launchBenefitIcon}>
+                    <Ionicons name="pricetag" size={18} color="#4CAF50" />
                   </View>
-                  <Text style={styles.launchCardNumber}>100</Text>
-                  <Text style={styles.launchCardTitle}>Vagas</Text>
-                  <Text style={styles.launchCardDesc}>0% comissão para sempre</Text>
+                  <Text style={styles.launchBenefitNumber}>100</Text>
+                  <Text style={styles.launchBenefitText}>vagas sem comissão</Text>
                 </View>
 
-                <View style={[styles.launchCard, styles.launchCardGold]}>
-                  <View style={[styles.launchCardIconBg, { backgroundColor: 'rgba(255,193,7,0.2)' }]}>
-                    <Ionicons name="diamond" size={24} color="#FFC107" />
+                <View style={styles.launchBenefitDivider} />
+
+                <View style={styles.launchBenefit}>
+                  <View style={[styles.launchBenefitIcon, { backgroundColor: 'rgba(255,193,7,0.2)' }]}>
+                    <Ionicons name="diamond" size={18} color="#FFC107" />
                   </View>
-                  <Text style={[styles.launchCardNumber, { color: '#FFC107' }]}>10</Text>
-                  <Text style={styles.launchCardTitle}>Vagas</Text>
-                  <Text style={styles.launchCardDesc}>Premium grátis 1 ano</Text>
+                  <Text style={[styles.launchBenefitNumber, { color: '#FFC107' }]}>10</Text>
+                  <Text style={styles.launchBenefitText}>Premium grátis</Text>
                 </View>
               </View>
 
               {/* CTA */}
               <TouchableOpacity
-                style={styles.launchCTAPremium}
+                style={styles.launchCTA}
                 onPress={() => {
                   closePromoPopup();
                   navigation.navigate('Login', { redirectTo: 'NewItem' });
                 }}
               >
-                <Text style={styles.launchCTAPremiumText}>Garantir minha vaga</Text>
-                <View style={styles.launchCTAArrow}>
-                  <Ionicons name="arrow-forward" size={20} color={COLORS.primary} />
-                </View>
+                <Text style={styles.launchCTAText}>Garantir minha vaga</Text>
+                <Ionicons name="arrow-forward" size={18} color="#fff" />
               </TouchableOpacity>
 
-              <Text style={styles.launchFooterText}>
-                Cadastro rápido • Sem compromisso • Vagas limitadas
+              <Text style={styles.launchFooter}>
+                Vagas limitadas • Cadastro rápido
               </Text>
-            </Animated.View>
-          </View>
+            </View>
+          </Animated.View>
         </View>
       </Modal>
 
@@ -2769,172 +2764,133 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  // Launch Modal - Full Screen Premium Design
+  // Launch Modal - Card Centralizado
   launchModalOverlay: {
     flex: 1,
-  },
-  launchFullScreen: {
-    flex: 1,
-    position: 'relative',
-  },
-  launchBgImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: '100%',
-    height: '100%',
-  },
-  launchBgGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  launchContentWrapper: {
-    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: isDesktop ? 60 : 24,
-  },
-  launchLogoWrapper: {
-    marginBottom: isDesktop ? 40 : 24,
-  },
-  launchLogoPremium: {
-    fontSize: isDesktop ? 36 : 28,
-    fontWeight: '800',
-    color: '#fff',
-    letterSpacing: -0.5,
-  },
-  launchLogoPremiumLight: {
-    fontWeight: '400',
-    color: 'rgba(255,255,255,0.7)',
-  },
-  launchHeroText: {
-    alignItems: 'center',
-    marginBottom: isDesktop ? 48 : 32,
-    maxWidth: 500,
-  },
-  launchPreTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.primary,
-    letterSpacing: 3,
-    marginBottom: 16,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  launchMainTitle: {
-    fontSize: isDesktop ? 52 : 36,
-    fontWeight: '800',
-    color: '#fff',
-    textAlign: 'center',
-    lineHeight: isDesktop ? 60 : 44,
-    marginBottom: 16,
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
-  },
-  launchHeroSubtitle: {
-    fontSize: isDesktop ? 18 : 15,
-    color: 'rgba(255,255,255,0.85)',
-    textAlign: 'center',
-    lineHeight: isDesktop ? 28 : 24,
-  },
-  launchCardsRow: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: isDesktop ? 48 : 32,
-    width: '100%',
-    maxWidth: 420,
-    justifyContent: 'center',
+    padding: 20,
   },
   launchCard: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    borderRadius: 20,
-    padding: isDesktop ? 24 : 20,
-    alignItems: 'center',
-    maxWidth: 200,
-  },
-  launchCardGold: {
-    backgroundColor: 'rgba(255,255,255,0.98)',
-    borderWidth: 2,
-    borderColor: '#FFC107',
-  },
-  launchCardIconBg: {
-    width: 48,
-    height: 48,
+    backgroundColor: '#fff',
     borderRadius: 24,
+    overflow: 'hidden',
+    width: '100%',
+    maxWidth: isDesktop ? 420 : 380,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  launchCardImage: {
+    width: '100%',
+    height: 180,
+  },
+  launchCardGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 180,
+  },
+  launchCardContent: {
+    padding: 24,
+    alignItems: 'center',
+  },
+  launchLogo: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1a1a1a',
+    marginBottom: 16,
+  },
+  launchLogoLight: {
+    fontWeight: '400',
+    color: '#888',
+  },
+  launchBadge: {
+    backgroundColor: COLORS.primaryExtraLight,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginBottom: 16,
+  },
+  launchBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.primary,
+    letterSpacing: 1.5,
+  },
+  launchTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1a1a1a',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  launchSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  launchBenefitsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+    width: '100%',
+  },
+  launchBenefit: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  launchBenefitIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: 'rgba(76,175,80,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
-  launchCardNumber: {
-    fontSize: 36,
+  launchBenefitNumber: {
+    fontSize: 28,
     fontWeight: '800',
-    color: COLORS.primary,
-    marginBottom: 0,
+    color: '#4CAF50',
   },
-  launchCardTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.gray[600],
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  launchCardDesc: {
+  launchBenefitText: {
     fontSize: 12,
-    color: COLORS.gray[500],
+    color: '#666',
     textAlign: 'center',
   },
-  launchCTAPremium: {
+  launchBenefitDivider: {
+    width: 1,
+    height: 60,
+    backgroundColor: '#eee',
+    marginHorizontal: 16,
+  },
+  launchCTA: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    backgroundColor: '#fff',
-    paddingLeft: isDesktop ? 36 : 28,
-    paddingRight: isDesktop ? 8 : 6,
-    paddingVertical: isDesktop ? 8 : 6,
-    borderRadius: 40,
-    marginBottom: 24,
-  },
-  launchCTAPremiumText: {
-    fontSize: isDesktop ? 18 : 16,
-    fontWeight: '700',
-    color: COLORS.gray[800],
-  },
-  launchCTAArrow: {
-    width: isDesktop ? 48 : 42,
-    height: isDesktop ? 48 : 42,
-    borderRadius: 24,
-    backgroundColor: COLORS.primary,
     justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: COLORS.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 30,
+    width: '100%',
+    gap: 8,
   },
-  launchFooterText: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.6)',
-    textAlign: 'center',
-  },
-  launchModalCTAText: {
-    fontSize: 17,
+  launchCTAText: {
+    fontSize: 16,
     fontWeight: '700',
     color: '#fff',
   },
-  launchModalDisclaimer: {
-    fontSize: 11,
-    color: COLORS.gray[400],
-    fontStyle: 'italic',
-    paddingBottom: 24,
+  launchFooter: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 16,
   },
-
   // Promo Screen styles (legacy, keeping for compatibility)
   promoScreen: {
     flex: 1,
