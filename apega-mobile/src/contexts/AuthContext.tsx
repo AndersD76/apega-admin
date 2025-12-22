@@ -22,30 +22,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Carregar usuário ao iniciar
+  // Carregar usuário ao iniciar - SEMPRE valida o token com o servidor
   useEffect(() => {
     const initAuth = async () => {
+      console.log('[Auth] Iniciando verificação de autenticação...');
       try {
         const token = await loadToken();
+        console.log('[Auth] Token encontrado:', !!token);
+
         if (!token) {
-          // Sem token, limpar dados armazenados
+          console.log('[Auth] Sem token, limpando dados...');
           await authLogout();
           setUser(null);
           return;
         }
 
-        // Verificar se o token é válido tentando obter dados frescos
+        // SEMPRE verificar se o token é válido com o servidor
+        console.log('[Auth] Validando token com servidor...');
         const freshUser = await getCurrentUser();
+
         if (freshUser) {
+          console.log('[Auth] Token válido, usuário:', freshUser.name);
           setUser(freshUser);
         } else {
-          // Token inválido ou expirado - fazer logout
+          console.log('[Auth] Token inválido, fazendo logout...');
           await authLogout();
           setUser(null);
         }
       } catch (error) {
-        console.error('Erro ao inicializar auth:', error);
-        // Em caso de erro, limpar dados
+        console.error('[Auth] Erro ao inicializar:', error);
         await authLogout();
         setUser(null);
       } finally {
