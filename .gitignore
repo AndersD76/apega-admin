@@ -33,6 +33,7 @@ dist/
 build/
 .next/
 out/
+apega-backend/public/
 
 # Prisma
 prisma/migrations/
