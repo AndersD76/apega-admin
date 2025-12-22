@@ -11,6 +11,7 @@ import {
   Platform,
   Dimensions,
   Animated,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,9 +24,8 @@ import { getCurrentUser } from '../services/authService';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 
-const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
-const isDesktop = isWeb && width > 768;
+const MAX_CONTENT_WIDTH = 600;
 
 // Banner images
 const BANNER_IMAGES = [
@@ -47,6 +47,10 @@ interface User {
 
 export default function ProfileScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
+  const isDesktop = isWeb && windowWidth > 768;
+  const contentWidth = isDesktop ? Math.min(windowWidth * 0.9, MAX_CONTENT_WIDTH) : windowWidth;
+
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -119,9 +123,11 @@ export default function ProfileScreen({ navigation }: Props) {
     return (
       <View style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText}>carregando...</Text>
+        <View style={[styles.webWrapper, isDesktop && styles.webWrapperDesktop]}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={COLORS.primary} />
+            <Text style={styles.loadingText}>carregando...</Text>
+          </View>
         </View>
         <BottomNavigation navigation={navigation} activeRoute="Profile" />
       </View>
@@ -153,90 +159,342 @@ export default function ProfileScreen({ navigation }: Props) {
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            isDesktop && styles.scrollContentDesktop,
+          ]}
         >
-          {/* Banner Hero */}
-          <Animated.View style={[styles.heroBanner, { opacity: bannerFade }]}>
-            <Image
-              source={{ uri: BANNER_IMAGES[currentBanner].uri }}
-              style={styles.heroBannerImage}
-            />
-            <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.7)']}
-              style={styles.heroBannerOverlay}
-            />
-            <View style={styles.heroBannerContent}>
-              <Text style={styles.heroBannerTitle}>{BANNER_IMAGES[currentBanner].title}</Text>
-              <Text style={styles.heroBannerSubtitle}>{BANNER_IMAGES[currentBanner].subtitle}</Text>
+          <View style={[
+            styles.contentWrapper,
+            isDesktop && { maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center', width: '100%' }
+          ]}>
+            {/* Banner Hero */}
+            <Animated.View style={[
+              styles.heroBanner,
+              { opacity: bannerFade },
+              isDesktop && styles.heroBannerDesktop
+            ]}>
+              <Image
+                source={{ uri: BANNER_IMAGES[currentBanner].uri }}
+                style={styles.heroBannerImage}
+              />
+              <LinearGradient
+                colors={['transparent', 'rgba(0,0,0,0.7)']}
+                style={styles.heroBannerOverlay}
+              />
+              <View style={styles.heroBannerContent}>
+                <Text style={[styles.heroBannerTitle, isDesktop && styles.heroBannerTitleDesktop]}>
+                  {BANNER_IMAGES[currentBanner].title}
+                </Text>
+                <Text style={[styles.heroBannerSubtitle, isDesktop && styles.heroBannerSubtitleDesktop]}>
+                  {BANNER_IMAGES[currentBanner].subtitle}
+                </Text>
+              </View>
+              <View style={styles.bannerDots}>
+                {BANNER_IMAGES.map((_, index) => (
+                  <View
+                    key={index}
+                    style={[styles.bannerDot, currentBanner === index && styles.bannerDotActive]}
+                  />
+                ))}
+              </View>
+            </Animated.View>
+
+            {/* Login Hero */}
+            <View style={styles.loginHero}>
+              <View style={styles.loginIconCircle}>
+                <Ionicons name="heart" size={40} color={COLORS.primary} />
+              </View>
+              <Text style={styles.loginTitle}>Oi, bora desapegar?</Text>
+              <Text style={styles.loginSubtitle}>
+                Entre pra salvar favoritos, vender suas peças e acompanhar seus pedidos
+              </Text>
             </View>
-            <View style={styles.bannerDots}>
-              {BANNER_IMAGES.map((_, index) => (
-                <View
-                  key={index}
-                  style={[styles.bannerDot, currentBanner === index && styles.bannerDotActive]}
+
+            {/* Login Actions */}
+            <View style={styles.loginActions}>
+              <TouchableOpacity
+                style={styles.primaryBtn}
+                onPress={() => navigation.navigate('Login')}
+                activeOpacity={0.9}
+              >
+                <Text style={styles.primaryBtnText}>entrar ou criar conta</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Features */}
+            <View style={styles.featuresSection}>
+              <Text style={styles.featuresTitle}>por que entrar?</Text>
+
+              <View style={styles.featureRow}>
+                <View style={[styles.featureIcon, { backgroundColor: '#FEE2E2' }]}>
+                  <Ionicons name="heart" size={20} color="#EF4444" />
+                </View>
+                <View style={styles.featureContent}>
+                  <Text style={styles.featureLabel}>favoritos</Text>
+                  <Text style={styles.featureDesc}>salve as peças que você amou</Text>
+                </View>
+              </View>
+
+              <View style={styles.featureRow}>
+                <View style={[styles.featureIcon, { backgroundColor: '#D1FAE5' }]}>
+                  <Ionicons name="pricetag" size={20} color="#10B981" />
+                </View>
+                <View style={styles.featureContent}>
+                  <Text style={styles.featureLabel}>venda fácil</Text>
+                  <Text style={styles.featureDesc}>anuncie e ganhe dinheiro</Text>
+                </View>
+              </View>
+
+              <View style={styles.featureRow}>
+                <View style={[styles.featureIcon, { backgroundColor: '#E0E7FF' }]}>
+                  <Ionicons name="cube" size={20} color="#6366F1" />
+                </View>
+                <View style={styles.featureContent}>
+                  <Text style={styles.featureLabel}>pedidos</Text>
+                  <Text style={styles.featureDesc}>acompanhe tudo em um lugar</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* About Section - Story of Apega Desapega */}
+            <View style={styles.aboutSection}>
+              <LinearGradient
+                colors={['#f8f4f0', '#fff5eb']}
+                style={styles.aboutGradient}
+              >
+                <Text style={styles.aboutTitle}>nossa história</Text>
+
+                <View style={styles.founderCard}>
+                  <View style={styles.founderImagePlaceholder}>
+                    <Ionicons name="person" size={32} color={COLORS.primary} />
+                  </View>
+                  <View style={styles.founderInfo}>
+                    <Text style={styles.founderName}>amanda maier</Text>
+                    <Text style={styles.founderRole}>fundadora</Text>
+                  </View>
+                </View>
+
+                <Text style={styles.aboutText}>
+                  a apega desapega nasceu de uma lojinha física em passo fundo, rio grande do sul.
+                  começou pequena, com a paixão da amanda por moda circular e sustentabilidade.
+                </Text>
+
+                <Text style={styles.aboutText}>
+                  hoje somos um brechó destaque no RS, conectando pessoas que amam moda consciente.
+                  cada peça tem história, e agora você pode fazer parte da nossa.
+                </Text>
+
+                <View style={styles.aboutBadges}>
+                  <View style={styles.aboutBadge}>
+                    <Ionicons name="location" size={14} color={COLORS.primary} />
+                    <Text style={styles.aboutBadgeText}>passo fundo, rs</Text>
+                  </View>
+                  <View style={styles.aboutBadge}>
+                    <Ionicons name="leaf" size={14} color="#10B981" />
+                    <Text style={styles.aboutBadgeText}>moda sustentável</Text>
+                  </View>
+                </View>
+              </LinearGradient>
+            </View>
+
+            <View style={{ height: 120 }} />
+          </View>
+        </ScrollView>
+
+        <BottomNavigation navigation={navigation} activeRoute="Profile" />
+      </View>
+    );
+  }
+
+  // Authenticated - Profile Dashboard
+  const rating = typeof user.rating === 'number' ? user.rating : parseFloat(user.rating || '0');
+
+  return (
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FAF9F7" />
+
+      {/* Header Padrão */}
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+          <Text style={styles.logo}>apega<Text style={styles.logoLight}>desapega</Text></Text>
+        </TouchableOpacity>
+        {isDesktop && (
+          <View style={styles.navDesktop}>
+            <TouchableOpacity onPress={() => navigation.navigate('Search')}>
+              <Text style={styles.navLink}>Explorar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('Favorites')}>
+              <Text style={styles.navLink}>Favoritos</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+          <Ionicons name="settings-outline" size={22} color="#333" />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.scrollContent,
+          isDesktop && styles.scrollContentDesktop,
+        ]}
+      >
+        <View style={[
+          styles.contentWrapper,
+          isDesktop && { maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center', width: '100%' }
+        ]}>
+          {/* Profile Card */}
+          <View style={styles.profileCard}>
+            <TouchableOpacity
+              style={styles.avatarContainer}
+              onPress={() => navigation.navigate('EditProfile')}
+            >
+              {user.avatar_url ? (
+                <Image source={{ uri: user.avatar_url }} style={styles.avatar} />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Text style={styles.avatarInitial}>
+                    {user.name?.charAt(0)?.toLowerCase() || 'u'}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <Text style={styles.userName}>{user.name?.toLowerCase()}</Text>
+            <Text style={styles.userEmail}>{user.email}</Text>
+
+            {/* Rating */}
+            <View style={styles.ratingRow}>
+              {[...Array(5)].map((_, i) => (
+                <Ionicons
+                  key={i}
+                  name={i < Math.floor(rating) ? 'star' : 'star-outline'}
+                  size={16}
+                  color={i < Math.floor(rating) ? '#FFD700' : '#ddd'}
                 />
               ))}
+              <Text style={styles.ratingText}>
+                {rating.toFixed(1)} ({user.total_reviews || 0})
+              </Text>
             </View>
-          </Animated.View>
 
-          {/* Login Hero */}
-          <View style={styles.loginHero}>
-            <View style={styles.loginIconCircle}>
-              <Ionicons name="heart" size={40} color={COLORS.primary} />
+            {/* Stats */}
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{user.total_sales || 0}</Text>
+                <Text style={styles.statLabel}>vendas</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{user.total_reviews || 0}</Text>
+                <Text style={styles.statLabel}>avaliações</Text>
+              </View>
             </View>
-            <Text style={styles.loginTitle}>Oi, bora desapegar?</Text>
-            <Text style={styles.loginSubtitle}>
-              Entre pra salvar favoritos, vender suas peças e acompanhar seus pedidos
-            </Text>
           </View>
 
-          {/* Login Actions */}
-          <View style={styles.loginActions}>
+          {/* Quick Actions */}
+          <View style={styles.quickActions}>
             <TouchableOpacity
-              style={styles.primaryBtn}
-              onPress={() => navigation.navigate('Login')}
-              activeOpacity={0.9}
+              style={styles.quickAction}
+              onPress={() => navigation.navigate('Favorites')}
             >
-              <Text style={styles.primaryBtnText}>entrar ou criar conta</Text>
+              <View style={[styles.quickIcon, { backgroundColor: '#FEE2E2' }]}>
+                <Ionicons name="heart" size={20} color="#EF4444" />
+              </View>
+              <Text style={styles.quickLabel}>favoritos</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.quickAction}
+              onPress={() => navigation.navigate('Orders')}
+            >
+              <View style={[styles.quickIcon, { backgroundColor: '#E0E7FF' }]}>
+                <Ionicons name="cube" size={20} color="#6366F1" />
+              </View>
+              <Text style={styles.quickLabel}>pedidos</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.quickAction}
+              onPress={() => navigation.navigate('MyStore')}
+            >
+              <View style={[styles.quickIcon, { backgroundColor: '#D1FAE5' }]}>
+                <Ionicons name="storefront" size={20} color="#10B981" />
+              </View>
+              <Text style={styles.quickLabel}>minha loja</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.quickAction}
+              onPress={() => navigation.navigate('NewItem')}
+            >
+              <View style={[styles.quickIcon, { backgroundColor: '#E8F5E9' }]}>
+                <Ionicons name="add-circle" size={20} color={COLORS.primary} />
+              </View>
+              <Text style={styles.quickLabel}>vender</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Features */}
-          <View style={styles.featuresSection}>
-            <Text style={styles.featuresTitle}>por que entrar?</Text>
+          {/* Menu Items */}
+          <View style={styles.menuSection}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => navigation.navigate('MyStore')}
+            >
+              <Ionicons name="storefront-outline" size={20} color="#333" />
+              <Text style={styles.menuText}>minha loja</Text>
+              <Ionicons name="chevron-forward" size={18} color="#ccc" />
+            </TouchableOpacity>
 
-            <View style={styles.featureRow}>
-              <View style={[styles.featureIcon, { backgroundColor: '#FEE2E2' }]}>
-                <Ionicons name="heart" size={20} color="#EF4444" />
-              </View>
-              <View style={styles.featureContent}>
-                <Text style={styles.featureLabel}>favoritos</Text>
-                <Text style={styles.featureDesc}>salve as peças que você amou</Text>
-              </View>
-            </View>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => navigation.navigate('Sales')}
+            >
+              <Ionicons name="stats-chart-outline" size={20} color="#333" />
+              <Text style={styles.menuText}>minhas vendas</Text>
+              <Ionicons name="chevron-forward" size={18} color="#ccc" />
+            </TouchableOpacity>
 
-            <View style={styles.featureRow}>
-              <View style={[styles.featureIcon, { backgroundColor: '#D1FAE5' }]}>
-                <Ionicons name="pricetag" size={20} color="#10B981" />
-              </View>
-              <View style={styles.featureContent}>
-                <Text style={styles.featureLabel}>venda fácil</Text>
-                <Text style={styles.featureDesc}>anuncie e ganhe dinheiro</Text>
-              </View>
-            </View>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => navigation.navigate('Balance')}
+            >
+              <Ionicons name="wallet-outline" size={20} color="#333" />
+              <Text style={styles.menuText}>saldo</Text>
+              <Ionicons name="chevron-forward" size={18} color="#ccc" />
+            </TouchableOpacity>
 
-            <View style={styles.featureRow}>
-              <View style={[styles.featureIcon, { backgroundColor: '#E0E7FF' }]}>
-                <Ionicons name="cube" size={20} color="#6366F1" />
-              </View>
-              <View style={styles.featureContent}>
-                <Text style={styles.featureLabel}>pedidos</Text>
-                <Text style={styles.featureDesc}>acompanhe tudo em um lugar</Text>
-              </View>
-            </View>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => navigation.navigate('Addresses')}
+            >
+              <Ionicons name="location-outline" size={20} color="#333" />
+              <Text style={styles.menuText}>endereços</Text>
+              <Ionicons name="chevron-forward" size={18} color="#ccc" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => navigation.navigate('Help')}
+            >
+              <Ionicons name="help-circle-outline" size={20} color="#333" />
+              <Text style={styles.menuText}>ajuda</Text>
+              <Ionicons name="chevron-forward" size={18} color="#ccc" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.menuItem, styles.menuItemLast]}
+              onPress={handleLogout}
+            >
+              <Ionicons name="log-out-outline" size={20} color="#EF4444" />
+              <Text style={[styles.menuText, { color: '#EF4444' }]}>sair</Text>
+              <Ionicons name="chevron-forward" size={18} color="#ccc" />
+            </TouchableOpacity>
           </View>
 
-          {/* About Section - Story of Apega Desapega */}
+          {/* About Section */}
           <View style={styles.aboutSection}>
             <LinearGradient
               colors={['#f8f4f0', '#fff5eb']}
@@ -277,240 +535,11 @@ export default function ProfileScreen({ navigation }: Props) {
             </LinearGradient>
           </View>
 
+          {/* Version */}
+          <Text style={styles.version}>apega desapega v1.0.0</Text>
+
           <View style={{ height: 120 }} />
-        </ScrollView>
-
-        <BottomNavigation navigation={navigation} activeRoute="Profile" />
-      </View>
-    );
-  }
-
-  // Authenticated - Profile Dashboard
-  const rating = typeof user.rating === 'number' ? user.rating : parseFloat(user.rating || '0');
-
-  return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAF9F7" />
-
-      {/* Header Padrão */}
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-          <Text style={styles.logo}>apega<Text style={styles.logoLight}>desapega</Text></Text>
-        </TouchableOpacity>
-        {isDesktop && (
-          <View style={styles.navDesktop}>
-            <TouchableOpacity onPress={() => navigation.navigate('Search')}>
-              <Text style={styles.navLink}>Explorar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Favorites')}>
-              <Text style={styles.navLink}>Favoritos</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-          <Ionicons name="settings-outline" size={22} color="#333" />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-
-        {/* Profile Card */}
-        <View style={styles.profileCard}>
-          <TouchableOpacity
-            style={styles.avatarContainer}
-            onPress={() => navigation.navigate('EditProfile')}
-          >
-            {user.avatar_url ? (
-              <Image source={{ uri: user.avatar_url }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarInitial}>
-                  {user.name?.charAt(0)?.toLowerCase() || 'u'}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-
-          <Text style={styles.userName}>{user.name?.toLowerCase()}</Text>
-          <Text style={styles.userEmail}>{user.email}</Text>
-
-          {/* Rating */}
-          <View style={styles.ratingRow}>
-            {[...Array(5)].map((_, i) => (
-              <Ionicons
-                key={i}
-                name={i < Math.floor(rating) ? 'star' : 'star-outline'}
-                size={16}
-                color={i < Math.floor(rating) ? '#FFD700' : '#ddd'}
-              />
-            ))}
-            <Text style={styles.ratingText}>
-              {rating.toFixed(1)} ({user.total_reviews || 0})
-            </Text>
-          </View>
-
-          {/* Stats */}
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{user.total_sales || 0}</Text>
-              <Text style={styles.statLabel}>vendas</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{user.total_reviews || 0}</Text>
-              <Text style={styles.statLabel}>avaliações</Text>
-            </View>
-          </View>
         </View>
-
-        {/* Quick Actions */}
-        <View style={styles.quickActions}>
-          <TouchableOpacity
-            style={styles.quickAction}
-            onPress={() => navigation.navigate('Favorites')}
-          >
-            <View style={[styles.quickIcon, { backgroundColor: '#FEE2E2' }]}>
-              <Ionicons name="heart" size={20} color="#EF4444" />
-            </View>
-            <Text style={styles.quickLabel}>favoritos</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.quickAction}
-            onPress={() => navigation.navigate('Orders')}
-          >
-            <View style={[styles.quickIcon, { backgroundColor: '#E0E7FF' }]}>
-              <Ionicons name="cube" size={20} color="#6366F1" />
-            </View>
-            <Text style={styles.quickLabel}>pedidos</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.quickAction}
-            onPress={() => navigation.navigate('MyStore')}
-          >
-            <View style={[styles.quickIcon, { backgroundColor: '#D1FAE5' }]}>
-              <Ionicons name="storefront" size={20} color="#10B981" />
-            </View>
-            <Text style={styles.quickLabel}>minha loja</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.quickAction}
-            onPress={() => navigation.navigate('NewItem')}
-          >
-            <View style={[styles.quickIcon, { backgroundColor: '#E8F5E9' }]}>
-              <Ionicons name="add-circle" size={20} color={COLORS.primary} />
-            </View>
-            <Text style={styles.quickLabel}>vender</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Menu Items */}
-        <View style={styles.menuSection}>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate('MyStore')}
-          >
-            <Ionicons name="storefront-outline" size={20} color="#333" />
-            <Text style={styles.menuText}>minha loja</Text>
-            <Ionicons name="chevron-forward" size={18} color="#ccc" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate('Sales')}
-          >
-            <Ionicons name="stats-chart-outline" size={20} color="#333" />
-            <Text style={styles.menuText}>minhas vendas</Text>
-            <Ionicons name="chevron-forward" size={18} color="#ccc" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate('Balance')}
-          >
-            <Ionicons name="wallet-outline" size={20} color="#333" />
-            <Text style={styles.menuText}>saldo</Text>
-            <Ionicons name="chevron-forward" size={18} color="#ccc" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate('Addresses')}
-          >
-            <Ionicons name="location-outline" size={20} color="#333" />
-            <Text style={styles.menuText}>endereços</Text>
-            <Ionicons name="chevron-forward" size={18} color="#ccc" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate('Help')}
-          >
-            <Ionicons name="help-circle-outline" size={20} color="#333" />
-            <Text style={styles.menuText}>ajuda</Text>
-            <Ionicons name="chevron-forward" size={18} color="#ccc" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.menuItem, styles.menuItemLast]}
-            onPress={handleLogout}
-          >
-            <Ionicons name="log-out-outline" size={20} color="#EF4444" />
-            <Text style={[styles.menuText, { color: '#EF4444' }]}>sair</Text>
-            <Ionicons name="chevron-forward" size={18} color="#ccc" />
-          </TouchableOpacity>
-        </View>
-
-        {/* About Section */}
-        <View style={styles.aboutSection}>
-          <LinearGradient
-            colors={['#f8f4f0', '#fff5eb']}
-            style={styles.aboutGradient}
-          >
-            <Text style={styles.aboutTitle}>nossa história</Text>
-
-            <View style={styles.founderCard}>
-              <View style={styles.founderImagePlaceholder}>
-                <Ionicons name="person" size={32} color={COLORS.primary} />
-              </View>
-              <View style={styles.founderInfo}>
-                <Text style={styles.founderName}>amanda maier</Text>
-                <Text style={styles.founderRole}>fundadora</Text>
-              </View>
-            </View>
-
-            <Text style={styles.aboutText}>
-              a apega desapega nasceu de uma lojinha física em passo fundo, rio grande do sul.
-              começou pequena, com a paixão da amanda por moda circular e sustentabilidade.
-            </Text>
-
-            <Text style={styles.aboutText}>
-              hoje somos um brechó destaque no RS, conectando pessoas que amam moda consciente.
-              cada peça tem história, e agora você pode fazer parte da nossa.
-            </Text>
-
-            <View style={styles.aboutBadges}>
-              <View style={styles.aboutBadge}>
-                <Ionicons name="location" size={14} color={COLORS.primary} />
-                <Text style={styles.aboutBadgeText}>passo fundo, rs</Text>
-              </View>
-              <View style={styles.aboutBadge}>
-                <Ionicons name="leaf" size={14} color="#10B981" />
-                <Text style={styles.aboutBadgeText}>moda sustentável</Text>
-              </View>
-            </View>
-          </LinearGradient>
-        </View>
-
-        {/* Version */}
-        <Text style={styles.version}>apega desapega v1.0.0</Text>
-
-        <View style={{ height: 120 }} />
       </ScrollView>
 
       <BottomNavigation navigation={navigation} activeRoute="Profile" />
@@ -525,6 +554,20 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+  },
+  scrollContentDesktop: {
+    alignItems: 'center',
+  },
+  contentWrapper: {
+    flex: 1,
+    width: '100%',
+  },
+  webWrapper: {
+    flex: 1,
+  },
+  webWrapperDesktop: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   loadingContainer: {
     flex: 1,
@@ -542,7 +585,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: isDesktop ? 60 : 20,
+    paddingHorizontal: 20,
     paddingBottom: 16,
     backgroundColor: '#FAF9F7',
   },
@@ -568,12 +611,16 @@ const styles = StyleSheet.create({
 
   // Hero Banner
   heroBanner: {
-    height: isDesktop ? 250 : 180,
-    marginHorizontal: isDesktop ? 60 : 16,
+    height: 180,
+    marginHorizontal: 16,
     marginBottom: 24,
     borderRadius: 24,
     overflow: 'hidden',
     position: 'relative',
+  },
+  heroBannerDesktop: {
+    height: 220,
+    marginHorizontal: 0,
   },
   heroBannerImage: {
     width: '100%',
@@ -588,16 +635,22 @@ const styles = StyleSheet.create({
     left: 24,
   },
   heroBannerTitle: {
-    fontSize: isDesktop ? 42 : 32,
+    fontSize: 28,
     fontWeight: '900',
     color: '#fff',
     letterSpacing: 3,
   },
+  heroBannerTitleDesktop: {
+    fontSize: 36,
+  },
   heroBannerSubtitle: {
-    fontSize: isDesktop ? 18 : 14,
+    fontSize: 14,
     color: '#fff',
     marginTop: 4,
     fontWeight: '500',
+  },
+  heroBannerSubtitleDesktop: {
+    fontSize: 16,
   },
   bannerDots: {
     position: 'absolute',

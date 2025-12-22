@@ -72,4 +72,3 @@ web-build/
 # Windows NUL device files
 NUL
 **/NUL
-apega-backend/public/
