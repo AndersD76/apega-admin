@@ -18,6 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
 import BottomNavigation from '../components/BottomNavigation';
+import { MainHeader } from '../components';
 import { getFavorites, removeFromFavorites, FavoriteItem } from '../services/favorites';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -233,31 +234,7 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAF9F7" />
-
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-          <Text style={styles.logo}>apega<Text style={styles.logoLight}>desapega</Text></Text>
-        </TouchableOpacity>
-
-        {isDesktop && (
-          <View style={styles.navDesktop}>
-            <TouchableOpacity onPress={() => navigation.navigate('Search')}>
-              <Text style={styles.navLink}>Explorar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity>
-              <Text style={[styles.navLink, styles.navLinkActive]}>Favoritos</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.navigate('Profile')}>
-            <Ionicons name="person-outline" size={18} color={COLORS.primary} />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <MainHeader navigation={navigation} title="Favoritos" />
 
       {loading ? (
         <View style={styles.loadingContainer}>

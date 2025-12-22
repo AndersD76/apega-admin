@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
-import { BottomNavigation } from '../components';
+import { BottomNavigation, MainHeader } from '../components';
 import { getProducts, Product } from '../services/products';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
@@ -198,31 +198,7 @@ export default function SearchScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAF9F7" />
-
-      {/* Header igual Home */}
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-          <Text style={styles.logo}>apega<Text style={styles.logoLight}>desapega</Text></Text>
-        </TouchableOpacity>
-
-        {isDesktop && (
-          <View style={styles.navDesktop}>
-            <TouchableOpacity>
-              <Text style={[styles.navLink, styles.navLinkActive]}>Explorar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Favorites')}>
-              <Text style={styles.navLink}>Favoritos</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.navigate('Profile')}>
-            <Ionicons name="person-outline" size={18} color={COLORS.primary} />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <MainHeader navigation={navigation} title="Explorar" />
 
       <ScrollView
         showsVerticalScrollIndicator={false}

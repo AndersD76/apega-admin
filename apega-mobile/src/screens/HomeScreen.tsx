@@ -67,66 +67,66 @@ const CAROUSEL_BANNERS = [
 ];
 
 // Logos das marcas (usando logo.clearbit.com para melhor compatibilidade)
-// Pecas em destaque - Fotos de produtos SEM MODELOS
+// Pecas em destaque - Fotos de produtos SEM MODELOS (flat lay e cabides)
 const FEATURED_PIECES = [
   {
     category: 'Vestidos',
-    image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&q=95',
+    image: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=800&q=95',
     count: '0'
   },
   {
     category: 'Bolsas',
-    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800&q=95',
+    image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&q=95',
     count: '0'
   },
   {
     category: 'Calcados',
-    image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&q=95',
+    image: 'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=800&q=95',
     count: '0'
   },
   {
     category: 'Blusas',
-    image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&q=95',
+    image: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800&q=95',
     count: '0'
   },
   {
     category: 'Calcas',
-    image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=800&q=95',
+    image: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=800&q=95',
     count: '0'
   },
   {
     category: 'Jaquetas',
-    image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&q=95',
+    image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=95',
     count: '0'
   },
   {
     category: 'Saias',
-    image: 'https://images.unsplash.com/photo-1592301933927-35b597393c0a?w=800&q=95',
+    image: 'https://images.unsplash.com/photo-1577900232427-18219b9166a0?w=800&q=95',
     count: '0'
   },
   {
     category: 'Casacos',
-    image: 'https://images.unsplash.com/photo-1544022613-e87ca75a784a?w=800&q=95',
+    image: 'https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=800&q=95',
     count: '0'
   },
   {
     category: 'Shorts',
-    image: 'https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=800&q=95',
+    image: 'https://images.unsplash.com/photo-1598032895397-b9472444bf93?w=800&q=95',
     count: '0'
   },
   {
     category: 'Blazers',
-    image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800&q=95',
+    image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=95',
     count: '0'
   },
   {
     category: 'Acessorios',
-    image: 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=800&q=95',
+    image: 'https://images.unsplash.com/photo-1576053139778-7e32f2ae62d9?w=800&q=95',
     count: '0'
   },
   {
     category: 'Relogios',
-    image: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=800&q=95',
+    image: 'https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?w=800&q=95',
     count: '0'
   },
 ];
@@ -734,10 +734,17 @@ export default function HomeScreen({ navigation }: Props) {
           </TouchableOpacity>
           {isAuthenticated && user ? (
             <TouchableOpacity style={styles.headerUserBtn} onPress={() => navigation.navigate('Profile')}>
-              <View style={styles.headerUserAvatar}>
+              <View style={[styles.headerUserAvatar, user.isPremium && styles.headerUserAvatarPremium]}>
                 <Text style={styles.headerUserInitial}>{user.name?.charAt(0).toUpperCase() || 'U'}</Text>
               </View>
-              <Text style={styles.headerUserName} numberOfLines={1}>{user.name?.split(' ')[0] || 'Usuário'}</Text>
+              <View style={styles.headerUserInfo}>
+                <Text style={styles.headerUserName} numberOfLines={1}>{user.name || 'Usuario'}</Text>
+                <View style={[styles.headerUserBadge, user.isPremium ? styles.headerUserBadgePremium : styles.headerUserBadgeFree]}>
+                  <Text style={[styles.headerUserBadgeText, user.isPremium && styles.headerUserBadgeTextPremium]}>
+                    {user.isPremium ? 'PREMIUM' : 'FREE'}
+                  </Text>
+                </View>
+              </View>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.headerBtnFilled} onPress={() => navigation.navigate('Profile')}>
@@ -1343,7 +1350,37 @@ const createStyles = (isDesktop: boolean, isTablet: boolean, isMobile: boolean) 
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.gray[700],
-    maxWidth: 100,
+    maxWidth: 150,
+  },
+  headerUserAvatarPremium: {
+    backgroundColor: '#7B1FA2',
+    borderWidth: 2,
+    borderColor: '#FFD700',
+  },
+  headerUserInfo: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 2,
+  },
+  headerUserBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  headerUserBadgeFree: {
+    backgroundColor: COLORS.gray[200],
+  },
+  headerUserBadgePremium: {
+    backgroundColor: '#FFD700',
+  },
+  headerUserBadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: COLORS.gray[600],
+    letterSpacing: 0.5,
+  },
+  headerUserBadgeTextPremium: {
+    color: '#7B1FA2',
   },
 
   // Scroll

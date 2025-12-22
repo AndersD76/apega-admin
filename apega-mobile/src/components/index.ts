@@ -1,6 +1,7 @@
 // Componentes principais
 export { default as Header } from './Header';
 export { default as AppHeader, BrandLogo } from './AppHeader';
+export { default as MainHeader } from './MainHeader';
 export { default as BottomNavigation } from './BottomNavigation';
 export { default as Badge } from './Badge';
 export { default as Button } from './Button';

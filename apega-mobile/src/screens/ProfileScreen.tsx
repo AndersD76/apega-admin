@@ -17,7 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
-import { BottomNavigation } from '../components';
+import { BottomNavigation, MainHeader } from '../components';
 import { useAuth } from '../contexts/AuthContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
@@ -103,24 +103,7 @@ export default function ProfileScreen({ navigation }: Props) {
   if (!isAuthenticated || !user) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FAF9F7" />
-
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-          <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-            <Text style={styles.logo}>apega<Text style={styles.logoLight}>desapega</Text></Text>
-          </TouchableOpacity>
-          {isDesktop && (
-            <View style={styles.navDesktop}>
-              <TouchableOpacity onPress={() => navigation.navigate('Search')}>
-                <Text style={styles.navLink}>Explorar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigation.navigate('Favorites')}>
-                <Text style={styles.navLink}>Favoritos</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
+        <MainHeader navigation={navigation} title="Perfil" />
 
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -277,27 +260,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAF9F7" />
-
-      {/* Header Padrão */}
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-          <Text style={styles.logo}>apega<Text style={styles.logoLight}>desapega</Text></Text>
-        </TouchableOpacity>
-        {isDesktop && (
-          <View style={styles.navDesktop}>
-            <TouchableOpacity onPress={() => navigation.navigate('Search')}>
-              <Text style={styles.navLink}>Explorar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Favorites')}>
-              <Text style={styles.navLink}>Favoritos</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-          <Ionicons name="settings-outline" size={22} color="#333" />
-        </TouchableOpacity>
-      </View>
+      <MainHeader navigation={navigation} title="Meu Perfil" />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
