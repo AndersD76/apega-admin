@@ -9,8 +9,8 @@ cmds = [
 
 [phases.build]
 cmds = [
+  "rm -rf apega-mobile/dist apega-mobile/.expo apega-backend/public",
   "cd apega-mobile && npx expo export --platform web",
-  "rm -rf apega-backend/public",
   "cp -r apega-mobile/dist apega-backend/public"
 ]
 
