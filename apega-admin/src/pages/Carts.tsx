@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useMemo, useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -113,12 +113,6 @@ function StatCard({ title, value, icon, trend, description, loading }: StatCardP
   )
 }
 
-const deviceData = [
-  { name: 'Mobile', value: 68, color: '#ec4899' },
-  { name: 'Desktop', value: 28, color: '#8b5cf6' },
-  { name: 'Tablet', value: 4, color: '#06b6d4' },
-]
-
 export default function Carts() {
   const [searchTerm, setSearchTerm] = useState('')
   const [activeTab, setActiveTab] = useState('all')
@@ -132,6 +126,21 @@ export default function Carts() {
     lost_revenue: 0,
   })
   const [hourlyData, setHourlyData] = useState<{ hour: string; views: number }[]>([])
+
+  const deviceData = useMemo(() => {
+    const counts = carts.reduce((acc, cart) => {
+      const key = (cart.device_type || 'mobile').toLowerCase();
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    const total = Object.values(counts).reduce((sum, val) => sum + val, 0) || 1;
+    return [
+      { name: 'Mobile', value: Math.round((counts.mobile || 0) / total * 100), color: '#ec4899' },
+      { name: 'Desktop', value: Math.round((counts.desktop || 0) / total * 100), color: '#8b5cf6' },
+      { name: 'Tablet', value: Math.round((counts.tablet || 0) / total * 100), color: '#06b6d4' },
+    ];
+  }, [carts]);
+
 
   const fetchData = async () => {
     setLoading(true)
@@ -435,3 +444,5 @@ export default function Carts() {
     </div>
   )
 }
+
+

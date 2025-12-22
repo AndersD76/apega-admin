@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -61,8 +61,10 @@ import {
 
 function getStatusBadge(status: string) {
   switch (status) {
-    case 'pending':
-      return <Badge variant="warning" className="gap-1"><Clock className="h-3 w-3" /> Aguardando</Badge>
+    case 'pending_payment':
+      return <Badge variant="warning" className="gap-1"><Clock className="h-3 w-3" /> Aguardando Pagamento</Badge>
+    case 'pending_shipment':
+      return <Badge variant="info" className="gap-1"><DollarSign className="h-3 w-3" /> Aguardando Envio</Badge>
     case 'paid':
       return <Badge variant="info" className="gap-1"><DollarSign className="h-3 w-3" /> Pago</Badge>
     case 'shipped':
@@ -291,7 +293,8 @@ export default function Orders() {
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList>
                 <TabsTrigger value="all">Todos</TabsTrigger>
-                <TabsTrigger value="pending">Pendentes</TabsTrigger>
+                <TabsTrigger value="pending_payment">Aguardando Pagamento</TabsTrigger>
+                <TabsTrigger value="pending_shipment">Aguardando Envio</TabsTrigger>
                 <TabsTrigger value="shipped">Em Transito</TabsTrigger>
                 <TabsTrigger value="delivered">Entregues</TabsTrigger>
                 <TabsTrigger value="cancelled">Cancelados</TabsTrigger>
@@ -377,9 +380,9 @@ export default function Orders() {
                       </TableCell>
                       <TableCell>
                         {getStatusBadge(order.status)}
-                        {order.tracking_code && (
+                        {order.shipping_code && (
                           <p className="mt-1 text-xs text-muted-foreground">
-                            {order.tracking_code}
+                            {order.shipping_code}
                           </p>
                         )}
                       </TableCell>
@@ -402,20 +405,20 @@ export default function Orders() {
                               <Eye className="mr-2 h-4 w-4" />
                               Ver Detalhes
                             </DropdownMenuItem>
-                            {order.tracking_code && (
+                            {order.shipping_code && (
                               <DropdownMenuItem>
                                 <MapPin className="mr-2 h-4 w-4" />
                                 Rastrear
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuSeparator />
-                            {order.status === 'pending' && (
-                              <DropdownMenuItem onClick={() => handleUpdateStatus(order.id, 'paid')}>
+                            {order.status === 'pending_payment' && (
+                              <DropdownMenuItem onClick={() => handleUpdateStatus(order.id, 'pending_shipment')}>
                                 <DollarSign className="mr-2 h-4 w-4" />
-                                Marcar como Pago
+                                Confirmar Pagamento
                               </DropdownMenuItem>
                             )}
-                            {order.status === 'paid' && (
+                            {order.status === 'pending_shipment' && (
                               <DropdownMenuItem onClick={() => handleUpdateStatus(order.id, 'shipped')}>
                                 <Truck className="mr-2 h-4 w-4" />
                                 Marcar como Enviado
@@ -554,12 +557,12 @@ export default function Orders() {
                 <div className="grid grid-cols-2 gap-4 mt-3 pt-3 border-t">
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Frete</label>
-                    <p>{formatCurrency(selectedOrder.shipping_cost)}</p>
+                    <p>{formatCurrency(selectedOrder.shipping_price)}</p>
                   </div>
-                  {selectedOrder.tracking_code && (
+                  {selectedOrder.shipping_code && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">Codigo de Rastreio</label>
-                      <p className="font-mono">{selectedOrder.tracking_code}</p>
+                      <p className="font-mono">{selectedOrder.shipping_code}</p>
                     </div>
                   )}
                 </div>
@@ -635,8 +638,8 @@ export default function Orders() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pending">Pendente</SelectItem>
-                      <SelectItem value="paid">Pago</SelectItem>
+                      <SelectItem value="pending_payment">Aguardando Pagamento</SelectItem>
+                      <SelectItem value="pending_shipment">Aguardando Envio</SelectItem>
                       <SelectItem value="shipped">Enviado</SelectItem>
                       <SelectItem value="delivered">Entregue</SelectItem>
                       <SelectItem value="cancelled">Cancelado</SelectItem>
@@ -651,3 +654,4 @@ export default function Orders() {
     </div>
   )
 }
+

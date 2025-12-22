@@ -1,3 +1,4 @@
+﻿import { useEffect, useMemo, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -11,81 +12,94 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { formatDateTime } from '@/lib/utils'
+import { getOrders, Order } from '@/lib/api'
 import {
   Truck,
   Package,
-  MapPin,
   Clock,
   CheckCircle,
   AlertTriangle,
   Search,
   Download,
+  RefreshCw,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react'
-
-const shipments = [
-  {
-    id: '1',
-    orderId: '#12345',
-    trackingCode: 'BR123456789',
-    carrier: 'Correios',
-    origin: 'Passo Fundo, RS',
-    destination: 'Porto Alegre, RS',
-    status: 'in_transit',
-    estimatedDelivery: '2024-03-18',
-    lastUpdate: '2024-03-15',
-  },
-  {
-    id: '2',
-    orderId: '#12344',
-    trackingCode: 'BR987654321',
-    carrier: 'Jadlog',
-    origin: 'Carazinho, RS',
-    destination: 'Caxias do Sul, RS',
-    status: 'delivered',
-    estimatedDelivery: '2024-03-14',
-    lastUpdate: '2024-03-14',
-  },
-  {
-    id: '3',
-    orderId: '#12343',
-    trackingCode: null,
-    carrier: null,
-    origin: 'Erechim, RS',
-    destination: 'Passo Fundo, RS',
-    status: 'pending',
-    estimatedDelivery: null,
-    lastUpdate: '2024-03-15',
-  },
-  {
-    id: '4',
-    orderId: '#12342',
-    trackingCode: 'BR456789123',
-    carrier: 'Correios',
-    origin: 'Marau, RS',
-    destination: 'São Paulo, SP',
-    status: 'delayed',
-    estimatedDelivery: '2024-03-13',
-    lastUpdate: '2024-03-15',
-  },
-]
 
 function getStatusBadge(status: string) {
   switch (status) {
-    case 'pending':
+    case 'pending_shipment':
       return <Badge variant="warning" className="gap-1"><Clock className="h-3 w-3" /> Aguardando Envio</Badge>
-    case 'in_transit':
-      return <Badge variant="info" className="gap-1"><Truck className="h-3 w-3" /> Em Trânsito</Badge>
+    case 'shipped':
+      return <Badge variant="info" className="gap-1"><Truck className="h-3 w-3" /> Em Transito</Badge>
     case 'delivered':
       return <Badge variant="success" className="gap-1"><CheckCircle className="h-3 w-3" /> Entregue</Badge>
-    case 'delayed':
-      return <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> Atrasado</Badge>
+    case 'cancelled':
+      return <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> Cancelado</Badge>
     default:
-      return <Badge>{status}</Badge>
+      return <Badge variant="secondary">{status}</Badge>
   }
 }
 
 export default function Shipping() {
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [orders, setOrders] = useState<Order[]>([])
+  const [activeTab, setActiveTab] = useState('all')
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const fetchData = async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      const res = await getOrders({ limit: 200 })
+      if (res.success) {
+        setOrders(res.orders || [])
+      }
+    } catch (err: any) {
+      console.error('Erro ao carregar envios:', err)
+      setError(err.message || 'Erro ao carregar envios')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
+      if (activeTab !== 'all' && order.status !== activeTab) return false
+      if (!searchTerm) return true
+      const haystack = `${order.order_number || ''} ${order.shipping_code || ''}`.toLowerCase()
+      return haystack.includes(searchTerm.toLowerCase())
+    })
+  }, [orders, activeTab, searchTerm])
+
+  const stats = {
+    pending: orders.filter(o => o.status === 'pending_shipment').length,
+    shipped: orders.filter(o => o.status === 'shipped').length,
+    delivered: orders.filter(o => o.status === 'delivered').length,
+    cancelled: orders.filter(o => o.status === 'cancelled').length,
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 gap-4">
+        <AlertCircle className="h-12 w-12 text-destructive" />
+        <p className="text-lg font-medium">Erro ao carregar envios</p>
+        <p className="text-sm text-muted-foreground">{error}</p>
+        <Button onClick={fetchData} variant="outline" className="gap-2">
+          <RefreshCw className="h-4 w-4" />
+          Tentar novamente
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -107,7 +121,7 @@ export default function Shipping() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Aguardando Envio</p>
-              <p className="text-2xl font-bold">15</p>
+              <p className="text-2xl font-bold">{stats.pending}</p>
             </div>
           </CardContent>
         </Card>
@@ -117,8 +131,8 @@ export default function Shipping() {
               <Truck className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Em Trânsito</p>
-              <p className="text-2xl font-bold">45</p>
+              <p className="text-sm text-muted-foreground">Em Transito</p>
+              <p className="text-2xl font-bold">{stats.shipped}</p>
             </div>
           </CardContent>
         </Card>
@@ -128,8 +142,8 @@ export default function Shipping() {
               <CheckCircle className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Entregues Hoje</p>
-              <p className="text-2xl font-bold">28</p>
+              <p className="text-sm text-muted-foreground">Entregues</p>
+              <p className="text-2xl font-bold">{stats.delivered}</p>
             </div>
           </CardContent>
         </Card>
@@ -139,8 +153,8 @@ export default function Shipping() {
               <AlertTriangle className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Atrasados</p>
-              <p className="text-2xl font-bold">3</p>
+              <p className="text-sm text-muted-foreground">Cancelados</p>
+              <p className="text-2xl font-bold">{stats.cancelled}</p>
             </div>
           </CardContent>
         </Card>
@@ -149,59 +163,62 @@ export default function Shipping() {
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <Tabs defaultValue="all">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList>
                 <TabsTrigger value="all">Todos</TabsTrigger>
-                <TabsTrigger value="pending">Pendentes</TabsTrigger>
-                <TabsTrigger value="transit">Em Trânsito</TabsTrigger>
-                <TabsTrigger value="delayed">Atrasados</TabsTrigger>
+                <TabsTrigger value="pending_shipment">Pendentes</TabsTrigger>
+                <TabsTrigger value="shipped">Em Transito</TabsTrigger>
+                <TabsTrigger value="delivered">Entregues</TabsTrigger>
+                <TabsTrigger value="cancelled">Cancelados</TabsTrigger>
               </TabsList>
             </Tabs>
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Buscar código de rastreio..." className="w-64 pl-8" />
+              <Input
+                placeholder="Buscar codigo de rastreio..."
+                className="w-64 pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Pedido</TableHead>
-                <TableHead>Rastreio</TableHead>
-                <TableHead>Transportadora</TableHead>
-                <TableHead>Origem</TableHead>
-                <TableHead>Destino</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Previsão</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {shipments.map((shipment) => (
-                <TableRow key={shipment.id}>
-                  <TableCell className="font-medium">{shipment.orderId}</TableCell>
-                  <TableCell>{shipment.trackingCode || '-'}</TableCell>
-                  <TableCell>{shipment.carrier || '-'}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      {shipment.origin}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      {shipment.destination}
-                    </div>
-                  </TableCell>
-                  <TableCell>{getStatusBadge(shipment.status)}</TableCell>
-                  <TableCell>
-                    {shipment.estimatedDelivery ? formatDate(shipment.estimatedDelivery) : '-'}
-                  </TableCell>
+          {loading ? (
+            <div className="flex items-center justify-center h-40">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Pedido</TableHead>
+                  <TableHead>Rastreio</TableHead>
+                  <TableHead>Transportadora</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Data</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredOrders.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell className="font-medium">{order.order_number || order.id.slice(0, 8)}</TableCell>
+                    <TableCell>{order.shipping_code || '-'}</TableCell>
+                    <TableCell>{order.shipping_carrier || '-'}</TableCell>
+                    <TableCell>{getStatusBadge(order.status)}</TableCell>
+                    <TableCell>{formatDateTime(order.created_at)}</TableCell>
+                  </TableRow>
+                ))}
+                {filteredOrders.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                      Nenhum envio encontrado.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

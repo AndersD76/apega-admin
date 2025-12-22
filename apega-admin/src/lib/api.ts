@@ -134,6 +134,7 @@ export interface Cart {
   user_id: string
   total_value: number
   items_count: number
+  device_type?: string
   status: 'active' | 'abandoned' | 'recovered' | 'converted'
   last_activity_at: string
   abandoned_at?: string

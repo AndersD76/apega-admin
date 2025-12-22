@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -16,6 +16,7 @@ import {
   getDashboard,
   getRevenueChart,
   getTransactions,
+  processWithdrawal,
   DashboardData,
   RevenueChartData,
 } from '@/lib/api'
@@ -130,18 +131,24 @@ export default function Finance() {
     }
   }
 
+  const handleWithdrawal = async (transactionId: string, action: 'approve' | 'reject') => {
+    try {
+      await processWithdrawal(transactionId, action);
+      fetchData();
+    } catch (error) {
+      console.error('Erro ao processar saque:', error);
+    }
+  };
+
   useEffect(() => {
     fetchData()
   }, [])
 
-  // Dados de métodos de pagamento (calculados a partir do dashboard)
-  const paymentMethodData = [
-    { name: 'PIX', value: 65, amount: (dashboardData?.revenue.thisMonth || 0) * 0.65, color: '#22c55e' },
-    { name: 'Cartao', value: 30, amount: (dashboardData?.revenue.thisMonth || 0) * 0.30, color: '#3b82f6' },
-    { name: 'Boleto', value: 5, amount: (dashboardData?.revenue.thisMonth || 0) * 0.05, color: '#f59e0b' },
-  ]
+  // Dados de mÃ©todos de pagamento (calculados a partir do dashboard)
+  const paymentMethodData: { name: string; value: number; amount: number; color: string }[] = [];
+  const hasPaymentData = paymentMethodData.some((item) => item.value > 0);
 
-  // Saques pendentes (filtrados das transações)
+  // Saques pendentes (filtrados das transaÃ§Ãµes)
   const withdrawals = transactions.filter(t => t.type === 'withdrawal' && t.status === 'pending')
 
   if (error) {
@@ -278,7 +285,7 @@ export default function Finance() {
                 <div className="flex items-center justify-center h-full">
                   <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
-              ) : (
+              ) : hasPaymentData ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -298,19 +305,25 @@ export default function Finance() {
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  Sem dados de metodos de pagamento
+                </div>
               )}
             </div>
-            <div className="mt-4 space-y-2">
-              {paymentMethodData.map((method) => (
-                <div key={method.name} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: method.color }} />
-                    <span>{method.name}</span>
+            {hasPaymentData && (
+              <div className="mt-4 space-y-2">
+                {paymentMethodData.map((method) => (
+                  <div key={method.name} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: method.color }} />
+                      <span>{method.name}</span>
+                    </div>
+                    <span className="font-medium">{formatCurrency(method.amount)}</span>
                   </div>
-                  <span className="font-medium">{formatCurrency(method.amount)}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -359,9 +372,14 @@ export default function Finance() {
                         </TableCell>
                         <TableCell>{formatDate(withdrawal.created_at)}</TableCell>
                         <TableCell>
-                          <Button size="sm" variant="outline">
-                            Aprovar
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" onClick={() => handleWithdrawal(withdrawal.id, 'approve')}>
+                              Aprovar
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => handleWithdrawal(withdrawal.id, 'reject')}>
+                              Rejeitar
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -411,3 +429,5 @@ export default function Finance() {
     </div>
   )
 }
+
+

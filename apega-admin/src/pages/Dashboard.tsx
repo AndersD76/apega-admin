@@ -107,7 +107,10 @@ function StatCard({ title, value, change, icon, description, loading }: StatCard
 function getStatusBadge(status: string) {
   switch (status) {
     case 'pending':
+    case 'pending_payment':
       return <Badge variant="warning" className="gap-1"><Clock className="h-3 w-3" /> Pendente</Badge>
+    case 'pending_shipment':
+      return <Badge variant="info" className="gap-1"><Package className="h-3 w-3" /> Aguardando Envio</Badge>
     case 'paid':
       return <Badge variant="info" className="gap-1"><DollarSign className="h-3 w-3" /> Pago</Badge>
     case 'shipped':
@@ -182,6 +185,8 @@ export default function Dashboard() {
       if (statusRes.success) {
         const statusMap: { [key: string]: string } = {
           pending: 'Pendentes',
+          pending_payment: 'Aguardando Pagamento',
+          pending_shipment: 'Aguardando Envio',
           paid: 'Pagos',
           shipped: 'Enviados',
           delivered: 'Entregues',
