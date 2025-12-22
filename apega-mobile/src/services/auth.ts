@@ -72,10 +72,21 @@ export const login = async (
   return response;
 };
 
-// Logout
+// Logout - limpa TODOS os dados de autenticação
 export const logout = async (): Promise<void> => {
-  await removeToken();
-  await AsyncStorage.removeItem('@apega:user');
+  try {
+    await removeToken();
+    await AsyncStorage.removeItem('@apega:user');
+    await AsyncStorage.removeItem('@apega:token');
+    // Limpar qualquer outro dado de sessão
+    const keys = await AsyncStorage.getAllKeys();
+    const sessionKeys = keys.filter(k => k.startsWith('@apega:'));
+    if (sessionKeys.length > 0) {
+      await AsyncStorage.multiRemove(sessionKeys);
+    }
+  } catch (error) {
+    console.error('Erro ao fazer logout:', error);
+  }
 };
 
 // Obter usuário atual
