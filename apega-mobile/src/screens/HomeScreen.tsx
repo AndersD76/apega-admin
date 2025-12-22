@@ -605,21 +605,16 @@ export default function HomeScreen({ navigation }: Props) {
                 <TouchableOpacity
                   style={styles.onboardingCTA}
                   onPress={nextOnboardingSlide}
-                  activeOpacity={0.9}
+                  activeOpacity={0.85}
                 >
-                  <LinearGradient
-                    colors={[COLORS.primary, '#151515']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.onboardingCTAGradient}
-                  >
+                  <View style={styles.onboardingCTAGradient}>
                     <Text style={styles.onboardingCTAText}>
                       {onboardingStep === ONBOARDING_SLIDES.length - 1 ? 'Garantir minha vaga' : 'Continuar'}
                     </Text>
                     <View style={styles.onboardingCTAArrow}>
                       <Ionicons name="arrow-forward" size={18} color="#fff" />
                     </View>
-                  </LinearGradient>
+                  </View>
                 </TouchableOpacity>
 
                 {/* Step counter */}
@@ -3159,13 +3154,15 @@ const createStyles = (isDesktop: boolean, isTablet: boolean, isMobile: boolean) 
     borderRadius: 32,
     overflow: 'hidden',
     position: 'relative',
+    borderWidth: 2,
+    borderColor: 'rgba(201,162,39,0.4)',
     ...Platform.select({
-      web: { boxShadow: '0 30px 100px rgba(0,0,0,0.6)' },
+      web: { boxShadow: '0 0 80px rgba(201,162,39,0.35), 0 30px 100px rgba(0,0,0,0.5)' },
       default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 30 },
-        shadowOpacity: 0.6,
-        shadowRadius: 50,
+        shadowColor: '#C9A227',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.5,
+        shadowRadius: 40,
         elevation: 30,
       },
     }),
@@ -3244,18 +3241,10 @@ const createStyles = (isDesktop: boolean, isTablet: boolean, isMobile: boolean) 
     paddingVertical: isDesktop ? 30 : 24,
     paddingHorizontal: isDesktop ? 28 : 22,
     borderRadius: 28,
-    backgroundColor: 'rgba(10,10,12,0.62)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: 'rgba(10,10,12,0.75)',
     ...Platform.select({
-      web: { boxShadow: '0 20px 50px rgba(0,0,0,0.45)' },
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 16 },
-        shadowOpacity: 0.45,
-        shadowRadius: 30,
-        elevation: 18,
-      },
+      web: { backdropFilter: 'blur(20px)' },
+      default: {},
     }),
   },
   onboardingIconBox: {
@@ -3301,17 +3290,19 @@ const createStyles = (isDesktop: boolean, isTablet: boolean, isMobile: boolean) 
     width: '100%',
     maxWidth: 320,
     marginBottom: 18,
+    borderRadius: 28,
+    overflow: 'hidden',
     ...Platform.select({
       web: {
-        boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+        boxShadow: '0 8px 30px rgba(93,122,103,0.4)',
         transition: 'all 0.3s ease',
       },
       default: {
-        shadowColor: '#000',
+        shadowColor: COLORS.primary,
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.25,
-        shadowRadius: 12,
-        elevation: 8,
+        shadowOpacity: 0.35,
+        shadowRadius: 16,
+        elevation: 10,
       },
     }),
   },
@@ -3320,21 +3311,23 @@ const createStyles = (isDesktop: boolean, isTablet: boolean, isMobile: boolean) 
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
-    paddingLeft: 20,
-    paddingRight: 8,
-    borderRadius: 26,
+    paddingVertical: 14,
+    paddingLeft: 24,
+    paddingRight: 10,
+    borderRadius: 28,
+    backgroundColor: COLORS.primary,
   },
   onboardingCTAText: {
-    fontSize: 15,
-    fontWeight: '800',
+    fontSize: 16,
+    fontWeight: '700',
     color: '#fff',
+    letterSpacing: 0.3,
   },
   onboardingCTAArrow: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
