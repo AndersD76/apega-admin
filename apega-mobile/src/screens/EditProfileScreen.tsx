@@ -11,7 +11,7 @@ import {
   Image,
   ActivityIndicator,
   Platform,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -23,14 +23,15 @@ import { updateProfile } from '../services/auth';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 
-const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
-const isDesktop = isWeb && width > 768;
+const MAX_CONTENT_WIDTH = 600;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EditProfile'>;
 
 export default function EditProfileScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
+  const isDesktop = isWeb && windowWidth > 768;
   const { user, refreshUser } = useAuth();
 
   const [name, setName] = useState('');
@@ -166,7 +167,10 @@ export default function EditProfileScreen({ navigation }: Props) {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          isDesktop && { maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center' }
+        ]}
       >
         {/* Avatar Section */}
         <View style={styles.avatarSection}>
@@ -360,7 +364,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: isDesktop ? 60 : SPACING.md,
+    paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.md,
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
@@ -376,8 +380,6 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingBottom: SPACING.xl,
-    maxWidth: isDesktop ? 600 : '100%',
-    alignSelf: 'center',
     width: '100%',
   },
   avatarSection: {

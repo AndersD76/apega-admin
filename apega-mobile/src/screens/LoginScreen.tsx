@@ -174,9 +174,13 @@ export default function LoginScreen({ navigation, route }: LoginScreenProps) {
           ],
         });
       } else {
+        // Após criar conta, vai para EditProfile para completar cadastro
         navigation.reset({
-          index: 0,
-          routes: [{ name: 'Home' }],
+          index: 1,
+          routes: [
+            { name: 'Home' },
+            { name: 'EditProfile' },
+          ],
         });
       }
     } catch (error: any) {

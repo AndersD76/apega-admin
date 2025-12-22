@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   Switch,
   Alert,
   Platform,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,10 +17,10 @@ import Header from '../components/Header';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
+import { useAuth } from '../contexts/AuthContext';
 
-const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
-const isDesktop = isWeb && width > 768;
+const MAX_CONTENT_WIDTH = 700;
 
 interface SettingsScreenProps {
   navigation: any;
@@ -36,11 +36,23 @@ interface SettingItem {
 }
 
 export default function SettingsScreen({ navigation }: SettingsScreenProps) {
-  // Account state
-  const [email, setEmail] = useState('maria@email.com');
-  const [phone, setPhone] = useState('(11) 98765-4321');
+  const { user, refreshUser } = useAuth();
+  const { width: windowWidth } = useWindowDimensions();
+  const isDesktop = isWeb && windowWidth > 768;
+
+  // Account state - initialized from user context
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [editingEmail, setEditingEmail] = useState(false);
   const [editingPhone, setEditingPhone] = useState(false);
+
+  // Load user data when component mounts or user changes
+  useEffect(() => {
+    if (user) {
+      setEmail(user.email || '');
+      setPhone(user.phone || '');
+    }
+  }, [user]);
 
   // Notification toggles
   const [pushNotifications, setPushNotifications] = useState(true);
@@ -56,7 +68,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   // Preferences
   const [darkMode, setDarkMode] = useState(false);
   const [language, setLanguage] = useState('português');
-  const [location, setLocation] = useState('São Paulo, SP');
+  const [location, setLocation] = useState(user?.city && user?.state ? `${user.city}, ${user.state}` : '');
 
   // Modals
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -177,7 +189,10 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          isDesktop && { maxWidth: MAX_CONTENT_WIDTH }
+        ]}
       >
         {/* Account Section */}
         {renderSectionTitle('conta')}
@@ -577,7 +592,6 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingBottom: SPACING.xl,
-    maxWidth: isDesktop ? 700 : '100%',
     alignSelf: 'center',
     width: '100%',
   },
@@ -587,7 +601,7 @@ const styles = StyleSheet.create({
     color: COLORS.textTertiary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    paddingHorizontal: isDesktop ? 60 : SPACING.lg,
+    paddingHorizontal: SPACING.lg,
     marginBottom: SPACING.md,
     marginTop: SPACING.md,
   },
@@ -595,11 +609,11 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: COLORS.borderLight,
     marginVertical: SPACING.lg,
-    marginHorizontal: isDesktop ? 60 : SPACING.lg,
+    marginHorizontal: SPACING.lg,
   },
   card: {
     backgroundColor: COLORS.white,
-    marginHorizontal: isDesktop ? 60 : SPACING.lg,
+    marginHorizontal: SPACING.lg,
     borderRadius: BORDER_RADIUS.md,
     padding: SPACING.md,
     ...SHADOWS.xs,
@@ -649,7 +663,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.white,
-    marginHorizontal: isDesktop ? 60 : SPACING.lg,
+    marginHorizontal: SPACING.lg,
     marginBottom: SPACING.sm,
     padding: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
