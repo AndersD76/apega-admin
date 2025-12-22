@@ -1009,12 +1009,12 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
   },
   headerLogo: {
-    fontSize: 20,
+    fontSize: 28,
     fontWeight: '800',
     color: '#1a1a1a',
   },
   headerLogoAccent: {
-    fontSize: 20,
+    fontSize: 28,
     fontWeight: '400',
     color: COLORS.gray[400],
   },
