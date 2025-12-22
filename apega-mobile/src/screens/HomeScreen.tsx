@@ -211,8 +211,8 @@ export default function HomeScreen({ navigation }: Props) {
   // Onboarding slides data
   const ONBOARDING_SLIDES = [
     {
-      image: 'https://images.unsplash.com/photo-1558171813-01342e9fa63c?w=1200&q=90',
-      icon: 'sparkles',
+      image: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1200&q=90',
+      icon: 'leaf-outline',
       iconColor: '#C9A227',
       title: 'Moda com proposito',
       subtitle: 'A plataforma brasileira de moda circular que valoriza suas pecas e o planeta',
@@ -220,8 +220,8 @@ export default function HomeScreen({ navigation }: Props) {
       highlightColor: '#C9A227',
     },
     {
-      image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&q=90',
-      icon: 'camera',
+      image: 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=1200&q=90',
+      icon: 'camera-outline',
       iconColor: '#2E7D32',
       title: 'Venda em segundos',
       subtitle: 'Nossa IA analisa suas pecas, sugere precos competitivos e cria anuncios profissionais',
@@ -229,8 +229,8 @@ export default function HomeScreen({ navigation }: Props) {
       highlightColor: '#2E7D32',
     },
     {
-      image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&q=90',
-      icon: 'trending-down',
+      image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&q=90',
+      icon: 'pricetag-outline',
       iconColor: '#D32F2F',
       title: 'Taxa reduzida',
       subtitle: 'Apenas 5% de comissao para as primeiras 50 vendedoras. Outras plataformas cobram ate 20%',
@@ -238,8 +238,8 @@ export default function HomeScreen({ navigation }: Props) {
       highlightColor: '#D32F2F',
     },
     {
-      image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1200&q=90',
-      icon: 'diamond',
+      image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=1200&q=90',
+      icon: 'diamond-outline',
       iconColor: '#7B1FA2',
       title: 'Premium gratis',
       subtitle: 'As 5 primeiras vendedoras recebem 1 ano de Premium: IA ilimitada, sem taxa e destaque nos resultados',
