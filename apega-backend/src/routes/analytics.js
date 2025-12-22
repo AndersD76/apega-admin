@@ -467,7 +467,7 @@ router.get('/admin/conversion-metrics', async (req, res, next) => {
       completedOrders
     ] = await Promise.all([
       sql`SELECT COALESCE(SUM(views), 0) as total FROM products`,
-      sql`SELECT COUNT(DISTINCT COALESCE(user_id::text, session_id::text)) as count FROM product_views WHERE created_at >= NOW() - INTERVAL '30 days'`,
+      sql`SELECT COUNT(DISTINCT COALESCE(user_id::text, session_id)) as count FROM product_views WHERE created_at >= NOW() - INTERVAL '30 days'`,
       sql`SELECT COUNT(*) as count FROM cart_items WHERE created_at >= NOW() - INTERVAL '30 days'`,
       sql`SELECT COUNT(*) as count FROM orders WHERE created_at >= NOW() - INTERVAL '30 days' AND status != 'cancelled'`
     ]);
@@ -662,19 +662,8 @@ router.post('/admin/products/:id/reject', async (req, res, next) => {
 // Listar todos usuários (admin)
 router.get('/admin/users', async (req, res, next) => {
   try {
-    const { page = 1, limit = 20, search, subscription, status } = req.query;
+    const { page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
-
-    let query = sql`
-      SELECT
-        u.*,
-        (SELECT COUNT(*) FROM products WHERE seller_id = u.id AND status = 'active') as products_count,
-        (SELECT COUNT(*) FROM orders WHERE seller_id = u.id AND status = 'delivered') as sales_count
-      FROM users u
-      WHERE 1=1
-    `;
-
-    // TODO: Add filters
 
     const users = await sql`
       SELECT
@@ -761,12 +750,8 @@ router.delete('/admin/users/:id', async (req, res, next) => {
 // Listar todos os produtos (admin)
 router.get('/admin/products', async (req, res, next) => {
   try {
-    const { page = 1, limit = 20, search, status, category } = req.query;
+    const { page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
-
-    // Construir query baseado nos filtros
-    const statusFilter = status && status !== 'all' ? status : null;
-    const searchFilter = search ? `%${search}%` : null;
 
     const products = await sql`
       SELECT
@@ -779,8 +764,6 @@ router.get('/admin/products', async (req, res, next) => {
       JOIN users u ON p.seller_id = u.id
       LEFT JOIN categories c ON p.category_id = c.id
       WHERE p.status != 'deleted'
-        AND (${statusFilter}::text IS NULL OR p.status = ${statusFilter})
-        AND (${searchFilter}::text IS NULL OR p.title ILIKE ${searchFilter} OR p.brand ILIKE ${searchFilter})
       ORDER BY p.created_at DESC
       LIMIT ${parseInt(limit)}
       OFFSET ${offset}
@@ -789,8 +772,6 @@ router.get('/admin/products', async (req, res, next) => {
     const total = await sql`
       SELECT COUNT(*) as count FROM products p
       WHERE p.status != 'deleted'
-        AND (${statusFilter}::text IS NULL OR p.status = ${statusFilter})
-        AND (${searchFilter}::text IS NULL OR p.title ILIKE ${searchFilter} OR p.brand ILIKE ${searchFilter})
     `;
 
     // Stats
