@@ -26,18 +26,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        await loadToken();
-        const storedUser = await getStoredUser();
-        if (storedUser) {
-          setUser(storedUser);
-          // Atualizar dados do usuário em background
-          const freshUser = await getCurrentUser();
-          if (freshUser) {
-            setUser(freshUser);
-          }
+        const token = await loadToken();
+        if (!token) {
+          // Sem token, limpar dados armazenados
+          await authLogout();
+          setUser(null);
+          return;
+        }
+
+        // Verificar se o token é válido tentando obter dados frescos
+        const freshUser = await getCurrentUser();
+        if (freshUser) {
+          setUser(freshUser);
+        } else {
+          // Token inválido ou expirado - fazer logout
+          await authLogout();
+          setUser(null);
         }
       } catch (error) {
         console.error('Erro ao inicializar auth:', error);
+        // Em caso de erro, limpar dados
+        await authLogout();
+        setUser(null);
       } finally {
         setIsLoading(false);
       }

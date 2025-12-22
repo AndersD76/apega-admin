@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Bell, Search, Menu, X, Heart, Moon, Sun } from 'lucide-react'
+import { Bell, Search, Menu, X, Heart, Moon, Sun, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface HeaderProps {
   onMenuClick?: () => void
@@ -21,6 +22,7 @@ interface HeaderProps {
 
 export function Header({ onMenuClick, isMobileMenuOpen }: HeaderProps) {
   const [isDark, setIsDark] = useState(false)
+  const { user, logout } = useAuth()
   const notificationCount = 5
 
   const toggleTheme = () => {
@@ -132,16 +134,17 @@ export function Header({ onMenuClick, isMobileMenuOpen }: HeaderProps) {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium">Administrador</p>
-                  <p className="text-xs text-muted-foreground">admin@apega.com.br</p>
+                  <p className="text-sm font-medium">{user?.name || 'Administrador'}</p>
+                  <p className="text-xs text-muted-foreground">{user?.email || 'admin@apega.com.br'}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>Meu Perfil</DropdownMenuItem>
-              <DropdownMenuItem>Configurações</DropdownMenuItem>
+              <DropdownMenuItem>Configuracoes</DropdownMenuItem>
               <DropdownMenuItem>Logs de Atividade</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">
+              <DropdownMenuItem className="text-destructive" onClick={logout}>
+                <LogOut className="mr-2 h-4 w-4" />
                 Sair
               </DropdownMenuItem>
             </DropdownMenuContent>
