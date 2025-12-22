@@ -466,7 +466,7 @@ router.get('/admin/conversion-metrics', async (req, res, next) => {
       completedOrders
     ] = await Promise.all([
       sql`SELECT COALESCE(SUM(views), 0) as total FROM products`,
-      sql`SELECT COUNT(DISTINCT COALESCE(user_id::text, session_id)) as count FROM product_views WHERE created_at >= NOW() - INTERVAL '30 days'`,
+      sql`SELECT COUNT(DISTINCT COALESCE(user_id::text, session_id::text)) as count FROM product_views WHERE created_at >= NOW() - INTERVAL '30 days'`,
       sql`SELECT COUNT(*) as count FROM cart_items WHERE created_at >= NOW() - INTERVAL '30 days'`,
       sql`SELECT COUNT(*) as count FROM orders WHERE created_at >= NOW() - INTERVAL '30 days' AND status != 'cancelled'`
     ]);
@@ -878,12 +878,8 @@ router.get('/admin/orders', async (req, res, next) => {
     const { page = 1, limit = 20, status } = req.query;
     const offset = (page - 1) * limit;
 
-    let whereCondition = sql`1=1`;
-    if (status && status !== 'all') {
-      whereCondition = sql`o.status = ${status}`;
-    }
-
-    const orders = await sql`
+    const hasStatusFilter = status && status !== 'all';
+    const orders = hasStatusFilter ? await sql`
       SELECT
         o.*,
         p.title as product_title,
@@ -898,13 +894,33 @@ router.get('/admin/orders', async (req, res, next) => {
       JOIN products p ON o.product_id = p.id
       JOIN users buyer ON o.buyer_id = buyer.id
       JOIN users seller ON o.seller_id = seller.id
-      WHERE ${whereCondition}
+      WHERE o.status = ${status}
+      ORDER BY o.created_at DESC
+      LIMIT ${parseInt(limit)}
+      OFFSET ${offset}
+    ` : await sql`
+      SELECT
+        o.*,
+        p.title as product_title,
+        p.brand as product_brand,
+        p.size as product_size,
+        (SELECT image_url FROM product_images WHERE product_id = p.id AND is_primary = true LIMIT 1) as product_image,
+        buyer.name as buyer_name,
+        buyer.email as buyer_email,
+        seller.name as seller_name,
+        seller.email as seller_email
+      FROM orders o
+      JOIN products p ON o.product_id = p.id
+      JOIN users buyer ON o.buyer_id = buyer.id
+      JOIN users seller ON o.seller_id = seller.id
       ORDER BY o.created_at DESC
       LIMIT ${parseInt(limit)}
       OFFSET ${offset}
     `;
 
-    const total = await sql`SELECT COUNT(*) as count FROM orders o WHERE ${whereCondition}`;
+    const total = hasStatusFilter
+      ? await sql`SELECT COUNT(*) as count FROM orders o WHERE o.status = ${status}`
+      : await sql`SELECT COUNT(*) as count FROM orders o`;
 
     // Stats
     const stats = await sql`
@@ -1009,12 +1025,8 @@ router.get('/admin/reports', async (req, res, next) => {
     const { page = 1, limit = 20, status = 'pending' } = req.query;
     const offset = (page - 1) * limit;
 
-    let whereCondition = sql`1=1`;
-    if (status !== 'all') {
-      whereCondition = sql`r.status = ${status}`;
-    }
-
-    const reports = await sql`
+    const hasStatusFilter = status !== 'all';
+    const reports = hasStatusFilter ? await sql`
       SELECT
         r.*,
         reporter.name as reporter_name,
@@ -1026,13 +1038,30 @@ router.get('/admin/reports', async (req, res, next) => {
       JOIN users reporter ON r.reporter_id = reporter.id
       LEFT JOIN users reported ON r.reported_user_id = reported.id
       LEFT JOIN products p ON r.product_id = p.id
-      WHERE ${whereCondition}
+      WHERE r.status = ${status}
+      ORDER BY r.created_at DESC
+      LIMIT ${parseInt(limit)}
+      OFFSET ${offset}
+    ` : await sql`
+      SELECT
+        r.*,
+        reporter.name as reporter_name,
+        reporter.email as reporter_email,
+        reported.name as reported_name,
+        reported.email as reported_email,
+        p.title as product_title
+      FROM reports r
+      JOIN users reporter ON r.reporter_id = reporter.id
+      LEFT JOIN users reported ON r.reported_user_id = reported.id
+      LEFT JOIN products p ON r.product_id = p.id
       ORDER BY r.created_at DESC
       LIMIT ${parseInt(limit)}
       OFFSET ${offset}
     `;
 
-    const total = await sql`SELECT COUNT(*) as count FROM reports r WHERE ${whereCondition}`;
+    const total = hasStatusFilter
+      ? await sql`SELECT COUNT(*) as count FROM reports r WHERE r.status = ${status}`
+      : await sql`SELECT COUNT(*) as count FROM reports r`;
 
     const stats = await sql`
       SELECT

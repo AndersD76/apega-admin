@@ -531,6 +531,9 @@ export default function HomeScreen({ navigation }: Props) {
               colors={['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.85)']}
               style={styles.onboardingGradient}
             />
+            <TouchableOpacity style={styles.onboardingClose} onPress={closePromoPopup}>
+              <Ionicons name="close" size={18} color="#fff" />
+            </TouchableOpacity>
 
             {/* Content */}
             <View style={styles.onboardingContent}>
@@ -548,49 +551,59 @@ export default function HomeScreen({ navigation }: Props) {
                 ))}
               </View>
 
-              {/* Icon */}
-              <View style={[styles.onboardingIconBox, { backgroundColor: `${ONBOARDING_SLIDES[onboardingStep].iconColor}20` }]}>
-                <Ionicons
-                  name={ONBOARDING_SLIDES[onboardingStep].icon as any}
-                  size={56}
-                  color={ONBOARDING_SLIDES[onboardingStep].iconColor}
-                />
-              </View>
-
-              {/* Badge */}
-              <View style={[styles.onboardingBadge, { backgroundColor: `${ONBOARDING_SLIDES[onboardingStep].highlightColor}20` }]}>
-                <Text style={[styles.onboardingBadgeText, { color: ONBOARDING_SLIDES[onboardingStep].highlightColor }]}>
-                  {ONBOARDING_SLIDES[onboardingStep].highlight}
-                </Text>
-              </View>
-
-              {/* Title */}
-              <Text style={styles.onboardingTitle}>
-                {ONBOARDING_SLIDES[onboardingStep].title}
-              </Text>
-
-              {/* Subtitle */}
-              <Text style={styles.onboardingSubtitle}>
-                {ONBOARDING_SLIDES[onboardingStep].subtitle}
-              </Text>
-
-              {/* CTA Button */}
-              <TouchableOpacity
-                style={styles.onboardingCTA}
-                onPress={nextOnboardingSlide}
-              >
-                <Text style={styles.onboardingCTAText}>
-                  {onboardingStep === ONBOARDING_SLIDES.length - 1 ? 'Garantir minha vaga' : 'Continuar'}
-                </Text>
-                <View style={styles.onboardingCTAArrow}>
-                  <Ionicons name="arrow-forward" size={18} color="#fff" />
+              <View style={styles.onboardingCard}>
+                {/* Icon */}
+                <View style={[styles.onboardingIconBox, { backgroundColor: `${ONBOARDING_SLIDES[onboardingStep].iconColor}26` }]}>
+                  <Ionicons
+                    name={ONBOARDING_SLIDES[onboardingStep].icon as any}
+                    size={52}
+                    color={ONBOARDING_SLIDES[onboardingStep].iconColor}
+                  />
                 </View>
-              </TouchableOpacity>
 
-              {/* Step counter */}
-              <Text style={styles.onboardingStepText}>
-                {onboardingStep + 1} de {ONBOARDING_SLIDES.length}
-              </Text>
+                {/* Badge */}
+                <View style={[styles.onboardingBadge, { backgroundColor: `${ONBOARDING_SLIDES[onboardingStep].highlightColor}22` }]}>
+                  <Text style={[styles.onboardingBadgeText, { color: ONBOARDING_SLIDES[onboardingStep].highlightColor }]}>
+                    {ONBOARDING_SLIDES[onboardingStep].highlight}
+                  </Text>
+                </View>
+
+                {/* Title */}
+                <Text style={styles.onboardingTitle}>
+                  {ONBOARDING_SLIDES[onboardingStep].title}
+                </Text>
+
+                {/* Subtitle */}
+                <Text style={styles.onboardingSubtitle}>
+                  {ONBOARDING_SLIDES[onboardingStep].subtitle}
+                </Text>
+
+                {/* CTA Button */}
+                <TouchableOpacity
+                  style={styles.onboardingCTA}
+                  onPress={nextOnboardingSlide}
+                  activeOpacity={0.9}
+                >
+                  <LinearGradient
+                    colors={[COLORS.primary, '#151515']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.onboardingCTAGradient}
+                  >
+                    <Text style={styles.onboardingCTAText}>
+                      {onboardingStep === ONBOARDING_SLIDES.length - 1 ? 'Garantir minha vaga' : 'Continuar'}
+                    </Text>
+                    <View style={styles.onboardingCTAArrow}>
+                      <Ionicons name="arrow-forward" size={18} color="#fff" />
+                    </View>
+                  </LinearGradient>
+                </TouchableOpacity>
+
+                {/* Step counter */}
+                <Text style={styles.onboardingStepText}>
+                  {onboardingStep + 1} de {ONBOARDING_SLIDES.length}
+                </Text>
+              </View>
             </View>
           </Animated.View>
         </View>
@@ -2865,6 +2878,18 @@ const createStyles = (isDesktop: boolean, isTablet: boolean, isMobile: boolean) 
       },
     }),
   },
+  onboardingClose: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 3,
+  },
   onboardingBgImage: {
     position: 'absolute',
     width: '100%',
@@ -2886,7 +2911,7 @@ const createStyles = (isDesktop: boolean, isTablet: boolean, isMobile: boolean) 
     flexDirection: 'row',
     gap: 10,
     position: 'absolute',
-    top: 32,
+    top: 36,
     left: 0,
     right: 0,
     justifyContent: 'center',
@@ -2904,56 +2929,69 @@ const createStyles = (isDesktop: boolean, isTablet: boolean, isMobile: boolean) 
   onboardingDotCompleted: {
     backgroundColor: COLORS.primary,
   },
+  onboardingCard: {
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: isDesktop ? 30 : 24,
+    paddingHorizontal: isDesktop ? 28 : 22,
+    borderRadius: 28,
+    backgroundColor: 'rgba(10,10,12,0.62)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.14)',
+    ...Platform.select({
+      web: { boxShadow: '0 20px 50px rgba(0,0,0,0.45)' },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 16 },
+        shadowOpacity: 0.45,
+        shadowRadius: 30,
+        elevation: 18,
+      },
+    }),
+  },
   onboardingIconBox: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 104,
+    height: 104,
+    borderRadius: 52,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 28,
+    marginBottom: 18,
   },
   onboardingBadge: {
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderRadius: 30,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   onboardingBadgeText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '800',
     letterSpacing: 2,
   },
   onboardingTitle: {
-    fontSize: isDesktop ? 42 : 36,
-    fontWeight: '800',
+    fontSize: isDesktop ? 44 : 34,
+    fontWeight: '900',
     color: '#fff',
     textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: isDesktop ? 52 : 44,
+    marginBottom: 14,
+    lineHeight: isDesktop ? 52 : 42,
+    letterSpacing: 0.2,
     textShadowColor: 'rgba(0,0,0,0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
   },
   onboardingSubtitle: {
-    fontSize: isDesktop ? 20 : 18,
-    color: 'rgba(255,255,255,0.9)',
+    fontSize: isDesktop ? 19 : 17,
+    color: 'rgba(255,255,255,0.86)',
     textAlign: 'center',
-    marginBottom: 40,
-    lineHeight: 30,
-    maxWidth: 400,
+    marginBottom: 26,
+    lineHeight: 28,
+    maxWidth: 420,
   },
   onboardingCTA: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    paddingVertical: 12,
-    paddingLeft: 24,
-    paddingRight: 6,
-    borderRadius: 30,
-    maxWidth: 280,
-    gap: 12,
-    marginBottom: 20,
+    width: '100%',
+    maxWidth: 320,
+    marginBottom: 18,
     ...Platform.select({
       web: {
         boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
@@ -2968,22 +3006,32 @@ const createStyles = (isDesktop: boolean, isTablet: boolean, isMobile: boolean) 
       },
     }),
   },
+  onboardingCTAGradient: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingLeft: 20,
+    paddingRight: 8,
+    borderRadius: 26,
+  },
   onboardingCTAText: {
     fontSize: 15,
-    fontWeight: '700',
-    color: '#1a1a1a',
+    fontWeight: '800',
+    color: '#fff',
   },
   onboardingCTAArrow: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.primary,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(255,255,255,0.18)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   onboardingStepText: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.5)',
+    color: 'rgba(255,255,255,0.6)',
   },
   // Promo Screen styles (legacy, keeping for compatibility)
   promoScreen: {
