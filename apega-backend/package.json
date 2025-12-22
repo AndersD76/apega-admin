@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "db:init": "node src/database/init.js"
+    "db:init": "node src/database/init.js",
+    "db:migrate": "node database/migrations/001_add_is_admin.js"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.9.0",

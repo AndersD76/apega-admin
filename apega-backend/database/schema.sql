@@ -41,6 +41,9 @@ CREATE TABLE users (
     -- Controle
     is_verified BOOLEAN DEFAULT FALSE,
     is_active BOOLEAN DEFAULT TRUE,
+    is_admin BOOLEAN DEFAULT FALSE,
+    last_login_at TIMESTAMP,
+    deleted_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -321,6 +324,79 @@ CREATE TABLE subscriptions (
 
     payment_method_id UUID REFERENCES payment_methods(id),
 
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =============================================
+-- TABELA: carts (Carrinhos para tracking de abandono)
+-- =============================================
+CREATE TABLE carts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id),
+    status VARCHAR(50) DEFAULT 'active', -- 'active', 'abandoned', 'recovered', 'converted'
+    total_value DECIMAL(10,2) DEFAULT 0,
+    items_count INTEGER DEFAULT 0,
+    last_activity_at TIMESTAMP,
+    abandoned_at TIMESTAMP,
+    recovered_at TIMESTAMP,
+    converted_order_id UUID REFERENCES orders(id),
+    reminder_sent_at TIMESTAMP,
+    reminder_count INTEGER DEFAULT 0,
+    device_type VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =============================================
+-- TABELA: product_views (Visualizações de produtos)
+-- =============================================
+CREATE TABLE product_views (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id),
+    session_id VARCHAR(100),
+    device_type VARCHAR(50),
+    source VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =============================================
+-- TABELA: analytics_events (Eventos de analytics)
+-- =============================================
+CREATE TABLE analytics_events (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id),
+    event_type VARCHAR(100) NOT NULL,
+    event_data JSONB,
+    session_id VARCHAR(100),
+    device_type VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =============================================
+-- TABELA: settings (Configurações do sistema)
+-- =============================================
+CREATE TABLE settings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    key VARCHAR(100) UNIQUE NOT NULL,
+    value JSONB NOT NULL,
+    description TEXT,
+    updated_by UUID REFERENCES users(id),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =============================================
+-- TABELA: reports (Denúncias)
+-- =============================================
+CREATE TABLE reports (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    reporter_id UUID NOT NULL REFERENCES users(id),
+    reported_user_id UUID REFERENCES users(id),
+    product_id UUID REFERENCES products(id),
+    reason VARCHAR(100) NOT NULL,
+    description TEXT,
+    status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'resolved', 'dismissed'
+    resolution_notes TEXT,
+    resolved_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

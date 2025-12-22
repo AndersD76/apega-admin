@@ -37,6 +37,7 @@ async function initDatabase() {
         cashback_balance DECIMAL(10,2) DEFAULT 0,
         is_verified BOOLEAN DEFAULT FALSE,
         is_active BOOLEAN DEFAULT TRUE,
+        is_admin BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -288,6 +289,63 @@ async function initDatabase() {
         resolution_notes TEXT,
         resolved_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    console.log('📝 Criando tabela carts...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS carts (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        user_id UUID NOT NULL REFERENCES users(id),
+        status VARCHAR(50) DEFAULT 'active',
+        total_value DECIMAL(10,2) DEFAULT 0,
+        items_count INTEGER DEFAULT 0,
+        last_activity_at TIMESTAMP,
+        abandoned_at TIMESTAMP,
+        recovered_at TIMESTAMP,
+        converted_order_id UUID REFERENCES orders(id),
+        reminder_sent_at TIMESTAMP,
+        reminder_count INTEGER DEFAULT 0,
+        device_type VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    console.log('📝 Criando tabela product_views...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS product_views (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id),
+        session_id VARCHAR(100),
+        device_type VARCHAR(50),
+        source VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    console.log('📝 Criando tabela analytics_events...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS analytics_events (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        user_id UUID REFERENCES users(id),
+        event_type VARCHAR(100) NOT NULL,
+        event_data JSONB,
+        session_id VARCHAR(100),
+        device_type VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    console.log('📝 Criando tabela settings...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS settings (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        key VARCHAR(100) UNIQUE NOT NULL,
+        value JSONB NOT NULL,
+        description TEXT,
+        updated_by UUID REFERENCES users(id),
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
 
