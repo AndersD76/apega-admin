@@ -1,17 +1,36 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
+
+// URL de produção da API (Railway)
+const PRODUCTION_API_URL = 'https://apega-desapega-production.up.railway.app/api';
 
 // URL base da API - ajustar conforme ambiente
 const getApiBaseUrl = () => {
+  // Em produção, sempre usar URL do Railway
   if (!__DEV__) {
-    return 'https://apega-desapega-production.up.railway.app/api';
+    return PRODUCTION_API_URL;
   }
-  // No navegador, usar localhost
+
+  // Em desenvolvimento web, usar localhost
   if (Platform.OS === 'web') {
     return 'http://localhost:3001/api';
   }
-  // No celular, usar IP da rede local
-  return 'http://192.168.0.128:3001/api';
+
+  // Em desenvolvimento mobile, tentar obter IP do Expo ou usar localhost
+  // O Expo fornece o hostUri quando rodando com 'npx expo start'
+  const expoHostUri = Constants.expoConfig?.hostUri || Constants.manifest?.hostUri;
+  if (expoHostUri) {
+    const host = expoHostUri.split(':')[0];
+    return `http://${host}:3001/api`;
+  }
+
+  // Fallback para localhost (emulador Android usa 10.0.2.2)
+  if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:3001/api';
+  }
+
+  return 'http://localhost:3001/api';
 };
 
 const API_BASE_URL = getApiBaseUrl();

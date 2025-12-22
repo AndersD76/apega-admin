@@ -27,9 +27,9 @@ interface CreateProductScreenProps {
   navigation: any;
 }
 
-const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG', 'Ãºnico'];
+const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG', 'Unico'];
 const CONDITIONS = ['novo', 'seminovo', 'usado'];
-const COLORS_PICKER = ['âšª', 'âš«', 'ðŸ”´', 'ðŸŸ ', 'ðŸŸ¡', 'ðŸŸ¢', 'ðŸ”µ', 'ðŸŸ£', 'ðŸŸ¤'];
+const COLORS_PICKER = ['Branco', 'Preto', 'Vermelho', 'Laranja', 'Amarelo', 'Verde', 'Azul', 'Roxo', 'Marrom'];
 const BRANDS = ['farm', 'zara', 'forever 21', 'renner', 'c&a', 'riachuelo', 'outras'];
 
 export default function CreateProductScreen({ navigation }: CreateProductScreenProps) {
