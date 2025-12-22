@@ -60,7 +60,21 @@
       "Bash(export RAILWAY_TOKEN=\"15c37fc3-1fdb-495a-bdae-db4e3645e4f1\")",
       "Bash(export RAILWAY_TOKEN=\"04ed6e5b-8844-4187-8813-e4d6b3882c42\")",
       "Bash(export RAILWAY_TOKEN=\"0e7468a5-18f8-42f5-bd85-5cdc1265d7ad\")",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(railway:*)",
+      "Bash(set:*)",
+      "Bash(cmd /c \"set RAILWAY_TOKEN=0e7468a5-18f8-42f5-bd85-5cdc1265d7ad && railway whoami\")",
+      "Bash(npm run build:*)",
+      "Bash(echo:*)",
+      "Bash(if exist .git rmdir /S /Q .git)",
+      "Bash(cmd /c \"set RAILWAY_TOKEN=0e7468a5-18f8-42f5-bd85-5cdc1265d7ad && cd /d e:\\\\APPS EM DESENVOLVIMENTO\\\\App Brechó\\\\apega-backend && railway whoami\")",
+      "Bash(RAILWAY_TOKEN=0e7468a5-18f8-42f5-bd85-5cdc1265d7ad railway whoami:*)",
+      "Bash(where railway:*)",
+      "Bash(RAILWAY_TOKEN=63c04a30-b2b6-4f55-8c33-f86f21a1c7ef railway whoami:*)",
+      "Bash(export RAILWAY_TOKEN=\"63c04a30-b2b6-4f55-8c33-f86f21a1c7ef\")",
+      "Bash(git reset:*)",
+      "Bash(git restore:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []
