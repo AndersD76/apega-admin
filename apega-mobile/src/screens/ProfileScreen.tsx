@@ -1,9 +1,8 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   StatusBar,
   ActivityIndicator,
@@ -12,6 +11,7 @@ import {
   useWindowDimensions,
   FlatList,
   RefreshControl,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -32,56 +32,32 @@ interface Product {
   id: string;
   title: string;
   price: number;
-  original_price?: number;
   images: string[];
   status: string;
   views_count: number;
   favorites_count: number;
-  created_at: string;
-  category?: string;
-  brand?: string;
-  condition?: string;
 }
 
 export default function ProfileScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const { width: windowWidth } = useWindowDimensions();
-  const isDesktop = isWeb && windowWidth > 768;
-
+  const { width: screenWidth } = useWindowDimensions();
   const { user, isAuthenticated, isLoading, refreshUser, logout } = useAuth();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'grid' | 'active' | 'sold'>('grid');
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    activeProducts: 0,
-    soldProducts: 0,
-  });
 
-  // Calculate grid columns based on screen width
-  const numColumns = isDesktop ? 4 : 3;
-  const spacing = 2;
-  const imageSize = (windowWidth - (spacing * (numColumns + 1))) / numColumns;
+  // Grid: 3 columns, 1px gap
+  const numColumns = 3;
+  const imageSize = (screenWidth - 2) / numColumns;
 
   const loadProducts = async () => {
     if (!isAuthenticated) return;
-
     try {
       setLoadingProducts(true);
       const response = await api.get<{ products: Product[] }>('/products/my');
-      const prods = response.products || [];
-      setProducts(prods);
-
-      // Calculate stats
-      const active = prods.filter(p => p.status === 'active').length;
-      const sold = prods.filter(p => p.status === 'sold').length;
-      setStats({
-        totalProducts: prods.length,
-        activeProducts: active,
-        soldProducts: sold,
-      });
+      setProducts(response.products || []);
     } catch (error) {
       console.error('Erro ao carregar produtos:', error);
     } finally {
@@ -91,12 +67,10 @@ export default function ProfileScreen({ navigation }: Props) {
 
   useFocusEffect(
     useCallback(() => {
-      const refresh = async () => {
-        if (!isAuthenticated) return;
-        await refreshUser();
-        await loadProducts();
-      };
-      refresh();
+      if (isAuthenticated) {
+        refreshUser();
+        loadProducts();
+      }
     }, [isAuthenticated])
   );
 
@@ -107,24 +81,16 @@ export default function ProfileScreen({ navigation }: Props) {
     setRefreshing(false);
   };
 
-  const handleLogout = async () => {
-    await logout();
-    navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
-  };
-
   const getFilteredProducts = () => {
     switch (activeTab) {
-      case 'active':
-        return products.filter(p => p.status === 'active');
-      case 'sold':
-        return products.filter(p => p.status === 'sold');
-      default:
-        return products;
+      case 'active': return products.filter(p => p.status === 'active');
+      case 'sold': return products.filter(p => p.status === 'sold');
+      default: return products;
     }
   };
 
   const formatPrice = (price: number) => {
-    return price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    return `R$ ${price.toFixed(0)}`;
   };
 
   // Loading
@@ -133,7 +99,7 @@ export default function ProfileScreen({ navigation }: Props) {
       <View style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor="#fff" />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color="#262626" />
         </View>
         <BottomNavigation navigation={navigation} activeRoute="Profile" />
       </View>
@@ -144,102 +110,76 @@ export default function ProfileScreen({ navigation }: Props) {
   if (!isAuthenticated || !user) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-        <MainHeader navigation={navigation} title="Minha Loja" />
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.loginScrollContent}
-        >
-          <View style={styles.loginContainer}>
-            <View style={styles.loginIconBg}>
-              <Ionicons name="storefront-outline" size={56} color={COLORS.primary} />
-            </View>
-            <Text style={styles.loginTitle}>Crie sua loja</Text>
-            <Text style={styles.loginSubtitle}>
-              Entre para criar sua loja, anunciar pecas e acompanhar suas vendas
-            </Text>
-            <TouchableOpacity
-              style={styles.loginBtn}
-              onPress={() => navigation.navigate('Login')}
-            >
-              <Text style={styles.loginBtnText}>Entrar ou criar conta</Text>
-            </TouchableOpacity>
-
-            <View style={styles.benefitsSection}>
-              {[
-                { icon: 'camera-outline', label: 'Anuncie em segundos' },
-                { icon: 'cash-outline', label: 'Receba pagamentos' },
-                { icon: 'people-outline', label: 'Alcance milhares' },
-                { icon: 'star-outline', label: 'Construa reputacao' },
-              ].map((item, index) => (
-                <View key={index} style={styles.benefitItem}>
-                  <Ionicons name={item.icon as any} size={24} color={COLORS.primary} />
-                  <Text style={styles.benefitText}>{item.label}</Text>
-                </View>
-              ))}
-            </View>
+        <StatusBar barStyle="dark-content" backgroundColor="#FAF9F7" />
+        <MainHeader navigation={navigation} />
+        <ScrollView contentContainerStyle={styles.loginContainer}>
+          <View style={styles.loginIcon}>
+            <Ionicons name="person-circle-outline" size={80} color="#dbdbdb" />
           </View>
+          <Text style={styles.loginTitle}>Entre para ver seu perfil</Text>
+          <Text style={styles.loginSubtitle}>
+            Crie sua loja, anuncie pecas e acompanhe suas vendas
+          </Text>
+          <TouchableOpacity
+            style={styles.loginBtn}
+            onPress={() => navigation.navigate('Login')}
+          >
+            <Text style={styles.loginBtnText}>Entrar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.signupBtn}
+            onPress={() => navigation.navigate('Login')}
+          >
+            <Text style={styles.signupBtnText}>Criar conta</Text>
+          </TouchableOpacity>
         </ScrollView>
         <BottomNavigation navigation={navigation} activeRoute="Profile" />
       </View>
     );
   }
 
-  // Authenticated - Instagram Style Profile
-  const isPremium = user?.subscription_type === 'premium';
-  const isOfficial = user?.is_official;
-  const avatarUri = user.avatar_url;
-  const rating = typeof user.rating === 'number' ? user.rating : parseFloat(user.rating || '0');
+  // Stats
+  const activeCount = products.filter(p => p.status === 'active').length;
+  const soldCount = products.filter(p => p.status === 'sold').length;
   const filteredProducts = getFilteredProducts();
+  const isPremium = user?.subscription_type === 'premium';
+  const isVerified = user?.is_official;
+  const rating = typeof user.rating === 'number' ? user.rating : parseFloat(user.rating || '0');
 
-  const renderProductItem = ({ item }: { item: Product }) => {
+  const renderProduct = ({ item }: { item: Product }) => {
     const imageUrl = item.images?.[0] || '';
     const isSold = item.status === 'sold';
 
     return (
       <TouchableOpacity
-        style={[styles.productItem, { width: imageSize, height: imageSize }]}
+        style={[styles.gridItem, { width: imageSize, height: imageSize }]}
         onPress={() => navigation.navigate('ProductDetails', { productId: item.id })}
-        activeOpacity={0.9}
+        activeOpacity={0.8}
       >
         {imageUrl ? (
-          <Image source={{ uri: imageUrl }} style={styles.productImage} />
+          <Image source={{ uri: imageUrl }} style={styles.gridImage} />
         ) : (
-          <View style={styles.productPlaceholder}>
-            <Ionicons name="image-outline" size={32} color="#ccc" />
+          <View style={styles.gridPlaceholder}>
+            <Ionicons name="image-outline" size={24} color="#dbdbdb" />
           </View>
         )}
 
-        {/* Overlay with stats */}
-        <View style={styles.productOverlay}>
-          <View style={styles.productStats}>
-            <View style={styles.productStat}>
-              <Ionicons name="heart" size={14} color="#fff" />
-              <Text style={styles.productStatText}>{item.favorites_count || 0}</Text>
-            </View>
-            <View style={styles.productStat}>
-              <Ionicons name="eye" size={14} color="#fff" />
-              <Text style={styles.productStatText}>{item.views_count || 0}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Price tag */}
+        {/* Price */}
         <View style={styles.priceTag}>
           <Text style={styles.priceText}>{formatPrice(item.price)}</Text>
         </View>
 
-        {/* Sold badge */}
+        {/* Sold overlay */}
         {isSold && (
-          <View style={styles.soldBadge}>
+          <View style={styles.soldOverlay}>
             <Text style={styles.soldText}>VENDIDO</Text>
           </View>
         )}
 
-        {/* Multiple images indicator */}
-        {item.images && item.images.length > 1 && (
-          <View style={styles.multipleIndicator}>
-            <Ionicons name="copy" size={14} color="#fff" />
+        {/* Multiple images */}
+        {item.images?.length > 1 && (
+          <View style={styles.multiIcon}>
+            <Ionicons name="copy" size={12} color="#fff" />
           </View>
         )}
       </TouchableOpacity>
@@ -247,164 +187,153 @@ export default function ProfileScreen({ navigation }: Props) {
   };
 
   const ListHeader = () => (
-    <>
-      {/* Profile Header */}
-      <View style={styles.profileHeader}>
-        {/* Avatar and Stats Row */}
-        <View style={styles.profileRow}>
-          <TouchableOpacity
-            style={styles.avatarContainer}
-            onPress={() => navigation.navigate('EditProfile')}
-          >
-            {avatarUri ? (
-              <Image source={{ uri: avatarUri }} style={styles.avatar} />
-            ) : (
-              <LinearGradient
-                colors={[COLORS.primary, '#4CAF50']}
-                style={styles.avatarPlaceholder}
-              >
+    <View style={styles.profileSection}>
+      {/* Top Row: Avatar + Stats */}
+      <View style={styles.topRow}>
+        <TouchableOpacity onPress={() => navigation.navigate('EditProfile')}>
+          {user.avatar_url ? (
+            <Image source={{ uri: user.avatar_url }} style={styles.avatar} />
+          ) : (
+            <LinearGradient
+              colors={['#833AB4', '#FD1D1D', '#F77737']}
+              style={styles.avatarGradient}
+            >
+              <View style={styles.avatarInner}>
                 <Text style={styles.avatarInitial}>
                   {user.name?.charAt(0).toUpperCase() || 'U'}
                 </Text>
-              </LinearGradient>
-            )}
-            {isPremium && (
-              <View style={styles.premiumRing} />
-            )}
-          </TouchableOpacity>
-
-          <View style={styles.statsRow}>
-            <TouchableOpacity style={styles.statBox}>
-              <Text style={styles.statNumber}>{stats.totalProducts}</Text>
-              <Text style={styles.statLabel}>Pecas</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.statBox}
-              onPress={() => navigation.navigate('Followers', { type: 'followers' } as any)}
-            >
-              <Text style={styles.statNumber}>{user.total_followers || 0}</Text>
-              <Text style={styles.statLabel}>Seguidores</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.statBox}
-              onPress={() => navigation.navigate('Followers', { type: 'following' } as any)}
-            >
-              <Text style={styles.statNumber}>{user.total_following || 0}</Text>
-              <Text style={styles.statLabel}>Seguindo</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Name and Bio */}
-        <View style={styles.bioSection}>
-          <View style={styles.nameRow}>
-            <Text style={styles.userName}>{user.store_name || user.name || 'Minha Loja'}</Text>
-            {isOfficial && (
-              <Ionicons name="checkmark-circle" size={18} color="#3897f0" />
-            )}
-            {isPremium && (
-              <View style={styles.premiumBadge}>
-                <Ionicons name="diamond" size={10} color="#7B1FA2" />
-                <Text style={styles.premiumBadgeText}>PRO</Text>
               </View>
-            )}
-          </View>
-
-          <Text style={styles.userHandle}>@{user.email?.split('@')[0] || 'usuario'}</Text>
-
-          {user.store_description || user.bio ? (
-            <Text style={styles.bioText}>{user.store_description || user.bio}</Text>
-          ) : null}
-
-          {user.city && user.state && (
-            <View style={styles.locationRow}>
-              <Ionicons name="location-outline" size={14} color="#666" />
-              <Text style={styles.locationText}>{user.city}, {user.state}</Text>
-            </View>
-          )}
-
-          {/* Rating */}
-          {user.total_reviews > 0 && (
-            <View style={styles.ratingRow}>
-              <Ionicons name="star" size={14} color="#FFB800" />
-              <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
-              <Text style={styles.reviewsText}>({user.total_reviews} avaliacoes)</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Action Buttons */}
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={styles.editProfileBtn}
-            onPress={() => navigation.navigate('EditProfile')}
-          >
-            <Text style={styles.editProfileText}>Editar perfil</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.shareBtn}
-            onPress={() => {/* Share profile */}}
-          >
-            <Ionicons name="share-outline" size={18} color="#262626" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.settingsBtn}
-            onPress={() => navigation.navigate('Settings' as any)}
-          >
-            <Ionicons name="settings-outline" size={18} color="#262626" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Quick Actions */}
-        <View style={styles.quickActions}>
-          <TouchableOpacity
-            style={styles.quickActionBtn}
-            onPress={() => navigation.navigate('NewItem')}
-          >
-            <LinearGradient
-              colors={[COLORS.primary, '#4CAF50']}
-              style={styles.quickActionIcon}
-            >
-              <Ionicons name="add" size={24} color="#fff" />
             </LinearGradient>
-            <Text style={styles.quickActionLabel}>Anunciar</Text>
-          </TouchableOpacity>
+          )}
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.quickActionBtn}
-            onPress={() => navigation.navigate('Sales')}
-          >
-            <View style={[styles.quickActionIcon, { backgroundColor: '#E3F2FD' }]}>
-              <Ionicons name="trending-up" size={22} color="#1976D2" />
-            </View>
-            <Text style={styles.quickActionLabel}>Vendas</Text>
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{products.length}</Text>
+            <Text style={styles.statLabel}>publicacoes</Text>
+          </View>
+          <TouchableOpacity style={styles.statItem}>
+            <Text style={styles.statNumber}>{user.total_followers || 0}</Text>
+            <Text style={styles.statLabel}>seguidores</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.quickActionBtn}
-            onPress={() => navigation.navigate('Orders')}
-          >
-            <View style={[styles.quickActionIcon, { backgroundColor: '#FFF3E0' }]}>
-              <Ionicons name="cube" size={22} color="#F57C00" />
-            </View>
-            <Text style={styles.quickActionLabel}>Pedidos</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.quickActionBtn}
-            onPress={() => navigation.navigate('Balance')}
-          >
-            <View style={[styles.quickActionIcon, { backgroundColor: '#E8F5E9' }]}>
-              <Ionicons name="wallet" size={22} color="#4CAF50" />
-            </View>
-            <Text style={styles.quickActionLabel}>Saldo</Text>
+          <TouchableOpacity style={styles.statItem}>
+            <Text style={styles.statNumber}>{user.total_following || 0}</Text>
+            <Text style={styles.statLabel}>seguindo</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Tab Bar */}
+      {/* Name & Bio */}
+      <View style={styles.bioSection}>
+        <View style={styles.nameRow}>
+          <Text style={styles.displayName}>{user.store_name || user.name}</Text>
+          {isVerified && (
+            <Ionicons name="checkmark-circle" size={16} color="#3897f0" style={{ marginLeft: 4 }} />
+          )}
+          {isPremium && (
+            <View style={styles.proBadge}>
+              <Text style={styles.proBadgeText}>PRO</Text>
+            </View>
+          )}
+        </View>
+
+        {user.bio || user.store_description ? (
+          <Text style={styles.bioText}>{user.store_description || user.bio}</Text>
+        ) : null}
+
+        {user.city && user.state && (
+          <Text style={styles.locationText}>{user.city}, {user.state}</Text>
+        )}
+
+        {user.total_reviews > 0 && (
+          <View style={styles.ratingRow}>
+            <Ionicons name="star" size={12} color="#FFB800" />
+            <Text style={styles.ratingText}>{rating.toFixed(1)} ({user.total_reviews})</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Action Buttons */}
+      <View style={styles.actionRow}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => navigation.navigate('EditProfile')}
+        >
+          <Text style={styles.actionBtnText}>Editar perfil</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => navigation.navigate('Sales')}
+        >
+          <Text style={styles.actionBtnText}>Painel de vendas</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionBtnIcon}
+          onPress={() => navigation.navigate('NewItem')}
+        >
+          <Ionicons name="add" size={20} color="#262626" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Highlights / Quick Access */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.highlightsScroll}
+        contentContainerStyle={styles.highlightsContent}
+      >
+        <TouchableOpacity
+          style={styles.highlightItem}
+          onPress={() => navigation.navigate('NewItem')}
+        >
+          <View style={styles.highlightCircle}>
+            <Ionicons name="add" size={28} color="#262626" />
+          </View>
+          <Text style={styles.highlightLabel}>Novo</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.highlightItem}
+          onPress={() => navigation.navigate('Sales')}
+        >
+          <View style={[styles.highlightCircle, styles.highlightFilled]}>
+            <Ionicons name="trending-up" size={22} color="#fff" />
+          </View>
+          <Text style={styles.highlightLabel}>Vendas</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.highlightItem}
+          onPress={() => navigation.navigate('Orders')}
+        >
+          <View style={[styles.highlightCircle, styles.highlightFilled, { backgroundColor: '#F57C00' }]}>
+            <Ionicons name="cube" size={22} color="#fff" />
+          </View>
+          <Text style={styles.highlightLabel}>Pedidos</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.highlightItem}
+          onPress={() => navigation.navigate('Balance')}
+        >
+          <View style={[styles.highlightCircle, styles.highlightFilled, { backgroundColor: '#4CAF50' }]}>
+            <Ionicons name="wallet" size={22} color="#fff" />
+          </View>
+          <Text style={styles.highlightLabel}>Saldo</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.highlightItem}
+          onPress={() => navigation.navigate('Favorites')}
+        >
+          <View style={[styles.highlightCircle, styles.highlightFilled, { backgroundColor: '#E91E63' }]}>
+            <Ionicons name="heart" size={22} color="#fff" />
+          </View>
+          <Text style={styles.highlightLabel}>Favoritos</Text>
+        </TouchableOpacity>
+      </ScrollView>
+
+      {/* Tabs */}
       <View style={styles.tabBar}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'grid' && styles.tabActive]}
@@ -412,7 +341,7 @@ export default function ProfileScreen({ navigation }: Props) {
         >
           <Ionicons
             name="grid-outline"
-            size={24}
+            size={26}
             color={activeTab === 'grid' ? '#262626' : '#8e8e8e'}
           />
         </TouchableOpacity>
@@ -420,119 +349,90 @@ export default function ProfileScreen({ navigation }: Props) {
           style={[styles.tab, activeTab === 'active' && styles.tabActive]}
           onPress={() => setActiveTab('active')}
         >
-          <Ionicons
-            name="pricetag-outline"
-            size={24}
-            color={activeTab === 'active' ? '#262626' : '#8e8e8e'}
-          />
-          {stats.activeProducts > 0 && (
-            <View style={styles.tabBadge}>
-              <Text style={styles.tabBadgeText}>{stats.activeProducts}</Text>
-            </View>
-          )}
+          <View style={styles.tabWithBadge}>
+            <Ionicons
+              name="pricetag-outline"
+              size={26}
+              color={activeTab === 'active' ? '#262626' : '#8e8e8e'}
+            />
+            {activeCount > 0 && (
+              <View style={styles.tabBadge}>
+                <Text style={styles.tabBadgeText}>{activeCount}</Text>
+              </View>
+            )}
+          </View>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'sold' && styles.tabActive]}
           onPress={() => setActiveTab('sold')}
         >
-          <Ionicons
-            name="checkmark-circle-outline"
-            size={24}
-            color={activeTab === 'sold' ? '#262626' : '#8e8e8e'}
-          />
-          {stats.soldProducts > 0 && (
-            <View style={styles.tabBadge}>
-              <Text style={styles.tabBadgeText}>{stats.soldProducts}</Text>
-            </View>
-          )}
+          <View style={styles.tabWithBadge}>
+            <Ionicons
+              name="checkmark-done-outline"
+              size={26}
+              color={activeTab === 'sold' ? '#262626' : '#8e8e8e'}
+            />
+            {soldCount > 0 && (
+              <View style={styles.tabBadge}>
+                <Text style={styles.tabBadgeText}>{soldCount}</Text>
+              </View>
+            )}
+          </View>
         </TouchableOpacity>
       </View>
+    </View>
+  );
 
-      {/* Empty State */}
-      {filteredProducts.length === 0 && !loadingProducts && (
-        <View style={styles.emptyState}>
-          <Ionicons
-            name={activeTab === 'sold' ? 'checkmark-circle-outline' : 'camera-outline'}
-            size={64}
-            color="#dbdbdb"
-          />
-          <Text style={styles.emptyTitle}>
-            {activeTab === 'sold' ? 'Nenhuma venda ainda' : 'Nenhuma peca ainda'}
-          </Text>
-          <Text style={styles.emptySubtitle}>
-            {activeTab === 'sold'
-              ? 'Quando voce vender, aparecera aqui'
-              : 'Comece a vender suas pecas agora'
-            }
-          </Text>
-          {activeTab !== 'sold' && (
-            <TouchableOpacity
-              style={styles.emptyBtn}
-              onPress={() => navigation.navigate('NewItem')}
-            >
-              <Text style={styles.emptyBtnText}>Anunciar primeira peca</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+  const ListEmpty = () => (
+    <View style={styles.emptyContainer}>
+      <View style={styles.emptyIconCircle}>
+        <Ionicons name="camera-outline" size={44} color="#262626" />
+      </View>
+      <Text style={styles.emptyTitle}>
+        {activeTab === 'sold' ? 'Nenhuma venda ainda' : 'Nenhuma publicacao'}
+      </Text>
+      <Text style={styles.emptySubtitle}>
+        {activeTab === 'sold'
+          ? 'Suas vendas aparecerrao aqui'
+          : 'Quando voce anunciar, suas pecas aparecerao aqui'}
+      </Text>
+      {activeTab !== 'sold' && (
+        <TouchableOpacity
+          style={styles.emptyBtn}
+          onPress={() => navigation.navigate('NewItem')}
+        >
+          <Text style={styles.emptyBtnText}>Anunciar agora</Text>
+        </TouchableOpacity>
       )}
-    </>
+    </View>
   );
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-
-      {/* Instagram-style Header */}
-      <View style={[styles.header, { paddingTop: insets.top }]}>
-        <TouchableOpacity
-          style={styles.headerLeft}
-          onPress={() => navigation.navigate('EditProfile')}
-        >
-          <Text style={styles.headerUsername}>{user.store_name || user.name}</Text>
-          {isOfficial && (
-            <Ionicons name="checkmark-circle" size={16} color="#3897f0" />
-          )}
-          <Ionicons name="chevron-down" size={16} color="#262626" />
-        </TouchableOpacity>
-
-        <View style={styles.headerRight}>
-          <TouchableOpacity
-            style={styles.headerBtn}
-            onPress={() => navigation.navigate('NewItem')}
-          >
-            <Ionicons name="add-circle-outline" size={28} color="#262626" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerBtn}
-            onPress={() => navigation.navigate('Help')}
-          >
-            <Ionicons name="menu-outline" size={28} color="#262626" />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <StatusBar barStyle="dark-content" backgroundColor="#FAF9F7" />
+      <MainHeader navigation={navigation} />
 
       {loadingProducts && products.length === 0 ? (
-        <View style={styles.loadingProducts}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#262626" />
         </View>
       ) : (
         <FlatList
           data={filteredProducts}
-          renderItem={renderProductItem}
+          renderItem={renderProduct}
           keyExtractor={(item) => item.id}
           numColumns={numColumns}
           ListHeaderComponent={ListHeader}
-          contentContainerStyle={styles.gridContent}
-          columnWrapperStyle={styles.gridRow}
+          ListEmptyComponent={ListEmpty}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              tintColor={COLORS.primary}
-              colors={[COLORS.primary]}
+              tintColor="#262626"
             />
           }
+          contentContainerStyle={styles.listContent}
         />
       )}
 
@@ -544,159 +444,104 @@ export default function ProfileScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#fafafa',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loadingProducts: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
 
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#dbdbdb',
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  headerUsername: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#262626',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  headerBtn: {
-    padding: 4,
-  },
-
-  // Login State
-  loginScrollContent: {
-    flexGrow: 1,
-  },
+  // Login
   loginContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 32,
+    padding: 40,
   },
-  loginIconBg: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: `${COLORS.primary}10`,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
+  loginIcon: {
+    marginBottom: 16,
   },
   loginTitle: {
-    fontSize: 26,
-    fontWeight: '700',
+    fontSize: 22,
+    fontWeight: '600',
     color: '#262626',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   loginSubtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#8e8e8e',
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 32,
-    maxWidth: 280,
+    marginBottom: 24,
+    lineHeight: 20,
   },
   loginBtn: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: 14,
-    paddingHorizontal: 48,
+    backgroundColor: '#0095f6',
+    paddingVertical: 12,
+    paddingHorizontal: 80,
     borderRadius: 8,
+    marginBottom: 12,
   },
   loginBtnText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
   },
-  benefitsSection: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginTop: 48,
-    gap: 24,
+  signupBtn: {
+    paddingVertical: 12,
   },
-  benefitItem: {
-    alignItems: 'center',
-    width: 100,
-  },
-  benefitText: {
-    fontSize: 12,
-    color: '#262626',
-    marginTop: 8,
-    textAlign: 'center',
+  signupBtnText: {
+    color: '#0095f6',
+    fontSize: 14,
+    fontWeight: '600',
   },
 
-  // Profile Header
-  profileHeader: {
+  // Profile Section
+  profileSection: {
     backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingTop: 16,
   },
-  profileRow: {
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-  },
-  avatarContainer: {
-    position: 'relative',
-    marginRight: 24,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
   },
   avatar: {
     width: 86,
     height: 86,
     borderRadius: 43,
+    borderWidth: 1,
+    borderColor: '#dbdbdb',
   },
-  avatarPlaceholder: {
-    width: 86,
-    height: 86,
-    borderRadius: 43,
+  avatarGradient: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    padding: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarInner: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarInitial: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: '600',
-    color: '#fff',
+    color: '#262626',
   },
-  premiumRing: {
-    position: 'absolute',
-    top: -3,
-    left: -3,
-    right: -3,
-    bottom: -3,
-    borderRadius: 46,
-    borderWidth: 2,
-    borderColor: '#7B1FA2',
-  },
-  statsRow: {
+  statsContainer: {
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-around',
+    marginLeft: 20,
   },
-  statBox: {
+  statItem: {
     alignItems: 'center',
   },
   statNumber: {
@@ -706,156 +551,145 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 13,
-    color: '#8e8e8e',
+    color: '#262626',
     marginTop: 2,
   },
 
-  // Bio Section
+  // Bio
   bioSection: {
-    marginBottom: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
   },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 2,
+    marginBottom: 4,
   },
-  userName: {
+  displayName: {
     fontSize: 14,
     fontWeight: '600',
     color: '#262626',
   },
-  premiumBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  proBadge: {
     backgroundColor: '#FFD700',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
-    gap: 2,
+    marginLeft: 6,
   },
-  premiumBadgeText: {
+  proBadgeText: {
     fontSize: 10,
     fontWeight: '700',
     color: '#7B1FA2',
   },
-  userHandle: {
-    fontSize: 14,
-    color: '#8e8e8e',
-    marginBottom: 8,
-  },
   bioText: {
     fontSize: 14,
     color: '#262626',
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 4,
+    lineHeight: 18,
   },
   locationText: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 14,
+    color: '#8e8e8e',
+    marginTop: 2,
   },
   ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    marginTop: 4,
   },
   ratingText: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
     color: '#262626',
-  },
-  reviewsText: {
-    fontSize: 13,
-    color: '#8e8e8e',
+    marginLeft: 4,
   },
 
-  // Action Buttons
-  actionButtons: {
+  // Actions
+  actionRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    paddingHorizontal: 16,
     gap: 8,
     marginBottom: 16,
   },
-  editProfileBtn: {
+  actionBtn: {
     flex: 1,
     backgroundColor: '#efefef',
     paddingVertical: 8,
     borderRadius: 8,
     alignItems: 'center',
   },
-  editProfileText: {
+  actionBtnText: {
     fontSize: 14,
     fontWeight: '600',
     color: '#262626',
   },
-  shareBtn: {
+  actionBtnIcon: {
     backgroundColor: '#efefef',
-    padding: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 8,
-  },
-  settingsBtn: {
-    backgroundColor: '#efefef',
-    padding: 8,
-    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
-  // Quick Actions
-  quickActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 16,
-    borderTopWidth: 0.5,
-    borderTopColor: '#efefef',
+  // Highlights
+  highlightsScroll: {
+    marginBottom: 12,
   },
-  quickActionBtn: {
+  highlightsContent: {
+    paddingHorizontal: 12,
+  },
+  highlightItem: {
     alignItems: 'center',
+    marginHorizontal: 8,
   },
-  quickActionIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  highlightCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 1,
+    borderColor: '#dbdbdb',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    backgroundColor: '#fff',
   },
-  quickActionLabel: {
+  highlightFilled: {
+    backgroundColor: '#0095f6',
+    borderColor: '#0095f6',
+  },
+  highlightLabel: {
     fontSize: 12,
     color: '#262626',
-    fontWeight: '500',
+    marginTop: 6,
   },
 
-  // Tab Bar
+  // Tabs
   tabBar: {
     flexDirection: 'row',
     borderTopWidth: 0.5,
     borderTopColor: '#dbdbdb',
-    backgroundColor: '#fff',
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 12,
-    position: 'relative',
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'transparent',
   },
   tabActive: {
-    borderTopWidth: 1,
     borderTopColor: '#262626',
+  },
+  tabWithBadge: {
+    position: 'relative',
   },
   tabBadge: {
     position: 'absolute',
-    top: 6,
-    right: '30%',
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 10,
-    minWidth: 18,
+    top: -4,
+    right: -12,
+    backgroundColor: '#ed4956',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 8,
+    minWidth: 16,
     alignItems: 'center',
   },
   tabBadgeText: {
@@ -865,116 +699,90 @@ const styles = StyleSheet.create({
   },
 
   // Grid
-  gridContent: {
+  listContent: {
     paddingBottom: 100,
   },
-  gridRow: {
-    gap: 2,
-    paddingHorizontal: 1,
-  },
-  productItem: {
+  gridItem: {
     position: 'relative',
-    margin: 1,
+    borderWidth: 0.5,
+    borderColor: '#fff',
   },
-  productImage: {
+  gridImage: {
     width: '100%',
     height: '100%',
     backgroundColor: '#fafafa',
   },
-  productPlaceholder: {
+  gridPlaceholder: {
     width: '100%',
     height: '100%',
     backgroundColor: '#fafafa',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  productOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    opacity: 0,
-  },
-  productStats: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  productStat: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  productStatText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
   },
   priceTag: {
     position: 'absolute',
-    bottom: 6,
-    left: 6,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    bottom: 4,
+    left: 4,
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     borderRadius: 4,
   },
   priceText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     color: '#fff',
   },
-  soldBadge: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+  soldOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   soldText: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '800',
     color: '#fff',
-    backgroundColor: '#EF4444',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 4,
+    letterSpacing: 1,
   },
-  multipleIndicator: {
+  multiIcon: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: 6,
+    right: 6,
   },
 
-  // Empty State
-  emptyState: {
+  // Empty
+  emptyContainer: {
     alignItems: 'center',
-    paddingVertical: 64,
-    paddingHorizontal: 32,
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+  },
+  emptyIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: '#262626',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   emptyTitle: {
     fontSize: 22,
     fontWeight: '300',
     color: '#262626',
-    marginTop: 16,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
     color: '#8e8e8e',
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   emptyBtn: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    backgroundColor: '#0095f6',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 8,
   },
   emptyBtnText: {
