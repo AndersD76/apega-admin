@@ -18,6 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
 import { BottomNavigation, MainHeader } from '../components';
+import ProductCard from '../components/ProductCard';
 import { getProducts, Product } from '../services/products';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
@@ -344,7 +345,7 @@ export default function SearchScreen({ navigation }: Props) {
         <View style={styles.resultsSection}>
           <View style={styles.resultsHeader}>
             <Text style={styles.resultsTitle}>
-              {loading ? 'Buscando...' : `${filteredProducts.length} peças encontradas`}
+              {loading ? 'Buscando...' : `Encontramos ${filteredProducts.length} peças lindas`}
             </Text>
             {(selectedSize || selectedCondition) && (
               <TouchableOpacity
@@ -361,11 +362,27 @@ export default function SearchScreen({ navigation }: Props) {
           {loading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={COLORS.primary} />
-              <Text style={styles.loadingText}>Buscando peças incríveis...</Text>
+              <Text style={styles.loadingText}>Buscando peças lindas...</Text>
             </View>
           ) : filteredProducts.length > 0 ? (
             <View style={styles.productsGrid}>
-              {filteredProducts.map((item, index) => renderProductCard(item, index))}
+              {filteredProducts.map((item) => {
+                const imageUrl = item.image_url || (item.images && item.images[0]?.image_url) || '';
+                return (
+                  <ProductCard
+                    key={item.id}
+                    id={item.id}
+                    image={imageUrl || 'https://via.placeholder.com/200'}
+                    title={item.brand ? `${item.brand} - ${item.title}` : item.title}
+                    price={item.price}
+                    originalPrice={item.original_price}
+                    size={item.size}
+                    condition={getConditionStyle(item.condition).label}
+                    numColumns={isDesktop ? 4 : 2}
+                    onPress={() => navigation.navigate('ItemDetail', { item: { ...item, images: imageUrl ? [imageUrl] : [] } })}
+                  />
+                );
+              })}
             </View>
           ) : (
             <View style={styles.emptyState}>

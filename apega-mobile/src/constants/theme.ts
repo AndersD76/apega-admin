@@ -1,68 +1,82 @@
 // Sistema de Design Completo - Apega Desapega
-// Design moderno e profissional superior ao Enjoei
+// Design inspirado no Enjoei - Roxo vibrante
 
 export const COLORS = {
-  // Cores principais do MIV - Verde Sage
-  primary: '#6B9080',
-  primaryDark: '#527363',
-  primaryLight: '#8FB5A5',
-  primaryExtraLight: '#B5CFBD',
+  // Cores principais - Roxo Enjoei
+  primary: '#61005D',
+  primaryDark: '#4A0047',
+  primaryLight: '#8B1A85',
+  primaryExtraLight: '#F5E6F4',
 
-  // Cores de Acento - Roxo para CTAs
-  purple: '#6B1E6F',
-  purpleDark: '#4A1450',
-  purpleLight: '#EDE5F5',
+  // Cores Secundárias - Coral/Laranja
+  secondary: '#FF6B6B',
+  secondaryDark: '#E54545',
+  secondaryLight: '#FF8E8E',
 
   // Premium/Gold
-  premium: '#D4AF37',
-  premiumDark: '#B8941F',
-  premiumLight: '#F5E6C8',
+  premium: '#FFD700',
+  premiumDark: '#FFC107',
+  premiumLight: '#FFF8DC',
 
   // Cores neutras (escala completa)
   white: '#FFFFFF',
-  black: '#000000',
+  black: '#1A1A1A',
   gray: {
-    50: '#F9FAFB',
-    100: '#F3F4F6',
-    200: '#E5E7EB',
-    300: '#D1D5DB',
-    400: '#9CA3AF',
-    500: '#6B7280',
-    600: '#4B5563',
-    700: '#374151',
-    800: '#1F2937',
-    900: '#111827',
+    50: '#FAFAFA',
+    100: '#F5F5F5',
+    200: '#EEEEEE',
+    300: '#E0E0E0',
+    400: '#BDBDBD',
+    500: '#9E9E9E',
+    600: '#757575',
+    700: '#616161',
+    800: '#424242',
+    900: '#212121',
   },
 
   // Cores de estado
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
-  info: '#3B82F6',
+  success: '#00C853',
+  successLight: '#69F0AE',
+  successDark: '#00A040',
+  warning: '#FFB300',
+  warningLight: '#FFCA28',
+  warningDark: '#FF8F00',
+  error: '#FF5252',
+  errorLight: '#FF8A80',
+  errorDark: '#D32F2F',
+  info: '#2196F3',
+  infoLight: '#64B5F6',
+  infoDark: '#1976D2',
 
   // Backgrounds e superfícies
-  background: '#F9FAFB',
-  backgroundDark: '#F3F4F6',
+  background: '#FAFAFA',
+  backgroundDark: '#F5F5F5',
   surface: '#FFFFFF',
-  surfaceHover: '#F9FAFB',
+  surfaceHover: '#FAFAFA',
   overlay: 'rgba(0, 0, 0, 0.5)',
   overlayLight: 'rgba(0, 0, 0, 0.3)',
 
   // Gradientes
-  gradientPrimary: ['#6B9080', '#4A6B5C'],
-  gradientPremium: ['#D4AF37', '#B8941F'],
-  gradientDark: ['#374151', '#1F2937'],
+  gradientPrimary: ['#61005D', '#8B1A85'],
+  gradientPremium: ['#FFD700', '#FFC107'],
+  gradientDark: ['#424242', '#212121'],
 
   // Bordas
-  border: '#E5E7EB',
-  borderLight: '#F3F4F6',
-  borderDark: '#D1D5DB',
+  border: '#EEEEEE',
+  borderLight: '#F5F5F5',
+  borderDark: '#E0E0E0',
 
   // Text colors
-  textPrimary: '#111827',
-  textSecondary: '#6B7280',
-  textTertiary: '#9CA3AF',
+  textPrimary: '#1A1A1A',
+  textSecondary: '#616161',
+  textTertiary: '#9E9E9E',
+  textDisabled: '#BDBDBD',
   textInverse: '#FFFFFF',
+
+  // Preços
+  priceOld: '#9E9E9E',
+  priceNew: '#1A1A1A',
+  priceDiscount: '#FF5252',
 
   // Social colors
   whatsapp: '#25D366',

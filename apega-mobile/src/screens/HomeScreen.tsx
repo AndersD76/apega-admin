@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomNavigation } from '../components';
+import ProductCard from '../components/ProductCard';
 import { COLORS } from '../constants/theme';
 import { getProducts, Product, getCategoryCounts } from '../services/products';
 import api from '../services/api';
@@ -27,35 +28,35 @@ import type { RootStackParamList } from '../navigation/AppNavigator';
 
 const isWeb = Platform.OS === 'web';
 
-// Banners full-width do carrossel - Gradientes elegantes
+// Banners full-width do carrossel - Estilo Enjoei
 const CAROUSEL_BANNERS = [
   {
-    title: 'Moda Circular',
-    subtitle: 'Renove seu guarda-roupa com peças únicas',
+    title: 'Desapega!',
+    subtitle: 'Renove seu guarda-roupa com peças incríveis',
     highlight: 'ATÉ 70% OFF',
-    cta: 'Explorar',
-    gradient: ['#4A7C59', '#2D5A27'] as [string, string],
+    cta: 'Bora explorar',
+    gradient: ['#61005D', '#8B1A85'] as [string, string],
   },
   {
-    title: 'Peças Premium',
+    title: 'Achados Premium',
     subtitle: 'Farm, Animale, Zara e muito mais',
-    highlight: 'EXCLUSIVO',
-    cta: 'Ver coleção',
-    gradient: ['#7B1FA2', '#4A148C'] as [string, string],
+    highlight: 'TÁ ESPERANDO O QUÊ?',
+    cta: 'Quero ver',
+    gradient: ['#FF6B6B', '#E54545'] as [string, string],
   },
   {
-    title: 'Sustentabilidade',
-    subtitle: 'Moda consciente que faz a diferença',
+    title: 'Moda Consciente',
+    subtitle: 'Cada peça conta uma história',
     highlight: 'ECO-FRIENDLY',
     cta: 'Saiba mais',
-    gradient: ['#00695C', '#004D40'] as [string, string],
+    gradient: ['#4A0047', '#61005D'] as [string, string],
   },
   {
     title: 'Bolsas de Grife',
     subtitle: 'Louis Vuitton, Gucci, Prada',
-    highlight: 'IMPERDÍVEL',
+    highlight: 'DE CAIR O QUEIXO',
     cta: 'Conferir',
-    gradient: ['#C9A227', '#8B6914'] as [string, string],
+    gradient: ['#FFD700', '#FFC107'] as [string, string],
   },
 ];
 
@@ -959,49 +960,26 @@ export default function HomeScreen({ navigation }: Props) {
         {allItems.length > 0 && (
           <View style={styles.productsSection}>
             <View style={styles.productsSectionHeader}>
-              <Text style={styles.sectionTitle}>Novidades</Text>
+              <Text style={styles.sectionTitle}>Acabou de chegar</Text>
               <TouchableOpacity onPress={() => navigation.navigate('Search')}>
-                <Text style={styles.seeAllLink}>Ver tudo →</Text>
+                <Text style={styles.seeAllLink}>Ver mais →</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.productsGrid}>
               {allItems.slice(0, 8).map((item) => (
-                <TouchableOpacity
+                <ProductCard
                   key={item.id}
-                  style={styles.productCard}
+                  id={item.id}
+                  image={item.images[0] || 'https://via.placeholder.com/200'}
+                  title={item.brand ? `${item.brand} - ${item.title}` : item.title}
+                  price={item.price}
+                  originalPrice={item.originalPrice}
+                  size={item.size}
+                  condition={getConditionStyle(item.condition).label}
+                  numColumns={isDesktop ? 4 : isTablet ? 3 : 2}
                   onPress={() => navigation.navigate('ItemDetail', { item })}
-                >
-                  <View style={styles.productImageContainer}>
-                    {item.images[0] ? (
-                      <Image source={{ uri: item.images[0] }} style={styles.productImage} />
-                    ) : (
-                      <View style={[styles.productImage, styles.productImagePlaceholder]}>
-                        <Ionicons name="image-outline" size={32} color="#ccc" />
-                      </View>
-                    )}
-                    {/* Tag de condição */}
-                    <View style={[styles.conditionBadge, { backgroundColor: getConditionStyle(item.condition).bg }]}>
-                      <Text style={styles.conditionText}>{getConditionStyle(item.condition).label}</Text>
-                    </View>
-                    {item.size && (
-                      <View style={styles.productSizeBadge}>
-                        <Text style={styles.productSizeText}>{item.size}</Text>
-                      </View>
-                    )}
-                  </View>
-                  <View style={styles.productInfo}>
-                    {item.brand && (
-                      <Text style={styles.productBrand}>{item.brand}</Text>
-                    )}
-                    <Text style={styles.productTitle} numberOfLines={2}>{item.title}</Text>
-                    <Text style={styles.productPrice}>{formatPrice(item.price)}</Text>
-                    <TouchableOpacity style={styles.buyButton}>
-                      <Text style={styles.buyButtonText}>COMPRAR</Text>
-                      <Ionicons name="bag-outline" size={14} color="#fff" />
-                    </TouchableOpacity>
-                  </View>
-                </TouchableOpacity>
+                />
               ))}
             </View>
           </View>

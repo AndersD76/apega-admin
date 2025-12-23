@@ -42,6 +42,7 @@ export default function ProfileScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   const { user, isAuthenticated, isLoading, refreshUser, logout } = useAuth();
+  const contentWidth = isWeb ? Math.min(screenWidth, 980) : screenWidth;
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
@@ -50,7 +51,8 @@ export default function ProfileScreen({ navigation }: Props) {
 
   // Grid: 3 columns, 1px gap
   const numColumns = 3;
-  const imageSize = (screenWidth - 2) / numColumns;
+  const imageSize = (contentWidth - 2) / numColumns;
+  const gridRowStyle = isWeb ? { width: contentWidth } : undefined;
 
   const loadProducts = async () => {
     if (!isAuthenticated) return;
@@ -195,7 +197,7 @@ export default function ProfileScreen({ navigation }: Props) {
             <Image source={{ uri: user.avatar_url }} style={styles.avatar} />
           ) : (
             <LinearGradient
-              colors={['#833AB4', '#FD1D1D', '#F77737']}
+              colors={[COLORS.primary, COLORS.primaryLight]}
               style={styles.avatarGradient}
             >
               <View style={styles.avatarInner}>
@@ -476,7 +478,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   loginBtn: {
-    backgroundColor: '#0095f6',
+    backgroundColor: COLORS.primary,
     paddingVertical: 12,
     paddingHorizontal: 80,
     borderRadius: 8,
@@ -491,7 +493,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   signupBtnText: {
-    color: '#0095f6',
+    color: COLORS.primary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -653,8 +655,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   highlightFilled: {
-    backgroundColor: '#0095f6',
-    borderColor: '#0095f6',
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   highlightLabel: {
     fontSize: 12,
@@ -780,7 +782,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   emptyBtn: {
-    backgroundColor: '#0095f6',
+    backgroundColor: COLORS.primary,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,

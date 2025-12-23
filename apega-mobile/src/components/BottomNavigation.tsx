@@ -55,7 +55,7 @@ export default function BottomNavigation({ navigation, activeRoute = 'Home' }: B
   const renderNavItem = (item: typeof NAV_ITEMS[0]) => {
     const isActive = activeRoute === item.key;
 
-    // Botão central premium - VENDER
+    // Botão central premium - VENDER (estilo Enjoei)
     if (item.isCenter) {
       return (
         <TouchableOpacity
@@ -65,13 +65,14 @@ export default function BottomNavigation({ navigation, activeRoute = 'Home' }: B
           activeOpacity={0.9}
         >
           <LinearGradient
-            colors={[COLORS.primary, '#3d5a4c'] as const}
+            colors={[COLORS.primary, COLORS.primaryLight] as const}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.centerButtonGradient}
           >
             <Ionicons name="add" size={26} color={COLORS.white} />
           </LinearGradient>
+          <Text style={styles.centerLabel}>{item.label}</Text>
         </TouchableOpacity>
       );
     }
@@ -181,15 +182,21 @@ const styles = StyleSheet.create({
       ios: {
         shadowColor: COLORS.primary,
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
+        shadowOpacity: 0.35,
         shadowRadius: 8,
       },
       android: {
         elevation: 8,
       },
       web: {
-        boxShadow: '0 4px 12px rgba(107,144,128,0.4)',
+        boxShadow: '0 4px 12px rgba(97,0,93,0.4)',
       },
     }),
+  },
+  centerLabel: {
+    fontSize: 10,
+    color: COLORS.primary,
+    fontWeight: '600',
+    marginTop: 4,
   },
 });

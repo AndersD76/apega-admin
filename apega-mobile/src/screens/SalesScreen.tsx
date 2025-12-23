@@ -221,11 +221,11 @@ export default function SalesScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+          <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Minhas Vendas</Text>
         <View style={{ width: 40 }} />
@@ -401,7 +401,7 @@ export default function SalesScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
@@ -409,9 +409,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingBottom: 12,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: COLORS.background,
     borderBottomWidth: 1,
-    borderBottomColor: '#E8E8E8',
+    borderBottomColor: COLORS.border,
   },
   backButton: {
     width: 40,
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: COLORS.textPrimary,
   },
   content: {
     paddingBottom: SPACING.xl,

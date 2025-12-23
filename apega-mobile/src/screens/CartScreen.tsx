@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   logo: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#1a1a1a',
+    color: COLORS.primary,
     letterSpacing: -0.5,
   },
   logoLight: {

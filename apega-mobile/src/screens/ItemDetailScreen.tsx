@@ -68,7 +68,7 @@ export default function ItemDetailScreen({ route, navigation }: Props) {
   };
 
   const handleAddToCart = () => {
-    Alert.alert('Sucesso!', 'Produto adicionado à sacolinha!');
+    Alert.alert('Boa escolha!', 'Produto adicionado à sua sacolinha!');
   };
 
   const handleMakeOffer = () => {
@@ -459,7 +459,7 @@ export default function ItemDetailScreen({ route, navigation }: Props) {
         onClose={() => setShowOfferModal(false)}
         item={item}
         onOfferSubmit={(value) => {
-          Alert.alert('Oferta Enviada!', `Sua oferta de ${formatPrice(value)} foi enviada ao vendedor.`);
+          Alert.alert('Bora negociar!', `Sua oferta de ${formatPrice(value)} foi enviada. Agora é só esperar!`);
           setShowOfferModal(false);
         }}
       />

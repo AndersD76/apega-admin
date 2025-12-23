@@ -140,12 +140,12 @@ const styles = StyleSheet.create({
   logo: {
     fontSize: isWeb ? 22 : 20,
     fontWeight: '800',
-    color: COLORS.gray[800],
+    color: COLORS.primary,
     letterSpacing: -0.5,
   },
   logoLight: {
     fontWeight: '400',
-    color: COLORS.gray[500],
+    color: COLORS.gray[600],
   },
   headerTitle: {
     fontSize: 16,
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: COLORS.gray[800],
+    backgroundColor: COLORS.primary,
   },
   headerBtnFilledText: {
     fontSize: 13,
