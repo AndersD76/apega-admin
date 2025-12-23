@@ -508,7 +508,7 @@ export default function LoginScreen({ navigation, route }: LoginScreenProps) {
 
         {/* Header */}
         <View style={[styles.formHeader, { paddingTop: insets.top + 12 }]}>
-          {/* Só mostra botão voltar se NÃO veio do fluxo de convite */}
+          {/* Só mostra botão voltar se NÀO veio do fluxo de convite */}
           {!redirectTo ? (
             <TouchableOpacity
               style={styles.backButton}

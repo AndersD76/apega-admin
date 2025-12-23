@@ -110,7 +110,7 @@ export default function PaymentsScreen({ navigation }: Props) {
         is_default: p.id === id,
       })));
     } catch (error) {
-      Alert.alert('Erro', 'NÃ£o foi possÃ­vel definir como padrÃ£o');
+      Alert.alert('Erro', 'Não foi possível definir como padrão');
     }
   };
 
@@ -128,7 +128,7 @@ export default function PaymentsScreen({ navigation }: Props) {
               await api.delete(`/payments/${id}`);
               setPayments(payments.filter(p => p.id !== id));
             } catch (error) {
-              Alert.alert('Erro', 'NÃ£o foi possÃ­vel remover');
+              Alert.alert('Erro', 'Não foi possível remover');
             }
           },
         },
@@ -185,19 +185,19 @@ export default function PaymentsScreen({ navigation }: Props) {
     const cleanNumber = cardNumber.replace(/\D/g, '');
 
     if (cleanNumber.length < 13 || cleanNumber.length > 19) {
-      Alert.alert('Erro', 'NÃºmero do cartÃ£o invÃ¡lido');
+      Alert.alert('Erro', 'Número do cartão inválido');
       return;
     }
     if (!cardHolder.trim()) {
-      Alert.alert('Erro', 'Preencha o nome no cartÃ£o');
+      Alert.alert('Erro', 'Preencha o nome no cartão');
       return;
     }
     if (cardExpiry.length !== 5) {
-      Alert.alert('Erro', 'Data de validade invÃ¡lida');
+      Alert.alert('Erro', 'Data de validade inválida');
       return;
     }
     if (cardCvv.length < 3) {
-      Alert.alert('Erro', 'CVV invÃ¡lido');
+      Alert.alert('Erro', 'CVV inválido');
       return;
     }
 
@@ -210,11 +210,11 @@ export default function PaymentsScreen({ navigation }: Props) {
     const currentYear = now.getFullYear();
 
     if (expMonth < 1 || expMonth > 12) {
-      Alert.alert('Erro', 'MÃªs de validade invÃ¡lido');
+      Alert.alert('Erro', 'Mês de validade inválido');
       return;
     }
     if (expYear < currentYear || (expYear === currentYear && expMonth < currentMonth)) {
-      Alert.alert('Erro', 'CartÃ£o vencido');
+      Alert.alert('Erro', 'Cartão vencido');
       return;
     }
 
@@ -230,15 +230,15 @@ export default function PaymentsScreen({ navigation }: Props) {
       });
 
       if (response.success) {
-        Alert.alert('Sucesso', 'CartÃ£o cadastrado!');
+        Alert.alert('Sucesso', 'Cartão cadastrado!');
         setShowCardModal(false);
         resetCardForm();
         loadPayments();
       } else {
-        Alert.alert('Erro', response.message || 'NÃ£o foi possÃ­vel cadastrar o cartÃ£o');
+        Alert.alert('Erro', response.message || 'Não foi possível cadastrar o cartão');
       }
     } catch (error: any) {
-      Alert.alert('Erro', error.message || 'Erro ao cadastrar cartÃ£o');
+      Alert.alert('Erro', error.message || 'Erro ao cadastrar cartão');
     } finally {
       setSaving(false);
     }
@@ -273,15 +273,15 @@ export default function PaymentsScreen({ navigation }: Props) {
 
     // Validate based on type
     if (pixKeyType === 'cpf' && cleanKey.length !== 11) {
-      Alert.alert('Erro', 'CPF invÃ¡lido');
+      Alert.alert('Erro', 'CPF inválido');
       return;
     }
     if (pixKeyType === 'phone' && cleanKey.length !== 11) {
-      Alert.alert('Erro', 'Telefone invÃ¡lido');
+      Alert.alert('Erro', 'Telefone inválido');
       return;
     }
     if (pixKeyType === 'email' && !cleanKey.includes('@')) {
-      Alert.alert('Erro', 'E-mail invÃ¡lido');
+      Alert.alert('Erro', 'E-mail inválido');
       return;
     }
 
@@ -300,7 +300,7 @@ export default function PaymentsScreen({ navigation }: Props) {
         resetPixForm();
         loadPayments();
       } else {
-        Alert.alert('Erro', response.message || 'NÃ£o foi possÃ­vel cadastrar a chave PIX');
+        Alert.alert('Erro', response.message || 'Não foi possível cadastrar a chave PIX');
       }
     } catch (error: any) {
       Alert.alert('Erro', error.message || 'Erro ao cadastrar PIX');
@@ -322,7 +322,7 @@ export default function PaymentsScreen({ navigation }: Props) {
       case 'cpf': return 'CPF';
       case 'email': return 'E-mail';
       case 'phone': return 'Telefone';
-      case 'random': return 'Chave aleatÃ³ria';
+      case 'random': return 'Chave aleatória';
       default: return 'PIX';
     }
   };
@@ -349,14 +349,14 @@ export default function PaymentsScreen({ navigation }: Props) {
                 {(payment.brand || payment.card_brand)} â€¢â€¢â€¢â€¢ {(payment.last_digits || payment.card_last_four)}
               </Text>
               <Text style={styles.paymentDetail}>
-                {(payment.holder_name || payment.card_holder_name)} â€¢ {payment.type === 'credit' ? 'CrÃ©dito' : 'DÃ©bito'}
+                {(payment.holder_name || payment.card_holder_name)} â€¢ {payment.type === 'credit' ? 'Crédito' : 'Débito'}
               </Text>
             </>
           )}
         </View>
         {payment.is_default && (
           <View style={styles.defaultBadge}>
-            <Text style={styles.defaultBadgeText}>padrÃ£o</Text>
+            <Text style={styles.defaultBadgeText}>padrão</Text>
           </View>
         )}
       </View>
@@ -368,7 +368,7 @@ export default function PaymentsScreen({ navigation }: Props) {
             onPress={() => handleSetDefault(payment.id)}
           >
             <Ionicons name="checkmark-circle-outline" size={16} color={COLORS.primary} />
-            <Text style={styles.actionText}>definir como padrÃ£o</Text>
+            <Text style={styles.actionText}>definir como padrão</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity
@@ -401,13 +401,13 @@ export default function PaymentsScreen({ navigation }: Props) {
           <TouchableOpacity onPress={() => { setShowCardModal(false); resetCardForm(); }}>
             <Ionicons name="close" size={24} color={COLORS.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.modalTitle}>adicionar cartÃ£o</Text>
+          <Text style={styles.modalTitle}>adicionar cartão</Text>
           <View style={{ width: 24 }} />
         </View>
 
         <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
           {/* Card Type Selector */}
-          <Text style={styles.inputLabel}>tipo do cartÃ£o</Text>
+          <Text style={styles.inputLabel}>tipo do cartão</Text>
           <View style={styles.typeSelector}>
             <TouchableOpacity
               style={[styles.typeOption, cardType === 'credit' && styles.typeOptionActive]}
@@ -419,7 +419,7 @@ export default function PaymentsScreen({ navigation }: Props) {
                 color={cardType === 'credit' ? COLORS.white : COLORS.textSecondary}
               />
               <Text style={[styles.typeOptionText, cardType === 'credit' && styles.typeOptionTextActive]}>
-                CrÃ©dito
+                Crédito
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -432,13 +432,13 @@ export default function PaymentsScreen({ navigation }: Props) {
                 color={cardType === 'debit' ? COLORS.white : COLORS.textSecondary}
               />
               <Text style={[styles.typeOptionText, cardType === 'debit' && styles.typeOptionTextActive]}>
-                DÃ©bito
+                Débito
               </Text>
             </TouchableOpacity>
           </View>
 
           {/* Card Number */}
-          <Text style={styles.inputLabel}>nÃºmero do cartÃ£o</Text>
+          <Text style={styles.inputLabel}>número do cartão</Text>
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
@@ -455,10 +455,10 @@ export default function PaymentsScreen({ navigation }: Props) {
           </View>
 
           {/* Card Holder */}
-          <Text style={styles.inputLabel}>nome no cartÃ£o</Text>
+          <Text style={styles.inputLabel}>nome no cartão</Text>
           <TextInput
             style={styles.input}
-            placeholder="NOME COMO ESTÃ NO CARTÃƒO"
+            placeholder="NOME COMO ESTÀ NO CARTÀƒO"
             placeholderTextColor={COLORS.textTertiary}
             value={cardHolder}
             onChangeText={setCardHolder}
@@ -498,14 +498,14 @@ export default function PaymentsScreen({ navigation }: Props) {
           <View style={styles.securityNote}>
             <Ionicons name="lock-closed" size={16} color={COLORS.success} />
             <Text style={styles.securityNoteText}>
-              Seus dados sÃ£o criptografados e transmitidos com seguranÃ§a
+              Seus dados são criptografados e transmitidos com segurança
             </Text>
           </View>
         </ScrollView>
 
         <View style={[styles.modalFooter, { paddingBottom: insets.bottom + SPACING.md }]}>
           <Button
-            label={saving ? 'salvando...' : 'salvar cartÃ£o'}
+            label={saving ? 'salvando...' : 'salvar cartão'}
             onPress={handleSaveCard}
             fullWidth
             disabled={saving}
@@ -563,7 +563,7 @@ export default function PaymentsScreen({ navigation }: Props) {
                 <Text style={[styles.pixTypeText, pixKeyType === type && styles.pixTypeTextActive]}>
                   {type === 'cpf' ? 'CPF' :
                    type === 'email' ? 'E-mail' :
-                   type === 'phone' ? 'Telefone' : 'AleatÃ³ria'}
+                   type === 'phone' ? 'Telefone' : 'Aleatória'}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -573,7 +573,7 @@ export default function PaymentsScreen({ navigation }: Props) {
           <Text style={styles.inputLabel}>
             {pixKeyType === 'cpf' ? 'cpf' :
              pixKeyType === 'email' ? 'e-mail' :
-             pixKeyType === 'phone' ? 'telefone' : 'chave aleatÃ³ria'}
+             pixKeyType === 'phone' ? 'telefone' : 'chave aleatória'}
           </Text>
           <TextInput
             style={styles.input}
@@ -600,11 +600,11 @@ export default function PaymentsScreen({ navigation }: Props) {
             </View>
             <View style={styles.pixInfoItem}>
               <Ionicons name="shield-checkmark" size={20} color={COLORS.success} />
-              <Text style={styles.pixInfoText}>TransaÃ§Ãµes seguras e protegidas</Text>
+              <Text style={styles.pixInfoText}>Transações seguras e protegidas</Text>
             </View>
             <View style={styles.pixInfoItem}>
               <Ionicons name="time" size={20} color={COLORS.warning} />
-              <Text style={styles.pixInfoText}>DisponÃ­vel 24h, 7 dias por semana</Text>
+              <Text style={styles.pixInfoText}>Disponível 24h, 7 dias por semana</Text>
             </View>
           </View>
         </ScrollView>
@@ -654,18 +654,18 @@ export default function PaymentsScreen({ navigation }: Props) {
           }
         >
           {/* Cards Section */}
-          <Text style={styles.sectionTitle}>cartÃµes</Text>
+          <Text style={styles.sectionTitle}>cartões</Text>
           {payments.filter(p => p.type !== 'pix').length === 0 ? (
             <View style={styles.emptySection}>
               <Ionicons name="card-outline" size={32} color={COLORS.textTertiary} />
-              <Text style={styles.emptyText}>Nenhum cartÃ£o cadastrado</Text>
+              <Text style={styles.emptyText}>Nenhum cartão cadastrado</Text>
             </View>
           ) : (
             payments.filter(p => p.type !== 'pix').map(renderPaymentCard)
           )}
 
           <Button
-            label="adicionar cartÃ£o"
+            label="adicionar cartão"
             variant="secondary"
             icon={<Ionicons name="add" size={20} color={COLORS.primary} />}
             onPress={() => setShowCardModal(true)}
@@ -696,7 +696,7 @@ export default function PaymentsScreen({ navigation }: Props) {
           <View style={styles.infoCard}>
             <Ionicons name="shield-checkmark" size={24} color={COLORS.success} />
             <Text style={styles.infoText}>
-              Seus dados de pagamento sÃ£o criptografados e armazenados com seguranÃ§a
+              Seus dados de pagamento são criptografados e armazenados com segurança
             </Text>
           </View>
         </ScrollView>

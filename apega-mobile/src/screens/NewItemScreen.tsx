@@ -33,14 +33,14 @@ export default function NewItemScreen({ navigation }: Props) {
   const styles = useMemo(() => createStyles(isDesktop), [isDesktop]);
   const { user, isAuthenticated, isLoading } = useAuth();
 
-  // Verificar se Ã© premium (default false se nÃ£o houver user)
+  // Verificar se é premium (default false se não houver user)
   const isPremium = user?.subscription_type === 'premium';
   const maxPhotos = isPremium ? SUBSCRIPTION_PLANS.premium.limits.maxPhotos : SUBSCRIPTION_PLANS.free.limits.maxPhotos;
 
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
 
-  // Dados da peÃ§a
+  // Dados da peça
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [brand, setBrand] = useState('');
@@ -74,8 +74,8 @@ export default function NewItemScreen({ navigation }: Props) {
       Alert.alert(
         'Limite atingido',
         isPremium
-          ? `VocÃª pode adicionar no mÃ¡ximo ${maxPhotos} fotos.`
-          : `UsuÃ¡rios gratuitos podem adicionar atÃ© ${maxPhotos} fotos. Seja Premium para adicionar atÃ© 10 fotos!`,
+          ? `Você pode adicionar no máximo ${maxPhotos} fotos.`
+          : `Usuários gratuitos podem adicionar até ${maxPhotos} fotos. Seja Premium para adicionar até 10 fotos!`,
         isPremium ? [{ text: 'OK' }] : [
           { text: 'Continuar', style: 'cancel' },
           { text: 'Ser Premium', onPress: () => navigation.navigate('Subscription' as any) }
@@ -89,7 +89,7 @@ export default function NewItemScreen({ navigation }: Props) {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (status !== 'granted') {
-        Alert.alert('PermissÃ£o negada', 'Precisamos de permissÃ£o para acessar suas fotos');
+        Alert.alert('Permissão negada', 'Precisamos de permissão para acessar suas fotos');
         return;
       }
 
@@ -108,7 +108,7 @@ export default function NewItemScreen({ navigation }: Props) {
       }
       setShowImagePicker(false);
     } catch (error) {
-      Alert.alert('Erro', 'NÃ£o foi possÃ­vel selecionar a imagem');
+      Alert.alert('Erro', 'Não foi possível selecionar a imagem');
     }
   };
 
@@ -118,8 +118,8 @@ export default function NewItemScreen({ navigation }: Props) {
       Alert.alert(
         'Limite atingido',
         isPremium
-          ? `VocÃª pode adicionar no mÃ¡ximo ${maxPhotos} fotos.`
-          : `UsuÃ¡rios gratuitos podem adicionar atÃ© ${maxPhotos} fotos. Seja Premium para adicionar atÃ© 10 fotos!`,
+          ? `Você pode adicionar no máximo ${maxPhotos} fotos.`
+          : `Usuários gratuitos podem adicionar até ${maxPhotos} fotos. Seja Premium para adicionar até 10 fotos!`,
         isPremium ? [{ text: 'OK' }] : [
           { text: 'Continuar', style: 'cancel' },
           { text: 'Ser Premium', onPress: () => navigation.navigate('Subscription' as any) }
@@ -133,7 +133,7 @@ export default function NewItemScreen({ navigation }: Props) {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
 
       if (status !== 'granted') {
-        Alert.alert('PermissÃ£o negada', 'Precisamos de permissÃ£o para acessar sua cÃ¢mera');
+        Alert.alert('Permissão negada', 'Precisamos de permissão para acessar sua câmera');
         return;
       }
 
@@ -148,7 +148,7 @@ export default function NewItemScreen({ navigation }: Props) {
       }
       setShowImagePicker(false);
     } catch (error) {
-      Alert.alert('Erro', 'NÃ£o foi possÃ­vel tirar a foto');
+      Alert.alert('Erro', 'Não foi possível tirar a foto');
     }
   };
 
@@ -161,24 +161,24 @@ export default function NewItemScreen({ navigation }: Props) {
       navigation.navigate('Login', { redirectTo: 'NewItem' });
       return;
     }
-    // ValidaÃ§Ãµes
+    // Validações
     if (images.length === 0) {
-      Alert.alert('Erro', 'Adicione pelo menos uma foto da peÃ§a');
+      Alert.alert('Erro', 'Adicione pelo menos uma foto da peça');
       return;
     }
 
     if (!title.trim()) {
-      Alert.alert('Erro', 'Preencha o tÃ­tulo da peÃ§a');
+      Alert.alert('Erro', 'Preencha o título da peça');
       return;
     }
 
     if (!description.trim()) {
-      Alert.alert('Erro', 'Preencha a descriÃ§Ã£o');
+      Alert.alert('Erro', 'Preencha a descrição');
       return;
     }
 
     if (!price.trim()) {
-      Alert.alert('Erro', 'Preencha o preÃ§o');
+      Alert.alert('Erro', 'Preencha o preço');
       return;
     }
 
@@ -190,11 +190,11 @@ export default function NewItemScreen({ navigation }: Props) {
     setUploading(true);
 
     try {
-      // Converter preÃ§os de string para nÃºmero
+      // Converter preços de string para número
       const priceValue = parseFloat(price.replace(',', '.'));
       const originalPriceValue = originalPrice ? parseFloat(originalPrice.replace(',', '.')) : undefined;
 
-      // Mapear condiÃ§Ã£o para o formato esperado pelo backend
+      // Mapear condição para o formato esperado pelo backend
       const conditionMap: { [key: string]: 'novo' | 'seminovo' | 'usado' } = {
         'novo': 'novo',
         'seminovo': 'seminovo',
@@ -224,13 +224,13 @@ export default function NewItemScreen({ navigation }: Props) {
           console.log('Imagens enviadas:', uploadResult);
         } catch (uploadError) {
           console.error('Erro ao fazer upload das imagens:', uploadError);
-          // NÃ£o bloquear o sucesso - o produto foi criado
+          // Não bloquear o sucesso - o produto foi criado
         }
       }
 
       Alert.alert(
         'Sucesso!',
-        'Seu anÃºncio foi publicado com sucesso!',
+        'Seu anúncio foi publicado com sucesso!',
         [
           {
             text: 'OK',
@@ -239,8 +239,8 @@ export default function NewItemScreen({ navigation }: Props) {
         ]
       );
     } catch (error: any) {
-      console.error('Erro ao publicar anÃºncio:', error);
-      Alert.alert('Erro', error.message || 'NÃ£o foi possÃ­vel publicar o anÃºncio');
+      console.error('Erro ao publicar anúncio:', error);
+      Alert.alert('Erro', error.message || 'Não foi possível publicar o anúncio');
     } finally {
       setUploading(false);
     }
@@ -273,14 +273,14 @@ export default function NewItemScreen({ navigation }: Props) {
                 <Text style={styles.navLink}>Favoritos</Text>
               </TouchableOpacity>
             </View>
-            <Text style={styles.headerTitle}>Nova PeÃ§a</Text>
+            <Text style={styles.headerTitle}>Nova Peça</Text>
           </>
         ) : (
           <>
             <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-              <Text style={styles.backIcon}>â†</Text>
+              <Text style={styles.backIcon}>←</Text>
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Nova PeÃ§a</Text>
+            <Text style={styles.headerTitle}>Nova Peça</Text>
             <View style={{ width: 40 }} />
           </>
         )}
@@ -292,15 +292,15 @@ export default function NewItemScreen({ navigation }: Props) {
           <Text style={styles.sectionTitle}>Fotos</Text>
           <Text style={styles.sectionSubtitle}>
             {isPremium
-              ? `Adicione atÃ© ${maxPhotos} fotos da sua peÃ§a`
-              : `Adicione atÃ© ${maxPhotos} fotos (Premium: atÃ© 10)`}
+              ? `Adicione até ${maxPhotos} fotos da sua peça`
+              : `Adicione até ${maxPhotos} fotos (Premium: até 10)`}
           </Text>
           <Text style={styles.photoCounter}>
             {images.length}/{maxPhotos} fotos
           </Text>
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imagesList}>
-            {/* BotÃ£o de adicionar foto - sÃ³ mostra se ainda tem espaÃ§o */}
+            {/* Botão de adicionar foto - só mostra se ainda tem espaço */}
             {images.length < maxPhotos && (
               <TouchableOpacity
                 style={styles.addPhotoButton}
@@ -319,7 +319,7 @@ export default function NewItemScreen({ navigation }: Props) {
                   style={styles.removeImageButton}
                   onPress={() => removeImage(index)}
                 >
-                  <Text style={styles.removeImageText}>Ã—</Text>
+                  <Text style={styles.removeImageText}>×</Text>
                 </TouchableOpacity>
                 {index === 0 && (
                   <View style={styles.mainPhotoBadge}>
@@ -331,12 +331,12 @@ export default function NewItemScreen({ navigation }: Props) {
           </ScrollView>
         </View>
 
-        {/* InformaÃ§Ãµes BÃ¡sicas */}
+        {/* Informações Básicas */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>InformaÃ§Ãµes BÃ¡sicas</Text>
+          <Text style={styles.sectionTitle}>Informações Básicas</Text>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>TÃ­tulo *</Text>
+            <Text style={styles.label}>Título *</Text>
             <TextInput
               style={styles.input}
               value={title}
@@ -347,12 +347,12 @@ export default function NewItemScreen({ navigation }: Props) {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>DescriÃ§Ã£o *</Text>
+            <Text style={styles.label}>Descrição *</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
               value={description}
               onChangeText={setDescription}
-              placeholder="Descreva a peÃ§a, tecido, detalhes..."
+              placeholder="Descreva a peça, tecido, detalhes..."
               placeholderTextColor={COLORS.textTertiary}
               multiline
               numberOfLines={4}
@@ -391,7 +391,7 @@ export default function NewItemScreen({ navigation }: Props) {
             </View>
 
             <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>CondiÃ§Ã£o *</Text>
+              <Text style={styles.label}>Condição *</Text>
               <TouchableOpacity
                 style={styles.selectInput}
                 onPress={() => setShowConditionModal(true)}
@@ -431,12 +431,12 @@ export default function NewItemScreen({ navigation }: Props) {
           </View>
         </View>
 
-        {/* PreÃ§o */}
+        {/* Preço */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>PreÃ§o</Text>
+          <Text style={styles.sectionTitle}>Preço</Text>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>PreÃ§o de venda *</Text>
+            <Text style={styles.label}>Preço de venda *</Text>
             <View style={styles.priceInputWrapper}>
               <Text style={styles.currencySymbol}>R$</Text>
               <TextInput
@@ -451,7 +451,7 @@ export default function NewItemScreen({ navigation }: Props) {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>PreÃ§o original (opcional)</Text>
+            <Text style={styles.label}>Preço original (opcional)</Text>
             <View style={styles.priceInputWrapper}>
               <Text style={styles.currencySymbol}>R$</Text>
               <TextInput
@@ -472,7 +472,7 @@ export default function NewItemScreen({ navigation }: Props) {
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Footer com botÃ£o de publicar */}
+      {/* Footer com botão de publicar */}
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, SPACING.lg) }]}>
         <TouchableOpacity
           style={[styles.publishButton, uploading && styles.publishButtonDisabled]}
@@ -483,7 +483,7 @@ export default function NewItemScreen({ navigation }: Props) {
           {uploading ? (
             <ActivityIndicator color={COLORS.white} />
           ) : (
-            <Text style={styles.publishButtonText}>Publicar AnÃºncio</Text>
+            <Text style={styles.publishButtonText}>Publicar Anúncio</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -504,7 +504,7 @@ export default function NewItemScreen({ navigation }: Props) {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Selecione a Categoria</Text>
               <TouchableOpacity onPress={() => setShowCategoryModal(false)}>
-                <Text style={styles.modalClose}>Ã—</Text>
+                <Text style={styles.modalClose}>×</Text>
               </TouchableOpacity>
             </View>
             <ScrollView>
@@ -528,7 +528,7 @@ export default function NewItemScreen({ navigation }: Props) {
         </TouchableOpacity>
       </Modal>
 
-      {/* Modal de CondiÃ§Ã£o */}
+      {/* Modal de Condição */}
       <Modal
         visible={showConditionModal}
         transparent
@@ -542,9 +542,9 @@ export default function NewItemScreen({ navigation }: Props) {
         >
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selecione a CondiÃ§Ã£o</Text>
+              <Text style={styles.modalTitle}>Selecione a Condição</Text>
               <TouchableOpacity onPress={() => setShowConditionModal(false)}>
-                <Text style={styles.modalClose}>Ã—</Text>
+                <Text style={styles.modalClose}>×</Text>
               </TouchableOpacity>
             </View>
             <ScrollView>
@@ -584,7 +584,7 @@ export default function NewItemScreen({ navigation }: Props) {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Selecione o Tamanho</Text>
               <TouchableOpacity onPress={() => setShowSizeModal(false)}>
-                <Text style={styles.modalClose}>Ã—</Text>
+                <Text style={styles.modalClose}>×</Text>
               </TouchableOpacity>
             </View>
             <ScrollView>
@@ -609,7 +609,7 @@ export default function NewItemScreen({ navigation }: Props) {
         </TouchableOpacity>
       </Modal>
 
-      {/* Modal de SeleÃ§Ã£o de Imagem */}
+      {/* Modal de Seleção de Imagem */}
       <Modal
         visible={showImagePicker}
         transparent

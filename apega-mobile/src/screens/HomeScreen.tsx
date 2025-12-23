@@ -932,7 +932,7 @@ export default function HomeScreen({ navigation }: Props) {
           </TouchableOpacity>
         </View>
 
-        {/* SEÇÃO DE MARCAS */}
+        {/* SEÇÀO DE MARCAS */}
         <View style={styles.brandsSection}>
           <View style={styles.brandsTitleRow}>
             <Ionicons name="diamond" size={28} color={COLORS.primary} />

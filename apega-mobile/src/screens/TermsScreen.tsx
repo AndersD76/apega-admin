@@ -37,10 +37,10 @@ const LEGAL_SECTIONS: Section[] = [
 
 Última atualização: Dezembro de 2024
 
-1. ACEITAÇÃO DOS TERMOS
+1. ACEITAÇÀO DOS TERMOS
 Ao acessar e usar o aplicativo Apega Desapega, você concorda com estes Termos de Uso. Se você não concordar com qualquer parte destes termos, não poderá usar nossos serviços.
 
-2. DESCRIÇÃO DO SERVIÇO
+2. DESCRIÇÀO DO SERVIÇO
 O Apega Desapega é uma plataforma de marketplace para compra e venda de roupas, acessórios e artigos de moda circular. Conectamos vendedoras independentes a compradores interessados em moda sustentável.
 
 3. CADASTRO E CONTA
@@ -73,7 +73,7 @@ O Apega Desapega é uma plataforma de marketplace para compra e venda de roupas,
 7. PAGAMENTOS
 Todos os pagamentos são processados através de nossa plataforma segura. O valor só é liberado ao vendedor após a confirmação de entrega.
 
-8. LIMITAÇÃO DE RESPONSABILIDADE
+8. LIMITAÇÀO DE RESPONSABILIDADE
 O Apega Desapega atua como intermediário entre compradores e vendedores. Não nos responsabilizamos pela qualidade dos produtos vendidos por terceiros.
 
 9. MODIFICAÇÕES
@@ -150,7 +150,7 @@ ${BRAND.email}`,
     icon: 'information-circle',
     content: `POLÍTICA DE COOKIES - APEGA DESAPEGA
 
-1. O QUE SÃO COOKIES?
+1. O QUE SÀO COOKIES?
 Cookies são pequenos arquivos de texto armazenados em seu dispositivo quando você acessa nosso aplicativo. Eles nos ajudam a melhorar sua experiência.
 
 2. TIPOS DE COOKIES QUE UTILIZAMOS
@@ -182,7 +182,7 @@ Utilizamos serviços de terceiros que podem definir seus próprios cookies:
 - Serviços de pagamento
 - Redes sociais (compartilhamento)
 
-5. PERÍODO DE RETENÇÃO
+5. PERÍODO DE RETENÇÀO
 - Cookies de sessão: até você fechar o app
 - Cookies persistentes: até 12 meses
 
@@ -209,7 +209,7 @@ Nossa comunidade é baseada em respeito, honestidade e sustentabilidade. Siga es
 - Informe defeitos claramente
 - Não inflacione preços artificialmente
 
-3. COMUNICAÇÃO ADEQUADA
+3. COMUNICAÇÀO ADEQUADA
 - Responda mensagens em até 24h
 - Seja clara e objetiva
 - Mantenha conversas no app
@@ -248,9 +248,9 @@ Encontrou algo irregular? Use o botão "Denunciar" ou entre em contato conosco.`
     id: 'returns',
     title: 'Política de Devolução',
     icon: 'return-down-back',
-    content: `POLÍTICA DE DEVOLUÇÃO - APEGA DESAPEGA
+    content: `POLÍTICA DE DEVOLUÇÀO - APEGA DESAPEGA
 
-1. PRAZO PARA DEVOLUÇÃO
+1. PRAZO PARA DEVOLUÇÀO
 Você tem até 7 (sete) dias corridos após o recebimento para solicitar devolução, conforme o Código de Defesa do Consumidor.
 
 2. MOTIVOS ACEITOS
@@ -261,7 +261,7 @@ A devolução é aceita quando:
 - Produto danificado no transporte
 - Falsificação comprovada
 
-3. MOTIVOS NÃO ACEITOS
+3. MOTIVOS NÀO ACEITOS
 Não aceitamos devolução por:
 - Arrependimento após prazo legal
 - Defeitos já informados no anúncio
@@ -293,7 +293,7 @@ Após recebermos e conferirmos o produto:
 - Frete de envio não é reembolsado (arrependimento)
 - Frete reembolsado (erro do vendedor)
 
-8. PRODUTOS NÃO DEVOLVIDOS
+8. PRODUTOS NÀO DEVOLVIDOS
 Se você não enviar no prazo, a solicitação será cancelada.
 
 9. DISPUTAS
@@ -305,7 +305,7 @@ Não resolveu? Abra uma disputa e nossa equipe mediará a situação.`,
     icon: 'cash',
     content: `TAXAS E COMISSÕES - APEGA DESAPEGA
 
-1. COMISSÃO POR VENDA
+1. COMISSÀO POR VENDA
 Taxa padrão: ${FEES.commissionPercentage}% sobre o valor da venda
 Comissão mínima: R$ ${FEES.minCommission.toFixed(2)}
 
@@ -329,7 +329,7 @@ Venda de R$ 100,00:
 - Usuário comum: R$ 100 - R$ 10 = R$ 90,00
 - Usuário Premium: R$ 100 - R$ 1 = R$ 99,00
 
-4. QUANDO A COMISSÃO É COBRADA
+4. QUANDO A COMISSÀO É COBRADA
 A comissão só é cobrada quando:
 - A venda é confirmada
 - O produto é entregue
@@ -345,7 +345,7 @@ Não cobramos por:
 - PIX (sem taxa)
 - Saque mínimo: R$ 20,00
 
-6. PRAZO DE LIBERAÇÃO
+6. PRAZO DE LIBERAÇÀO
 O valor fica disponível após:
 - Confirmação de recebimento pelo comprador
 - Ou 14 dias após entrega confirmada pelos Correios

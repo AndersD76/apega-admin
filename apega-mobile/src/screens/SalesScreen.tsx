@@ -150,7 +150,7 @@ export default function SalesScreen({ navigation }: Props) {
       {sale.urgent && (
         <View style={styles.urgentBanner}>
           <Ionicons name="warning" size={20} color={COLORS.warning} />
-          <Text style={styles.urgentText}>envie atÃ© amanhÃ£</Text>
+          <Text style={styles.urgentText}>envie até amanhÀ£</Text>
         </View>
       )}
 
@@ -175,8 +175,8 @@ export default function SalesScreen({ navigation }: Props) {
       <View style={styles.saleDetails}>
         <Text style={styles.saleLabel}>compradora: <Text style={styles.saleValue}>{sale.buyer}</Text></Text>
         <Text style={styles.saleLabel}>valor da venda: <Text style={styles.saleValue}>R$ {(sale?.amount || 0).toFixed(2)}</Text></Text>
-        <Text style={styles.saleLabel}>comissÃ£o ({FEES.commissionPercentage}%): <Text style={styles.commissionValue}>- R$ {((sale?.amount || 0) * FEES.commissionRate).toFixed(2)}</Text></Text>
-        <Text style={styles.saleLabel}>vocÃª recebe: <Text style={styles.saleValueHighlight}>R$ {(sale?.sellerReceives || 0).toFixed(2)}</Text></Text>
+        <Text style={styles.saleLabel}>comissão ({FEES.commissionPercentage}%): <Text style={styles.commissionValue}>- R$ {((sale?.amount || 0) * FEES.commissionRate).toFixed(2)}</Text></Text>
+        <Text style={styles.saleLabel}>você recebe: <Text style={styles.saleValueHighlight}>R$ {(sale?.sellerReceives || 0).toFixed(2)}</Text></Text>
       </View>
 
       {sale.status === 'pending_shipment' && (
@@ -242,13 +242,13 @@ export default function SalesScreen({ navigation }: Props) {
         <View style={styles.commissionBanner}>
           <Ionicons name="information-circle" size={20} color={COLORS.info} />
           <Text style={styles.commissionBannerText}>
-            Taxa de {FEES.commissionPercentage}% por venda â€¢ Assinantes Premium tÃªm taxa zero
+            Taxa de {FEES.commissionPercentage}% por venda â€¢ Assinantes Premium têm taxa zero
           </Text>
         </View>
 
         {/* Revenue Card */}
         <View style={styles.revenueCard}>
-          <Text style={styles.revenueLabel}>faturamento este mÃªs</Text>
+          <Text style={styles.revenueLabel}>faturamento este mês</Text>
           <Text style={styles.revenueAmount}>R$ {(revenue || 0).toFixed(2)}</Text>
           <Text style={styles.revenueGrowth}>comece a vender hoje!</Text>
 
@@ -324,14 +324,14 @@ export default function SalesScreen({ navigation }: Props) {
           </View>
 
           <View style={styles.addressCard}>
-            <Text style={styles.addressLabel}>destinatÃ¡rio</Text>
+            <Text style={styles.addressLabel}>destinatário</Text>
             <Text style={styles.addressName}>{selectedSale?.buyer}</Text>
             <Text style={styles.addressText}>av. ipiranga, 500</Text>
             <Text style={styles.addressText}>porto alegre - rs</Text>
             <Text style={styles.addressText}>90000-000</Text>
           </View>
 
-          <Text style={styles.modalLabel}>mÃ©todo de envio</Text>
+          <Text style={styles.modalLabel}>método de envio</Text>
           <TouchableOpacity style={styles.radioOption}>
             <Ionicons name="radio-button-on" size={20} color={COLORS.primary} />
             <Text style={styles.radioText}>PAC (R$ 15,00 - 5-7 dias)</Text>
@@ -351,7 +351,7 @@ export default function SalesScreen({ navigation }: Props) {
             style={{ marginTop: SPACING.lg }}
           />
 
-          <Text style={styles.modalHint}>apÃ³s gerar, imprima e cole na embalagem do produto</Text>
+          <Text style={styles.modalHint}>após gerar, imprima e cole na embalagem do produto</Text>
         </View>
       </Modal>
 
@@ -366,13 +366,13 @@ export default function SalesScreen({ navigation }: Props) {
           <Text style={styles.modalOrderId}>venda #{selectedSale?.orderId}</Text>
           <Text style={styles.modalProductName}>{selectedSale?.product.name}</Text>
 
-          <Text style={styles.modalLabel}>cÃ³digo de rastreio</Text>
+          <Text style={styles.modalLabel}>código de rastreio</Text>
           <View style={styles.input}>
             <Text style={styles.inputText}>BR</Text>
           </View>
           <Text style={styles.inputHint}>ex: BR123456789BR</Text>
 
-          <Text style={styles.modalLabel}>mÃ©todo de envio</Text>
+          <Text style={styles.modalLabel}>método de envio</Text>
           <View style={styles.dropdown}>
             <Text style={styles.dropdownText}>PAC</Text>
             <Ionicons name="chevron-down" size={20} color={COLORS.textSecondary} />
@@ -381,7 +381,7 @@ export default function SalesScreen({ navigation }: Props) {
           <View style={styles.tipBanner}>
             <Text style={styles.tipIcon}>ðŸ’¡</Text>
             <Text style={styles.tipText}>
-              a compradora serÃ¡ notificada automaticamente
+              a compradora será notificada automaticamente
             </Text>
           </View>
 

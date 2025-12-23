@@ -31,7 +31,7 @@ const CARD_WIDTH = isDesktop ? (width - 120) / 4 : (width - 36) / 2;
 
 // Banner images para o carrossel
 const BANNER_IMAGES = [
-  { uri: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80', title: 'LIQUIDAÇÃO', subtitle: 'Até 70% OFF' },
+  { uri: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80', title: 'LIQUIDAÇÀO', subtitle: 'Até 70% OFF' },
   { uri: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=800&q=80', title: 'NOVIDADES', subtitle: 'Peças exclusivas' },
   { uri: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80', title: 'PREMIUM', subtitle: 'Marcas importadas' },
 ];

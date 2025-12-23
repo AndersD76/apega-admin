@@ -62,7 +62,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
         const access = await checkAIAccess();
         setAiAccess(access);
       } catch (error) {
-        console.log('UsuÃ¡rio nÃ£o tem acesso Ã  IA');
+        console.log('Usuário não tem acesso À  IA');
       }
     };
     checkAccess();
@@ -76,7 +76,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('PermissÃ‡Å“o necessÃ‡Â­ria', 'Permita acesso Ã‡Ã¿ galeria para adicionar fotos.');
+        Alert.alert('PermissÀ‡Å“o necessÀ‡Â­ria', 'Permita acesso À‡À¿ galeria para adicionar fotos.');
         return;
       }
 
@@ -89,14 +89,14 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
         setPhotos([...photos, result.assets[0].uri]);
       }
     } catch (error) {
-      Alert.alert('Erro', 'NÃ‡Å“o foi possÃ‡Ã°vel acessar a galeria.');
+      Alert.alert('Erro', 'NÀ‡Å“o foi possÀ‡À°vel acessar a galeria.');
     }
   };
 
   // AI Analysis function
   const handleAIAnalysis = async () => {
     if (photos.length === 0) {
-      Alert.alert('AtenÃ§Ã£o', 'Adicione pelo menos uma foto para anÃ¡lise');
+      Alert.alert('Atenção', 'Adicione pelo menos uma foto para análise');
       return;
     }
 
@@ -167,7 +167,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
     }
 
     setShowAiResult(false);
-    Alert.alert('Sucesso', 'SugestÃµes aplicadas! Revise e ajuste se necessÃ¡rio.');
+    Alert.alert('Sucesso', 'Sugestões aplicadas! Revise e ajuste se necessário.');
   };
 
   const handleRemovePhoto = (index: number) => {
@@ -185,11 +185,11 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
   const handlePublish = async () => {
     // Validations
     if (!title || title.length < 10) {
-      Alert.alert('Erro', 'TÃ­tulo deve ter no mÃ­nimo 10 caracteres');
+      Alert.alert('Erro', 'Título deve ter no mínimo 10 caracteres');
       return;
     }
     if (!description || description.length < 20) {
-      Alert.alert('Erro', 'DescriÃ§Ã£o deve ter no mÃ­nimo 20 caracteres');
+      Alert.alert('Erro', 'Descrição deve ter no mínimo 20 caracteres');
       return;
     }
     if (!category) {
@@ -201,11 +201,11 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
       return;
     }
     if (!condition) {
-      Alert.alert('Erro', 'Selecione a condiÃ§Ã£o do produto');
+      Alert.alert('Erro', 'Selecione a condição do produto');
       return;
     }
     if (!price || parseFloat(price) < 5) {
-      Alert.alert('Erro', 'PreÃ§o deve ser maior que R$ 5,00');
+      Alert.alert('Erro', 'Preço deve ser maior que R$ 5,00');
       return;
     }
 
@@ -287,7 +287,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
           )}
         </ScrollView>
 
-        <Text style={styles.photoHint}>â†“ arraste para ordenar</Text>
+        <Text style={styles.photoHint}>←“ arraste para ordenar</Text>
 
         {/* AI Analysis Button */}
         {aiAccess?.hasAccess && photos.length > 0 && (
@@ -313,7 +313,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
                   <Text style={styles.aiButtonText}>Analisar com IA</Text>
                   <View style={styles.aiBadge}>
                     <Text style={styles.aiBadgeText}>
-                      {aiAccess.isPremium ? 'Premium' : 'GrÃ¡tis'}
+                      {aiAccess.isPremium ? 'Premium' : 'Grátis'}
                     </Text>
                   </View>
                 </>
@@ -330,7 +330,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
               <View style={styles.aiPromoTextContainer}>
                 <Text style={styles.aiPromoTitle}>IA Premium</Text>
                 <Text style={styles.aiPromoSubtitle}>
-                  AnÃ¡lise automÃ¡tica, sugestÃ£o de preÃ§o e mais
+                  Análise automática, sugestão de preço e mais
                 </Text>
               </View>
               <Ionicons name="lock-closed" size={16} color={COLORS.textTertiary} />
@@ -348,11 +348,11 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
 
         {renderDivider()}
 
-        {/* InformaÃ§Ãµes BÃ¡sicas */}
-        <Text style={styles.sectionTitle}>informaÃ§Ãµes bÃ¡sicas</Text>
+        {/* Informações Básicas */}
+        <Text style={styles.sectionTitle}>informações básicas</Text>
 
         <Input
-          label="tÃ­tulo"
+          label="título"
           required
           value={title}
           onChangeText={setTitle}
@@ -363,7 +363,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
 
         <Input
           type="textarea"
-          label="descriÃ§Ã£o"
+          label="descrição"
           required
           value={description}
           onChangeText={setDescription}
@@ -375,7 +375,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
         <View style={styles.tipBanner}>
           <Text style={styles.tipIcon}>ðŸ’¡</Text>
           <Text style={styles.tipText}>
-            seja detalhista! quanto mais informaÃ§Ãµes, mais confianÃ§a
+            seja detalhista! quanto mais informações, mais confiança
           </Text>
         </View>
 
@@ -435,7 +435,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
         </View>
 
         <Text style={styles.label}>
-          condiÃ§Ã£o <Text style={styles.required}>*</Text>
+          condição <Text style={styles.required}>*</Text>
         </Text>
         <View style={styles.pillsContainer}>
           {CONDITIONS.map((cond) => (
@@ -450,19 +450,19 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
         </View>
 
         <Input
-          label="composiÃ§Ã£o"
+          label="composição"
           value={composition}
           onChangeText={setComposition}
-          placeholder="algodÃ£o"
+          placeholder="algodão"
         />
 
         {renderDivider()}
 
-        {/* PreÃ§o e NegociaÃ§Ã£o */}
-        <Text style={styles.sectionTitle}>preÃ§o e negociaÃ§Ã£o</Text>
+        {/* Preço e Negociação */}
+        <Text style={styles.sectionTitle}>preço e negociação</Text>
 
         <Input
-          label="preÃ§o de venda"
+          label="preço de venda"
           required
           value={price}
           onChangeText={setPrice}
@@ -471,7 +471,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
         />
 
         <Input
-          label="preÃ§o original (opcional)"
+          label="preço original (opcional)"
           value={originalPrice}
           onChangeText={setOriginalPrice}
           placeholder="R$"
@@ -485,20 +485,20 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
               <Ionicons name="calculator" size={16} color={COLORS.textPrimary} /> seu ganho estimado
             </Text>
             <View style={styles.earningsRow}>
-              <Text style={styles.earningsLabel}>PreÃ§o de venda</Text>
+              <Text style={styles.earningsLabel}>Preço de venda</Text>
               <Text style={styles.earningsValue}>R$ {parseFloat(price).toFixed(2)}</Text>
             </View>
             <View style={styles.earningsRow}>
-              <Text style={styles.earningsLabel}>ComissÃ£o ({FEES.commissionPercentage}%)</Text>
+              <Text style={styles.earningsLabel}>Comissão ({FEES.commissionPercentage}%)</Text>
               <Text style={styles.earningsCommission}>- R$ {(parseFloat(price) * FEES.commissionRate).toFixed(2)}</Text>
             </View>
             <View style={styles.earningsDivider} />
             <View style={styles.earningsRow}>
-              <Text style={styles.earningsTotalLabel}>VocÃª recebe</Text>
+              <Text style={styles.earningsTotalLabel}>Você recebe</Text>
               <Text style={styles.earningsTotalValue}>R$ {(parseFloat(price) * (1 - FEES.commissionRate)).toFixed(2)}</Text>
             </View>
             <Text style={styles.earningsNote}>
-              Assinantes Premium nÃ£o pagam comissÃ£o
+              Assinantes Premium não pagam comissão
             </Text>
           </View>
         )}
@@ -507,7 +507,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
           <View style={styles.tipBanner}>
             <Text style={styles.tipIcon}>ðŸ’¡</Text>
             <Text style={styles.tipText}>
-              mostre o desconto de {discountPercentage}% que estÃ¡ oferecendo
+              mostre o desconto de {discountPercentage}% que está oferecendo
             </Text>
           </View>
         )}
@@ -526,7 +526,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
 
         {acceptOffers && (
           <Input
-            label="valor mÃ­nimo para ofertas"
+            label="valor mínimo para ofertas"
             value={minOfferPrice}
             onChangeText={setMinOfferPrice}
             placeholder="R$"
@@ -537,8 +537,8 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
         {renderDivider()}
 
         {/* Preview */}
-        <Text style={styles.sectionTitle}>prÃ©via do anÃºncio</Text>
-        <Text style={styles.previewLabel}>veja como ficarÃ¡:</Text>
+        <Text style={styles.sectionTitle}>prévia do anúncio</Text>
+        <Text style={styles.previewLabel}>veja como ficará:</Text>
 
         <View style={styles.previewCard}>
           <View style={styles.previewImage}>
@@ -559,7 +559,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
           <View style={styles.previewInfo}>
             <Text style={styles.previewPrice}>R$ {price || '0,00'}</Text>
             <Text style={styles.previewTitle} numberOfLines={2}>
-              {title || 'TÃ­tulo do produto'}
+              {title || 'Título do produto'}
             </Text>
             <Text style={styles.previewMeta}>
               {brand || 'marca'} â€¢ {selectedSize || 'M'} â€¢ {condition || 'usado'}
@@ -601,7 +601,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
           <Ionicons name="checkmark-circle" size={80} color={COLORS.success} />
           <Text style={styles.successTitle}>produto publicado!</Text>
           <Text style={styles.successText}>
-            seu produto estÃ¡ no ar e pronto para receber visitas
+            seu produto está no ar e pronto para receber visitas
           </Text>
           <Button
             label="ver produto"
@@ -639,7 +639,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
             >
               <Ionicons name="sparkles" size={24} color="#FFF" />
             </LinearGradient>
-            <Text style={styles.aiResultTitle}>AnÃ¡lise da IA</Text>
+            <Text style={styles.aiResultTitle}>Análise da IA</Text>
             <Text style={styles.aiResultSubtitle}>powered by Claude</Text>
           </View>
 
@@ -647,7 +647,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
             <ScrollView style={styles.aiResultContent}>
               {/* Product Type */}
               <View style={styles.aiResultItem}>
-                <Text style={styles.aiResultLabel}>Tipo de PeÃ§a</Text>
+                <Text style={styles.aiResultLabel}>Tipo de Peça</Text>
                 <Text style={styles.aiResultValue}>{aiResult.tipo}</Text>
               </View>
 
@@ -661,7 +661,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
 
               {/* Condition */}
               <View style={styles.aiResultItem}>
-                <Text style={styles.aiResultLabel}>CondiÃ§Ã£o</Text>
+                <Text style={styles.aiResultLabel}>Condição</Text>
                 <Text style={styles.aiResultValue}>{aiResult.condicao}</Text>
               </View>
 
@@ -695,7 +695,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
 
               {/* Suggested Price */}
               <View style={styles.aiPriceCard}>
-                <Text style={styles.aiPriceLabel}>PreÃ§o Sugerido</Text>
+                <Text style={styles.aiPriceLabel}>Preço Sugerido</Text>
                 <Text style={styles.aiPriceValue}>
                   R$ {aiResult.precoSugerido?.recomendado?.toFixed(2) || '0,00'}
                 </Text>
@@ -708,7 +708,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
               {/* Suggested Description */}
               {aiResult.descricaoSugerida && (
                 <View style={styles.aiDescriptionCard}>
-                  <Text style={styles.aiDescriptionLabel}>DescriÃ§Ã£o Sugerida</Text>
+                  <Text style={styles.aiDescriptionLabel}>Descrição Sugerida</Text>
                   <Text style={styles.aiDescriptionText}>
                     {aiResult.descricaoSugerida}
                   </Text>
@@ -733,7 +733,7 @@ export default function CreateProductScreen({ navigation }: CreateProductScreenP
 
           <View style={styles.aiResultActions}>
             <Button
-              label="Aplicar SugestÃµes"
+              label="Aplicar Sugestões"
               variant="primary"
               onPress={applyAISuggestions}
               fullWidth
