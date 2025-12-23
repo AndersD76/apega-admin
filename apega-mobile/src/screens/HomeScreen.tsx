@@ -32,25 +32,25 @@ const CAROUSEL_BANNERS = [
     // Arara de roupas coloridas - Moda Circular
     uri: 'https://images.unsplash.com/photo-1558171813-01342e9fa63c?w=1920&q=95',
     title: 'Moda Circular',
-    subtitle: 'Renove seu guarda-roupa com pecas unicas',
-    highlight: 'ATE 70% OFF',
+    subtitle: 'Renove seu guarda-roupa com peças únicas',
+    highlight: 'ATÉ 70% OFF',
     cta: 'Explorar',
     gradient: ['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.7)'],
   },
   {
-    // Blazers e roupas premium em cabides - Pecas Premium
+    // Blazers e roupas premium em cabides - Peças Premium
     uri: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1920&q=95',
-    title: 'Pecas Premium',
+    title: 'Peças Premium',
     subtitle: 'Farm, Animale, Zara e muito mais',
     highlight: 'EXCLUSIVO',
-    cta: 'Ver colecao',
+    cta: 'Ver coleção',
     gradient: ['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.8)'],
   },
   {
     // Roupas em tecidos naturais - Sustentabilidade
     uri: 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=1920&q=95',
     title: 'Sustentabilidade',
-    subtitle: 'Moda consciente que faz a diferenca',
+    subtitle: 'Moda consciente que faz a diferença',
     highlight: 'ECO-FRIENDLY',
     cta: 'Saiba mais',
     gradient: ['rgba(45,90,39,0.2)', 'rgba(0,0,0,0.7)'],
@@ -60,7 +60,7 @@ const CAROUSEL_BANNERS = [
     uri: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=1920&q=95',
     title: 'Bolsas de Grife',
     subtitle: 'Louis Vuitton, Gucci, Prada',
-    highlight: 'IMPERDIVEL',
+    highlight: 'IMPERDÍVEL',
     cta: 'Conferir',
     gradient: ['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.8)'],
   },
@@ -214,8 +214,8 @@ export default function HomeScreen({ navigation }: Props) {
       image: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1200&q=90',
       icon: 'leaf-outline',
       iconColor: '#C9A227',
-      title: 'Moda com proposito',
-      subtitle: 'A plataforma brasileira de moda circular que valoriza suas pecas e o planeta',
+      title: 'Moda com propósito',
+      subtitle: 'A plataforma brasileira de moda circular que valoriza suas peças e o planeta',
       highlight: 'NOVO',
       highlightColor: '#C9A227',
     },
@@ -224,7 +224,7 @@ export default function HomeScreen({ navigation }: Props) {
       icon: 'camera-outline',
       iconColor: '#2E7D32',
       title: 'Venda em segundos',
-      subtitle: 'Nossa IA analisa suas pecas, sugere precos competitivos e cria anuncios profissionais',
+      subtitle: 'Nossa IA analisa suas peças, sugere preços competitivos e cria anúncios profissionais',
       highlight: 'TECNOLOGIA',
       highlightColor: '#2E7D32',
     },
@@ -233,7 +233,7 @@ export default function HomeScreen({ navigation }: Props) {
       icon: 'pricetag-outline',
       iconColor: '#D32F2F',
       title: 'Taxa reduzida',
-      subtitle: 'Apenas 5% de comissao para as primeiras 50 vendedoras. Outras plataformas cobram ate 20%',
+      subtitle: 'Apenas 5% de comissão para as primeiras 50 vendedoras. Outras plataformas cobram até 20%',
       highlight: 'EXCLUSIVO',
       highlightColor: '#D32F2F',
     },
@@ -241,9 +241,9 @@ export default function HomeScreen({ navigation }: Props) {
       image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=1200&q=90',
       icon: 'diamond-outline',
       iconColor: '#7B1FA2',
-      title: 'Premium gratis',
+      title: 'Premium grátis',
       subtitle: 'As 5 primeiras vendedoras recebem 1 ano de Premium: IA ilimitada, sem taxa e destaque nos resultados',
-      highlight: 'ULTIMAS VAGAS',
+      highlight: 'ÚLTIMAS VAGAS',
       highlightColor: '#7B1FA2',
     },
   ];
@@ -1089,12 +1089,12 @@ export default function HomeScreen({ navigation }: Props) {
               </View>
 
               <Text style={styles.footerAppBannerTitle}>
-                O futuro da moda{'\n'}circular esta chegando
+                O futuro da moda{'\n'}circular está chegando
               </Text>
 
               <Text style={styles.footerAppBannerSubtitle}>
                 Cadastre-se agora e seja uma das primeiras a experimentar.{'\n'}
-                <Text style={styles.bannerHighlight}>5 contas Premium gratis</Text> para as pioneiras!
+                <Text style={styles.bannerHighlight}>5 contas Premium grátis</Text> para as pioneiras!
               </Text>
 
               <View style={styles.footerAppButtons}>
@@ -1103,7 +1103,7 @@ export default function HomeScreen({ navigation }: Props) {
                     <Ionicons name="logo-google-playstore" size={20} color="#fff" />
                   </View>
                   <View style={styles.storeButtonTextContainer}>
-                    <Text style={styles.storeButtonSmallText}>Disponivel no</Text>
+                    <Text style={styles.storeButtonSmallText}>Disponível no</Text>
                     <Text style={styles.storeButtonMainText}>Google Play</Text>
                   </View>
                 </TouchableOpacity>
