@@ -229,7 +229,7 @@ export default function HomeScreen({ navigation }: Props) {
       highlightColor: '#2E7D32',
     },
     {
-      image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&q=90',
+      image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&q=90',
       icon: 'pricetag-outline',
       iconColor: '#D32F2F',
       title: 'Taxa reduzida',
@@ -605,16 +605,21 @@ export default function HomeScreen({ navigation }: Props) {
                 <TouchableOpacity
                   style={styles.onboardingCTA}
                   onPress={nextOnboardingSlide}
-                  activeOpacity={0.85}
+                  activeOpacity={0.9}
                 >
-                  <View style={styles.onboardingCTAGradient}>
+                  <LinearGradient
+                    colors={['#C9A227', '#B8860B', '#A67C00']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.onboardingCTAGradient}
+                  >
                     <Text style={styles.onboardingCTAText}>
                       {onboardingStep === ONBOARDING_SLIDES.length - 1 ? 'Garantir minha vaga' : 'Continuar'}
                     </Text>
                     <View style={styles.onboardingCTAArrow}>
-                      <Ionicons name="arrow-forward" size={18} color="#fff" />
+                      <Ionicons name="arrow-forward" size={20} color="#1a1a1a" />
                     </View>
-                  </View>
+                  </LinearGradient>
                 </TouchableOpacity>
 
                 {/* Step counter */}
@@ -3290,19 +3295,19 @@ const createStyles = (isDesktop: boolean, isTablet: boolean, isMobile: boolean) 
     width: '100%',
     maxWidth: 320,
     marginBottom: 18,
-    borderRadius: 28,
+    borderRadius: 30,
     overflow: 'hidden',
     ...Platform.select({
       web: {
-        boxShadow: '0 8px 30px rgba(93,122,103,0.4)',
+        boxShadow: '0 8px 30px rgba(201,162,39,0.45)',
         transition: 'all 0.3s ease',
       },
       default: {
-        shadowColor: COLORS.primary,
+        shadowColor: '#C9A227',
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.35,
+        shadowOpacity: 0.45,
         shadowRadius: 16,
-        elevation: 10,
+        elevation: 12,
       },
     }),
   },
@@ -3311,23 +3316,22 @@ const createStyles = (isDesktop: boolean, isTablet: boolean, isMobile: boolean) 
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 14,
-    paddingLeft: 24,
-    paddingRight: 10,
-    borderRadius: 28,
-    backgroundColor: COLORS.primary,
+    paddingVertical: 16,
+    paddingLeft: 28,
+    paddingRight: 12,
+    borderRadius: 30,
   },
   onboardingCTAText: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#fff',
-    letterSpacing: 0.3,
+    color: '#1a1a1a',
+    letterSpacing: 0.5,
   },
   onboardingCTAArrow: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
   },
