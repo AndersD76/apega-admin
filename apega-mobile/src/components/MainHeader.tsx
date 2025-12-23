@@ -72,11 +72,6 @@ export default function MainHeader({ navigation, showBack = false, title }: Main
         )}
 
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerBtn} onPress={handleSellPress}>
-            <Ionicons name="pricetag-outline" size={18} color={COLORS.primary} />
-            <Text style={styles.headerBtnText}>Venda conosco</Text>
-          </TouchableOpacity>
-
           {isAuthenticated && user ? (
             <TouchableOpacity
               style={styles.headerUserBtn}
@@ -174,22 +169,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-  },
-  headerBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    backgroundColor: 'transparent',
-  },
-  headerBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.primary,
   },
   headerBtnFilled: {
     paddingHorizontal: 16,
