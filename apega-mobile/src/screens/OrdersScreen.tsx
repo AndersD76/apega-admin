@@ -190,21 +190,13 @@ export default function OrdersScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop: insets.top + SPACING.sm,
-            paddingHorizontal: isDesktop ? 60 : isTablet ? 40 : SPACING.md,
-          },
-        ]}
-      >
+      <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, isDesktop && { fontSize: TYPOGRAPHY.sizes.xl }]}>meus pedidos</Text>
-        <View style={{ width: 24 }} />
+        <Text style={styles.headerTitle}>Meus Pedidos</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       <Tab items={tabs} activeTab={activeTab} onTabPress={setActiveTab} />
@@ -248,24 +240,27 @@ export default function OrdersScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#F5F5F5',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: SPACING.md,
-    backgroundColor: COLORS.white,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    backgroundColor: '#F5F5F5',
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderLight,
+    borderBottomColor: '#E8E8E8',
   },
   backButton: {
-    padding: SPACING.xs,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: TYPOGRAPHY.sizes.lg,
-    fontWeight: TYPOGRAPHY.weights.bold,
-    color: COLORS.textPrimary,
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#1a1a1a',
   },
   content: {
     padding: SPACING.md,

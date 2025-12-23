@@ -16,7 +16,6 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 import { BottomNavigation } from '../components';
@@ -229,164 +228,118 @@ export default function MyStoreScreen({ navigation }: Props) {
     );
   };
 
+  const isPremium = user?.subscription_type === 'premium';
+
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
+
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Minha Loja</Text>
+        <TouchableOpacity style={styles.settingsButton} onPress={() => navigation.navigate('Settings')}>
+          <Ionicons name="settings-outline" size={22} color="#666" />
+        </TouchableOpacity>
+      </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primary]} />
         }
-        stickyHeaderIndices={[1]}
+        contentContainerStyle={styles.scrollContent}
       >
-        {/* Cover Photo & Profile Header */}
-        <View style={styles.profileHeader}>
-          {/* Cover Photo */}
-          <LinearGradient
-            colors={['#1a1a2e', '#16213e', '#0f3460']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[styles.coverPhoto, { paddingTop: insets.top }]}
-          >
-            {/* Back button */}
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => navigation.goBack()}
-            >
-              <Ionicons name="arrow-back" size={24} color="#fff" />
-            </TouchableOpacity>
-
-            {/* Settings button */}
-            <TouchableOpacity
-              style={styles.settingsButton}
-              onPress={() => navigation.navigate('Settings')}
-            >
-              <Ionicons name="settings-outline" size={24} color="#fff" />
-            </TouchableOpacity>
-
-            {/* Decorative elements */}
-            <View style={styles.coverDecor1} />
-            <View style={styles.coverDecor2} />
-          </LinearGradient>
-
-          {/* Profile Info Card */}
-          <View style={styles.profileCard}>
-            {/* Avatar */}
+        {/* Profile Card */}
+        <View style={styles.profileCard}>
+          <View style={styles.profileTop}>
             <View style={styles.avatarContainer}>
-              <View style={[styles.avatar, user?.isPremium && styles.avatarPremium]}>
-                {user?.avatar_url ? (
-                  <Image source={{ uri: user.avatar_url }} style={styles.avatarImage} />
-                ) : (
+              {user?.avatar_url ? (
+                <Image source={{ uri: user.avatar_url }} style={styles.avatar} />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
                   <Text style={styles.avatarText}>
                     {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                   </Text>
-                )}
-              </View>
-              {user?.isPremium && (
-                <View style={styles.premiumBadge}>
-                  <Ionicons name="diamond" size={12} color="#fff" />
                 </View>
               )}
             </View>
-
-            {/* Store Name & Bio */}
-            <Text style={styles.storeName}>{user?.name || 'Minha Loja'}</Text>
-            <Text style={styles.storeHandle}>@{user?.name?.toLowerCase().replace(/\s/g, '') || 'minhaloja'}</Text>
-
-            {user?.isPremium ? (
-              <View style={styles.premiumTag}>
-                <Ionicons name="diamond" size={12} color="#7B1FA2" />
-                <Text style={styles.premiumTagText}>Vendedor Premium</Text>
+            <View style={styles.profileInfo}>
+              <Text style={styles.storeName}>{user?.store_name || user?.name || 'Minha Loja'}</Text>
+              <Text style={styles.storeHandle}>@{user?.name?.toLowerCase().replace(/\s/g, '') || 'minhaloja'}</Text>
+              <View style={[styles.planBadge, isPremium && styles.planBadgePremium]}>
+                {isPremium && <Ionicons name="diamond" size={12} color="#7B1FA2" />}
+                <Text style={[styles.planText, isPremium && styles.planTextPremium]}>
+                  {isPremium ? 'Premium' : 'Vendedor'}
+                </Text>
               </View>
-            ) : (
-              <View style={styles.freeTag}>
-                <Text style={styles.freeTagText}>Vendedor</Text>
-              </View>
-            )}
+            </View>
+          </View>
 
-            {/* Stats Row */}
-            <View style={styles.statsRow}>
-              <TouchableOpacity style={styles.statBox}>
-                <Text style={styles.statNumber}>{products.length}</Text>
-                <Text style={styles.statLabel}>peças</Text>
-              </TouchableOpacity>
-              <View style={styles.statDivider} />
-              <TouchableOpacity style={styles.statBox}>
-                <Text style={styles.statNumber}>{soldProducts.length}</Text>
-                <Text style={styles.statLabel}>vendidas</Text>
-              </TouchableOpacity>
-              <View style={styles.statDivider} />
-              <TouchableOpacity style={styles.statBox}>
-                <Text style={styles.statNumber}>{totalFavorites}</Text>
-                <Text style={styles.statLabel}>curtidas</Text>
-              </TouchableOpacity>
-              <View style={styles.statDivider} />
-              <TouchableOpacity style={styles.statBox}>
-                <Text style={styles.statNumber}>{totalViews}</Text>
-                <Text style={styles.statLabel}>views</Text>
-              </TouchableOpacity>
+          {/* Stats Row */}
+          <View style={styles.statsRow}>
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>{products.length}</Text>
+              <Text style={styles.statLabel}>pecas</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>{soldProducts.length}</Text>
+              <Text style={styles.statLabel}>vendidas</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>{totalFavorites}</Text>
+              <Text style={styles.statLabel}>curtidas</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>{totalViews}</Text>
+              <Text style={styles.statLabel}>views</Text>
+            </View>
+          </View>
+
+          {/* Action Buttons */}
+          <View style={styles.actionButtonsRow}>
+            <TouchableOpacity
+              style={styles.primaryActionButton}
+              onPress={() => navigation.navigate('NewItem', {})}
+            >
+              <Ionicons name="add" size={20} color="#fff" />
+              <Text style={styles.primaryActionButtonText}>Nova Peca</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.secondaryActionButton}
+              onPress={() => navigation.navigate('EditProfile')}
+            >
+              <Ionicons name="create-outline" size={18} color="#666" />
+              <Text style={styles.secondaryActionButtonText}>Editar Perfil</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Quick Stats Cards */}
+          <View style={styles.quickStatsRow}>
+            <View style={[styles.quickStatCard, { backgroundColor: '#E8F5E9' }]}>
+              <Ionicons name="checkmark-circle" size={18} color="#2E7D32" />
+              <Text style={[styles.quickStatNumber, { color: '#2E7D32' }]}>{activeProducts.length}</Text>
+              <Text style={styles.quickStatLabel}>Ativos</Text>
             </View>
 
-            {/* Action Buttons */}
-            <View style={styles.actionButtonsRow}>
-              <TouchableOpacity
-                style={styles.primaryActionButton}
-                onPress={() => navigation.navigate('NewItem', {})}
-              >
-                <Ionicons name="add" size={20} color="#fff" />
-                <Text style={styles.primaryActionButtonText}>Nova Peça</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.secondaryActionButton}
-                onPress={() => navigation.navigate('EditProfile')}
-              >
-                <Ionicons name="create-outline" size={18} color={COLORS.gray[700]} />
-                <Text style={styles.secondaryActionButtonText}>Editar Perfil</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.iconActionButton}
-                onPress={() => {/* Share profile */}}
-              >
-                <Ionicons name="share-social-outline" size={20} color={COLORS.gray[700]} />
-              </TouchableOpacity>
+            <View style={[styles.quickStatCard, { backgroundColor: '#FFF3E0' }]}>
+              <Ionicons name="pause-circle" size={18} color="#F57C00" />
+              <Text style={[styles.quickStatNumber, { color: '#F57C00' }]}>
+                {products.filter(p => p.status === 'paused').length}
+              </Text>
+              <Text style={styles.quickStatLabel}>Pausados</Text>
             </View>
 
-            {/* Quick Stats Cards */}
-            <View style={styles.quickStatsRow}>
-              <View style={[styles.quickStatCard, { backgroundColor: '#E8F5E9' }]}>
-                <View style={[styles.quickStatIcon, { backgroundColor: '#C8E6C9' }]}>
-                  <Ionicons name="checkmark-circle" size={18} color="#2E7D32" />
-                </View>
-                <View>
-                  <Text style={[styles.quickStatNumber, { color: '#2E7D32' }]}>{activeProducts.length}</Text>
-                  <Text style={styles.quickStatLabel}>Ativos</Text>
-                </View>
-              </View>
-
-              <View style={[styles.quickStatCard, { backgroundColor: '#FFF3E0' }]}>
-                <View style={[styles.quickStatIcon, { backgroundColor: '#FFE0B2' }]}>
-                  <Ionicons name="pause-circle" size={18} color="#F57C00" />
-                </View>
-                <View>
-                  <Text style={[styles.quickStatNumber, { color: '#F57C00' }]}>
-                    {products.filter(p => p.status === 'paused').length}
-                  </Text>
-                  <Text style={styles.quickStatLabel}>Pausados</Text>
-                </View>
-              </View>
-
-              <View style={[styles.quickStatCard, { backgroundColor: '#E3F2FD' }]}>
-                <View style={[styles.quickStatIcon, { backgroundColor: '#BBDEFB' }]}>
-                  <Ionicons name="bag-check" size={18} color="#1976D2" />
-                </View>
-                <View>
-                  <Text style={[styles.quickStatNumber, { color: '#1976D2' }]}>{soldProducts.length}</Text>
-                  <Text style={styles.quickStatLabel}>Vendidos</Text>
-                </View>
-              </View>
+            <View style={[styles.quickStatCard, { backgroundColor: '#E3F2FD' }]}>
+              <Ionicons name="bag-check" size={18} color="#1976D2" />
+              <Text style={[styles.quickStatNumber, { color: '#1976D2' }]}>{soldProducts.length}</Text>
+              <Text style={styles.quickStatLabel}>Vendidos</Text>
             </View>
           </View>
         </View>
@@ -533,188 +486,139 @@ export default function MyStoreScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F5F5F5',
   },
-  profileHeader: {
-    backgroundColor: '#fff',
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    backgroundColor: '#F5F5F5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E8E8E8',
   },
-  coverPhoto: {
-    height: 160,
-    position: 'relative',
-    overflow: 'hidden',
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#1a1a1a',
   },
   backButton: {
-    position: 'absolute',
-    top: 50,
-    left: 16,
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 10,
   },
   settingsButton: {
-    position: 'absolute',
-    top: 50,
-    right: 16,
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 10,
+    alignItems: 'flex-end',
   },
-  coverDecor1: {
-    position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(201,162,39,0.1)',
-    top: -50,
-    right: -50,
-  },
-  coverDecor2: {
-    position: 'absolute',
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: 'rgba(201,162,39,0.08)',
-    bottom: -30,
-    left: -30,
+  scrollContent: {
+    padding: 16,
   },
   profileCard: {
     backgroundColor: '#fff',
-    marginTop: -50,
-    marginHorizontal: 16,
-    borderRadius: 20,
+    borderRadius: 16,
     padding: 20,
-    alignItems: 'center',
+    marginBottom: 16,
     ...Platform.select({
-      web: { boxShadow: '0 4px 20px rgba(0,0,0,0.1)' },
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 20,
-        elevation: 8,
-      },
+      web: { boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
+      default: { elevation: 2 },
     }),
   },
+  profileTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   avatarContainer: {
-    marginTop: -60,
-    position: 'relative',
+    marginRight: 16,
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+  },
+  avatarPlaceholder: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: COLORS.primary,
-    alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 4,
-    borderColor: '#fff',
-  },
-  avatarPremium: {
-    borderColor: '#FFD700',
-    borderWidth: 3,
-  },
-  avatarImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 50,
+    alignItems: 'center',
   },
   avatarText: {
-    fontSize: 36,
+    fontSize: 24,
     fontWeight: '700',
     color: '#fff',
   },
-  premiumBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#7B1FA2',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: '#fff',
+  profileInfo: {
+    flex: 1,
   },
   storeName: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray[800],
-    marginTop: 12,
+    color: '#1a1a1a',
   },
   storeHandle: {
     fontSize: 14,
-    color: COLORS.gray[500],
+    color: '#888',
     marginTop: 2,
   },
-  premiumTag: {
+  planBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    backgroundColor: '#F0F0F0',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginTop: 8,
+    alignSelf: 'flex-start',
+  },
+  planBadgePremium: {
     backgroundColor: '#F3E5F5',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginTop: 8,
   },
-  premiumTagText: {
+  planText: {
     fontSize: 12,
     fontWeight: '600',
+    color: '#666',
+  },
+  planTextPremium: {
     color: '#7B1FA2',
-  },
-  freeTag: {
-    backgroundColor: COLORS.gray[100],
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginTop: 8,
-  },
-  freeTagText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.gray[600],
   },
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
-    paddingTop: 16,
+    paddingVertical: 16,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray[100],
-    width: '100%',
+    borderBottomWidth: 1,
+    borderColor: '#F0F0F0',
   },
   statBox: {
     flex: 1,
     alignItems: 'center',
   },
   statNumber: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: COLORS.gray[800],
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a1a1a',
   },
   statLabel: {
     fontSize: 12,
-    color: COLORS.gray[500],
+    color: '#888',
     marginTop: 2,
   },
   statDivider: {
     width: 1,
-    height: 30,
-    backgroundColor: COLORS.gray[200],
+    height: 32,
+    backgroundColor: '#E8E8E8',
   },
   actionButtonsRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 20,
-    width: '100%',
+    gap: 12,
+    marginTop: 16,
   },
   primaryActionButton: {
     flex: 1,
@@ -737,51 +641,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: COLORS.gray[100],
+    backgroundColor: '#F0F0F0',
     paddingVertical: 12,
     borderRadius: 10,
   },
   secondaryActionButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray[700],
-  },
-  iconActionButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.gray[100],
-    borderRadius: 10,
+    color: '#666',
   },
   quickStatsRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
     marginTop: 16,
-    width: '100%',
   },
   quickStatCard: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 4,
     padding: 12,
     borderRadius: 12,
   },
-  quickStatIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   quickStatNumber: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
   },
   quickStatLabel: {
     fontSize: 11,
-    color: COLORS.gray[600],
+    color: '#666',
   },
   tabBar: {
     flexDirection: 'row',

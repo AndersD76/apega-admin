@@ -27,129 +27,52 @@ import type { RootStackParamList } from '../navigation/AppNavigator';
 
 const isWeb = Platform.OS === 'web';
 
-// Banners full-width do carrossel - SOMENTE PRODUTOS, SEM MODELOS
+// Banners full-width do carrossel - Gradientes elegantes
 const CAROUSEL_BANNERS = [
   {
-    // Arara de roupas coloridas - Moda Circular
-    uri: 'https://images.unsplash.com/photo-1558171813-01342e9fa63c?w=1920&q=95',
     title: 'Moda Circular',
     subtitle: 'Renove seu guarda-roupa com peças únicas',
     highlight: 'ATÉ 70% OFF',
     cta: 'Explorar',
-    gradient: ['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.7)'],
+    gradient: ['#4A7C59', '#2D5A27'] as [string, string],
   },
   {
-    // Blazers e roupas premium em cabides - Peças Premium
-    uri: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1920&q=95',
     title: 'Peças Premium',
     subtitle: 'Farm, Animale, Zara e muito mais',
     highlight: 'EXCLUSIVO',
     cta: 'Ver coleção',
-    gradient: ['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.8)'],
+    gradient: ['#7B1FA2', '#4A148C'] as [string, string],
   },
   {
-    // Roupas em tecidos naturais - Sustentabilidade
-    uri: 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=1920&q=95',
     title: 'Sustentabilidade',
     subtitle: 'Moda consciente que faz a diferença',
     highlight: 'ECO-FRIENDLY',
     cta: 'Saiba mais',
-    gradient: ['rgba(45,90,39,0.2)', 'rgba(0,0,0,0.7)'],
+    gradient: ['#00695C', '#004D40'] as [string, string],
   },
   {
-    // Bolsas de luxo - Bolsas de Grife
-    uri: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=1920&q=95',
     title: 'Bolsas de Grife',
     subtitle: 'Louis Vuitton, Gucci, Prada',
     highlight: 'IMPERDÍVEL',
     cta: 'Conferir',
-    gradient: ['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.8)'],
+    gradient: ['#C9A227', '#8B6914'] as [string, string],
   },
 ];
 
-// Logos das marcas (usando logo.clearbit.com para melhor compatibilidade)
-// Pecas em destaque - Fotos de produtos SEM MODELOS (flat lay e cabides)
-const FEATURED_PIECES = [
-  {
-    category: 'Vestidos',
-    image: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=800&q=95',
-    count: '0'
-  },
-  {
-    category: 'Bolsas',
-    image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&q=95',
-    count: '0'
-  },
-  {
-    category: 'Calcados',
-    image: 'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=800&q=95',
-    count: '0'
-  },
-  {
-    category: 'Blusas',
-    image: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800&q=95',
-    count: '0'
-  },
-  {
-    category: 'Calcas',
-    image: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=800&q=95',
-    count: '0'
-  },
-  {
-    category: 'Jaquetas',
-    image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=95',
-    count: '0'
-  },
-  {
-    category: 'Saias',
-    image: 'https://images.unsplash.com/photo-1577900232427-18219b9166a0?w=800&q=95',
-    count: '0'
-  },
-  {
-    category: 'Casacos',
-    image: 'https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=800&q=95',
-    count: '0'
-  },
-  {
-    category: 'Shorts',
-    image: 'https://images.unsplash.com/photo-1598032895397-b9472444bf93?w=800&q=95',
-    count: '0'
-  },
-  {
-    category: 'Blazers',
-    image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=95',
-    count: '0'
-  },
-  {
-    category: 'Acessorios',
-    image: 'https://images.unsplash.com/photo-1576053139778-7e32f2ae62d9?w=800&q=95',
-    count: '0'
-  },
-  {
-    category: 'Relogios',
-    image: 'https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?w=800&q=95',
-    count: '0'
-  },
-];
-
-// Usando img.logo.dev para logos confiáveis
-const BRAND_LOGOS = [
-  { name: 'Zara', logo: 'https://img.logo.dev/zara.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
-  { name: 'Farm', logo: 'https://img.logo.dev/farmrio.com.br?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
-  { name: 'Animale', logo: 'https://img.logo.dev/animale.com.br?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
-  { name: 'Renner', logo: 'https://img.logo.dev/lojasrenner.com.br?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
-  { name: 'C&A', logo: 'https://img.logo.dev/cea.com.br?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
-  { name: 'Forever 21', logo: 'https://img.logo.dev/forever21.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
-  { name: 'H&M', logo: 'https://img.logo.dev/hm.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
-  { name: 'Gucci', logo: 'https://img.logo.dev/gucci.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
-  { name: 'Louis Vuitton', logo: 'https://img.logo.dev/louisvuitton.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
-  { name: 'Prada', logo: 'https://img.logo.dev/prada.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
-  { name: 'Chanel', logo: 'https://img.logo.dev/chanel.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
-  { name: 'Michael Kors', logo: 'https://img.logo.dev/michaelkors.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
-  { name: 'Tommy Hilfiger', logo: 'https://img.logo.dev/tommy.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
-  { name: 'Calvin Klein', logo: 'https://img.logo.dev/calvinklein.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
-  { name: 'Lacoste', logo: 'https://img.logo.dev/lacoste.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
-  { name: 'Nike', logo: 'https://img.logo.dev/nike.com?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ' },
+// Categorias em destaque - imagens vêm dos produtos reais dos usuários
+const FEATURED_CATEGORIES = [
+  'Vestidos',
+  'Bolsas',
+  'Calcados',
+  'Blusas',
+  'Calcas',
+  'Jaquetas',
+  'Saias',
+  'Casacos',
+  'Shorts',
+  'Blazers',
+  'Acessorios',
+  'Relogios',
 ];
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
@@ -795,13 +718,11 @@ export default function HomeScreen({ navigation }: Props) {
         {/* Hero Banner Carousel - Full Width */}
         <View style={styles.heroBannerContainer}>
           <Animated.View style={[styles.heroBannerWrapper, { opacity: fadeAnim }]}>
-            <Image
-              source={{ uri: CAROUSEL_BANNERS[currentImageIndex % CAROUSEL_BANNERS.length].uri }}
-              style={styles.heroBannerImage}
-            />
             <LinearGradient
-              colors={CAROUSEL_BANNERS[currentImageIndex % CAROUSEL_BANNERS.length].gradient as [string, string]}
-              style={styles.heroBannerGradient}
+              colors={CAROUSEL_BANNERS[currentImageIndex % CAROUSEL_BANNERS.length].gradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.heroBannerGradientFull}
             />
 
             {/* Conteúdo do Banner */}
@@ -867,8 +788,14 @@ export default function HomeScreen({ navigation }: Props) {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.featuredPiecesScroll}
           >
-            {FEATURED_PIECES.map((piece, index) => {
-              const count = categoryCounts[piece.category] || 0;
+            {FEATURED_CATEGORIES.map((category, index) => {
+              const count = categoryCounts[category] || 0;
+              // Busca o primeiro produto da categoria para usar a imagem real
+              const categoryProduct = products.find(
+                p => p.category?.toLowerCase() === category.toLowerCase()
+              );
+              const imageUrl = categoryProduct?.images?.[0] || null;
+
               return (
                 <TouchableOpacity
                   key={index}
@@ -876,19 +803,23 @@ export default function HomeScreen({ navigation }: Props) {
                   onPress={() => navigation.navigate('Search')}
                 >
                   <View style={styles.featuredPieceImageWrapper}>
-                    <Image
-                      source={{ uri: piece.image }}
-                      style={styles.featuredPieceImage}
-                    />
+                    {imageUrl ? (
+                      <Image
+                        source={{ uri: imageUrl }}
+                        style={styles.featuredPieceImage}
+                      />
+                    ) : (
+                      <View style={[styles.featuredPieceImage, styles.featuredPiecePlaceholder]}>
+                        <Ionicons name="shirt-outline" size={40} color={COLORS.gray[400]} />
+                      </View>
+                    )}
                     <View style={styles.featuredPieceOverlay}>
                       <View style={styles.featuredPieceCountBadge}>
-                        <Text style={styles.featuredPieceCount}>
-                          {count > 0 ? `${count}` : piece.count}
-                        </Text>
+                        <Text style={styles.featuredPieceCount}>{count}</Text>
                       </View>
                     </View>
                   </View>
-                  <Text style={styles.featuredPieceCategory}>{piece.category}</Text>
+                  <Text style={styles.featuredPieceCategory}>{category}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -954,48 +885,75 @@ export default function HomeScreen({ navigation }: Props) {
           </TouchableOpacity>
         </View>
 
-        {/* SEÇÀO DE MARCAS */}
-        <View style={styles.brandsSection}>
-          <View style={styles.brandsTitleRow}>
-            <Ionicons name="diamond" size={28} color={COLORS.primary} />
-            <Text style={styles.brandsSectionTitle}>MARCAS EXCLUSIVAS</Text>
-          </View>
-          <Text style={styles.brandsSectionSubtitle}>
-            Encontre peças das melhores marcas do mundo
-          </Text>
+        {/* SEÇÀO DE MARCAS - mostra apenas marcas dos produtos cadastrados */}
+        {(() => {
+          // Extrai marcas únicas dos produtos
+          const uniqueBrands = Array.from(
+            new Set(products.filter(p => p.brand).map(p => p.brand!))
+          ).slice(0, 12);
 
-          {/* Scroll horizontal de marcas */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.brandsScrollContainer}
-          >
-            {BRAND_LOGOS.map((brand, index) => (
+          if (uniqueBrands.length === 0) return null;
+
+          return (
+            <View style={styles.brandsSection}>
+              <View style={styles.brandsTitleRow}>
+                <Ionicons name="diamond" size={28} color={COLORS.primary} />
+                <Text style={styles.brandsSectionTitle}>MARCAS EM DESTAQUE</Text>
+              </View>
+              <Text style={styles.brandsSectionSubtitle}>
+                Marcas disponíveis no nosso brechó
+              </Text>
+
+              {/* Scroll horizontal de marcas */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.brandsScrollContainer}
+              >
+                {uniqueBrands.map((brandName, index) => {
+                  // Encontra um produto dessa marca para usar a imagem
+                  const brandProduct = products.find(p => p.brand === brandName);
+                  const imageUrl = brandProduct?.images?.[0] || null;
+                  const count = products.filter(p => p.brand === brandName).length;
+
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.brandCard}
+                      onPress={() => navigation.navigate('Search')}
+                    >
+                      <View style={styles.brandLogoContainer}>
+                        {imageUrl ? (
+                          <Image
+                            source={{ uri: imageUrl }}
+                            style={styles.brandLogoImage}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <View style={[styles.brandLogoImage, styles.brandPlaceholder]}>
+                            <Ionicons name="pricetag-outline" size={24} color={COLORS.gray[400]} />
+                          </View>
+                        )}
+                        <View style={styles.brandCountBadge}>
+                          <Text style={styles.brandCountText}>{count}</Text>
+                        </View>
+                      </View>
+                      <Text style={styles.brandName} numberOfLines={1}>{brandName}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+
               <TouchableOpacity
-                key={index}
-                style={styles.brandCard}
+                style={styles.viewAllBrandsBtn}
                 onPress={() => navigation.navigate('Search')}
               >
-                <View style={styles.brandLogoContainer}>
-                  <Image
-                    source={{ uri: brand.logo }}
-                    style={styles.brandLogoImage}
-                    resizeMode="contain"
-                  />
-                </View>
-                <Text style={styles.brandName}>{brand.name}</Text>
+                <Text style={styles.viewAllBrandsText}>Ver todas as marcas</Text>
+                <Ionicons name="arrow-forward" size={18} color={COLORS.primary} />
               </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          <TouchableOpacity
-            style={styles.viewAllBrandsBtn}
-            onPress={() => navigation.navigate('Search')}
-          >
-            <Text style={styles.viewAllBrandsText}>Ver todas as marcas</Text>
-            <Ionicons name="arrow-forward" size={18} color={COLORS.primary} />
-          </TouchableOpacity>
-        </View>
+            </View>
+          );
+        })()}
 
         {/* Produtos */}
         {allItems.length > 0 && (
@@ -1146,40 +1104,8 @@ export default function HomeScreen({ navigation }: Props) {
                 </TouchableOpacity>
               </View>
 
-              {/* Stats Preview */}
-              <View style={styles.bannerStatsRow}>
-                <View style={styles.bannerStatItem}>
-                  <Text style={styles.bannerStatNumber}>5%</Text>
-                  <Text style={styles.bannerStatLabel}>taxa reduzida</Text>
-                </View>
-                <View style={styles.bannerStatDivider} />
-                <View style={styles.bannerStatItem}>
-                  <Text style={styles.bannerStatNumber}>0%</Text>
-                  <Text style={styles.bannerStatLabel}>para Premium</Text>
-                </View>
-                <View style={styles.bannerStatDivider} />
-                <View style={styles.bannerStatItem}>
-                  <Text style={styles.bannerStatNumber}>100%</Text>
-                  <Text style={styles.bannerStatLabel}>sustentavel</Text>
-                </View>
-              </View>
             </View>
 
-            {/* Phone Mockup */}
-            <View style={styles.phoneMockupContainer}>
-              <LinearGradient
-                colors={['rgba(201,162,39,0.3)', 'rgba(201,162,39,0.1)']}
-                style={styles.phoneMockupGlow}
-              />
-              <View style={styles.phoneMockup}>
-                <View style={styles.phoneMockupNotch} />
-                <Image
-                  source={{ uri: 'https://images.unsplash.com/photo-1558171813-01342e9fa63c?w=400&q=90' }}
-                  style={styles.phoneMockupScreen}
-                />
-                <View style={styles.phoneMockupBottomBar} />
-              </View>
-            </View>
           </LinearGradient>
 
           {/* Links do Footer */}
@@ -1422,12 +1348,7 @@ const createStyles = (isDesktop: boolean, isTablet: boolean, isMobile: boolean) 
     height: '100%',
     position: 'relative',
   },
-  heroBannerImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  heroBannerGradient: {
+  heroBannerGradientFull: {
     position: 'absolute',
     top: 0,
     left: 0,
@@ -1821,6 +1742,11 @@ const createStyles = (isDesktop: boolean, isTablet: boolean, isMobile: boolean) 
     width: '100%',
     height: '100%',
   },
+  featuredPiecePlaceholder: {
+    backgroundColor: COLORS.gray[100],
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   featuredPieceOverlay: {
     position: 'absolute',
     bottom: 0,
@@ -1993,7 +1919,7 @@ const createStyles = (isDesktop: boolean, isTablet: boolean, isMobile: boolean) 
     alignItems: 'center',
     marginBottom: 12,
     backgroundColor: '#fff',
-    padding: 12,
+    overflow: 'visible',
     ...Platform.select({
       web: {
         boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
@@ -2011,6 +1937,29 @@ const createStyles = (isDesktop: boolean, isTablet: boolean, isMobile: boolean) 
   brandLogoImage: {
     width: '100%',
     height: '100%',
+    borderRadius: 12,
+  },
+  brandPlaceholder: {
+    backgroundColor: COLORS.gray[100],
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  brandCountBadge: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    backgroundColor: COLORS.primary,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+  },
+  brandCountText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#fff',
   },
   brandName: {
     fontSize: isDesktop ? 14 : 11,
@@ -2909,10 +2858,10 @@ const createStyles = (isDesktop: boolean, isTablet: boolean, isMobile: boolean) 
     marginTop: 40,
   },
   footerAppBanner: {
-    flexDirection: isDesktop ? 'row' : isTablet ? 'row' : 'column',
+    flexDirection: 'column',
     marginHorizontal: isDesktop ? 60 : isTablet ? 32 : 16,
-    borderRadius: 32,
-    padding: isDesktop ? 48 : isTablet ? 36 : 28,
+    borderRadius: 24,
+    padding: isDesktop ? 32 : isTablet ? 28 : 24,
     marginBottom: 40,
     overflow: 'hidden',
     alignItems: 'center',
@@ -2985,23 +2934,24 @@ const createStyles = (isDesktop: boolean, isTablet: boolean, isMobile: boolean) 
   },
   footerAppBannerContent: {
     flex: 1,
-    marginRight: isDesktop ? 60 : 0,
-    marginBottom: isDesktop ? 0 : isTablet ? 0 : 24,
+    alignItems: 'center',
     zIndex: 1,
   },
   footerAppBannerTitle: {
-    fontSize: isDesktop ? 36 : isTablet ? 30 : 26,
+    fontSize: isDesktop ? 28 : isTablet ? 24 : 22,
     fontWeight: '800',
     color: '#fff',
-    marginBottom: 16,
-    lineHeight: isDesktop ? 44 : isTablet ? 38 : 34,
+    marginBottom: 12,
+    lineHeight: isDesktop ? 36 : isTablet ? 32 : 30,
     letterSpacing: -0.5,
+    textAlign: 'center',
   },
   footerAppBannerSubtitle: {
-    fontSize: isDesktop ? 17 : 15,
+    fontSize: isDesktop ? 15 : 14,
     color: 'rgba(255,255,255,0.8)',
-    lineHeight: isDesktop ? 26 : 24,
-    marginBottom: 24,
+    lineHeight: isDesktop ? 24 : 22,
+    marginBottom: 20,
+    textAlign: 'center',
   },
   bannerHighlight: {
     color: '#C9A227',
