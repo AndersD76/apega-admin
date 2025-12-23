@@ -1,22 +1,21 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  View,
+  YStack,
+  XStack,
   Text,
-  FlatList,
-  TouchableOpacity,
-  TextInput,
-  ActivityIndicator,
-  RefreshControl,
-  Platform,
-  useWindowDimensions,
-  ScrollView,
   Image,
-} from 'react-native';
+  Input,
+  ScrollView,
+  Stack,
+  styled,
+  useTheme,
+  Spinner,
+  AnimatePresence,
+} from 'tamagui';
+import { RefreshControl, Pressable, useWindowDimensions, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { AppHeader, BottomNavigation, MainHeader } from '../components';
-import ProductCard from '../components/ProductCard';
-import { COLORS, CATEGORIES } from '../constants/theme';
 import { getProducts, Product } from '../services/products';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
@@ -25,114 +24,373 @@ const isWeb = Platform.OS === 'web';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
-// Category Story Component - Instagram style
-const CategoryStory = ({
-  category,
-  isActive,
-  onPress
+// Styled Components
+const Container = styled(YStack, {
+  flex: 1,
+  backgroundColor: '$background',
+});
+
+const TopBanner = styled(XStack, {
+  backgroundColor: '$brand',
+  paddingVertical: '$2',
+  justifyContent: 'center',
+  alignItems: 'center',
+});
+
+const TopBannerText = styled(Text, {
+  color: 'white',
+  fontSize: 12,
+  fontWeight: '500',
+  textAlign: 'center',
+});
+
+const Header = styled(XStack, {
+  paddingHorizontal: '$4',
+  paddingVertical: '$3',
+  alignItems: 'center',
+  gap: '$3',
+  borderBottomWidth: 1,
+  borderBottomColor: '$borderColor',
+  backgroundColor: '$background',
+});
+
+const Logo = styled(Text, {
+  fontSize: 26,
+  fontWeight: '700',
+  color: '$brand',
+  fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+});
+
+const SearchContainer = styled(XStack, {
+  flex: 1,
+  backgroundColor: '$backgroundStrong',
+  borderRadius: '$full',
+  alignItems: 'center',
+  paddingHorizontal: '$3',
+  height: 44,
+  maxWidth: 400,
+});
+
+const SearchInput = styled(Input, {
+  flex: 1,
+  backgroundColor: 'transparent',
+  borderWidth: 0,
+  fontSize: 14,
+  color: '$color',
+  height: 44,
+});
+
+const IconButton = styled(Stack, {
+  width: 40,
+  height: 40,
+  borderRadius: 20,
+  alignItems: 'center',
+  justifyContent: 'center',
+  pressStyle: {
+    opacity: 0.7,
+    scale: 0.95,
+  },
+  animation: 'fast',
+});
+
+const SellButton = styled(Stack, {
+  backgroundColor: '$brand',
+  paddingHorizontal: '$4',
+  paddingVertical: '$2',
+  borderRadius: '$full',
+  pressStyle: {
+    opacity: 0.9,
+    scale: 0.98,
+  },
+  animation: 'fast',
+});
+
+const TabsContainer = styled(ScrollView, {
+  borderBottomWidth: 1,
+  borderBottomColor: '$borderColor',
+});
+
+const Tab = styled(Stack, {
+  paddingVertical: '$3',
+  paddingHorizontal: '$4',
+  pressStyle: {
+    opacity: 0.7,
+  },
+});
+
+const TabText = styled(Text, {
+  fontSize: 14,
+  fontWeight: '500',
+  color: '$placeholderColor',
+
+  variants: {
+    active: {
+      true: {
+        color: '$brand',
+        fontWeight: '600',
+      },
+    },
+  } as const,
+});
+
+const PromoCard = styled(Stack, {
+  borderRadius: '$4',
+  overflow: 'hidden',
+  marginHorizontal: '$4',
+  marginTop: '$4',
+});
+
+const SectionHeader = styled(XStack, {
+  paddingHorizontal: '$4',
+  paddingTop: '$5',
+  paddingBottom: '$3',
+  justifyContent: 'space-between',
+  alignItems: 'flex-end',
+});
+
+const SectionTitle = styled(Text, {
+  fontSize: 22,
+  fontWeight: '700',
+  color: '$color',
+});
+
+const SectionSubtitle = styled(Text, {
+  fontSize: 13,
+  color: '$placeholderColor',
+  marginTop: '$1',
+});
+
+const SeeAllLink = styled(Text, {
+  fontSize: 14,
+  fontWeight: '600',
+  color: '$brand',
+});
+
+const ProductsGrid = styled(XStack, {
+  paddingHorizontal: '$3',
+  gap: '$2',
+});
+
+const ProductColumn = styled(YStack, {
+  flex: 1,
+  gap: '$2',
+});
+
+const ProductCardContainer = styled(Stack, {
+  borderRadius: '$3',
+  overflow: 'hidden',
+  backgroundColor: '$backgroundStrong',
+  pressStyle: {
+    scale: 0.98,
+    opacity: 0.95,
+  },
+  animation: 'fast',
+});
+
+const ProductImage = styled(Image, {
+  width: '100%',
+  backgroundColor: '$backgroundStrong',
+});
+
+const ProductPlaceholder = styled(Stack, {
+  width: '100%',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: '$backgroundStrong',
+});
+
+const PriceTag = styled(Stack, {
+  position: 'absolute',
+  bottom: 10,
+  left: 10,
+  backgroundColor: 'white',
+  paddingHorizontal: '$2',
+  paddingVertical: '$1',
+  borderRadius: '$2',
+  shadowColor: '$shadowColor',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 1,
+  shadowRadius: 4,
+  elevation: 2,
+});
+
+const PriceText = styled(Text, {
+  fontSize: 14,
+  fontWeight: '700',
+  color: '$color',
+});
+
+const FavoriteButton = styled(Stack, {
+  position: 'absolute',
+  top: 10,
+  right: 10,
+  width: 32,
+  height: 32,
+  borderRadius: 16,
+  backgroundColor: 'rgba(0,0,0,0.3)',
+  alignItems: 'center',
+  justifyContent: 'center',
+  pressStyle: {
+    scale: 0.9,
+  },
+  animation: 'bouncy',
+});
+
+const LoadingContainer = styled(YStack, {
+  paddingVertical: '$8',
+  alignItems: 'center',
+  justifyContent: 'center',
+});
+
+// Bottom Navigation
+const BottomNav = styled(XStack, {
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  right: 0,
+  backgroundColor: 'rgba(255,255,255,0.98)',
+  borderTopWidth: 1,
+  borderTopColor: '$borderColor',
+  paddingTop: '$3',
+  justifyContent: 'space-around',
+  alignItems: 'flex-end',
+});
+
+const NavItem = styled(YStack, {
+  flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingVertical: '$1',
+  pressStyle: {
+    opacity: 0.7,
+  },
+});
+
+const NavIconWrap = styled(Stack, {
+  width: 48,
+  height: 32,
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: 16,
+
+  variants: {
+    active: {
+      true: {
+        backgroundColor: '$brandMuted',
+      },
+    },
+  } as const,
+});
+
+const NavLabel = styled(Text, {
+  fontSize: 11,
+  fontWeight: '600',
+  color: '$placeholderColor',
+  marginTop: '$1',
+
+  variants: {
+    active: {
+      true: {
+        color: '$brand',
+        fontWeight: '700',
+      },
+    },
+  } as const,
+});
+
+const CenterNavButton = styled(Stack, {
+  marginTop: -28,
+  width: 60,
+  height: 60,
+  borderRadius: 30,
+  alignItems: 'center',
+  justifyContent: 'center',
+  shadowColor: '$brand',
+  shadowOffset: { width: 0, height: 8 },
+  shadowOpacity: 0.4,
+  shadowRadius: 16,
+  elevation: 8,
+  pressStyle: {
+    scale: 0.95,
+  },
+  animation: 'bouncy',
+});
+
+// Product Item Component
+function ProductItem({
+  item,
+  onPress,
+  width,
+  height,
 }: {
-  category: { id: string; name: string; icon: string };
-  isActive: boolean;
+  item: Product;
   onPress: () => void;
-}) => {
-  const getIconName = () => {
-    switch (category.id) {
-      case 'all': return 'grid';
-      case 'vestidos': return 'shirt';
-      case 'blusas': return 'shirt-outline';
-      case 'calcas': return 'body';
-      case 'saias': return 'woman';
-      case 'shorts': return 'woman-outline';
-      case 'conjuntos': return 'layers';
-      case 'acessorios': return 'watch';
-      case 'calcados': return 'footsteps';
-      case 'bolsas': return 'bag-handle';
-      case 'premium': return 'diamond';
-      default: return 'pricetag';
-    }
-  };
+  width: number;
+  height: number;
+}) {
+  const theme = useTheme();
+  const imageUrl = item.image_url || (item.images && item.images[0]?.image_url) || '';
+  const price = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
 
   return (
-    <TouchableOpacity
-      className="items-center w-[72px]"
-      onPress={onPress}
-      activeOpacity={0.8}
-    >
-      {isActive ? (
-        <LinearGradient
-          colors={['#61005D', '#A855F7']}
-          className="w-16 h-16 rounded-full p-[3px] mb-2"
-        >
-          <View className="flex-1 bg-white rounded-full items-center justify-center">
-            <Ionicons
-              name={getIconName() as any}
-              size={22}
-              color="#61005D"
-            />
-          </View>
-        </LinearGradient>
-      ) : (
-        <View className="w-16 h-16 rounded-full border-2 border-border p-[3px] mb-2">
-          <View className="flex-1 bg-surface rounded-full items-center justify-center">
-            <Ionicons
-              name={getIconName() as any}
-              size={22}
-              color="#6B7280"
-            />
-          </View>
-        </View>
-      )}
-      <Text
-        className={`text-[11px] text-center font-medium ${
-          isActive ? 'text-primary font-semibold' : 'text-text-secondary'
-        }`}
-        numberOfLines={1}
-      >
-        {category.name}
-      </Text>
-    </TouchableOpacity>
-  );
-};
+    <Pressable onPress={onPress}>
+      <ProductCardContainer width={width} height={height}>
+        {imageUrl ? (
+          <ProductImage source={{ uri: imageUrl }} width={width} height={height} resizeMode="cover" />
+        ) : (
+          <ProductPlaceholder height={height}>
+            <Ionicons name="image-outline" size={32} color={theme.placeholderColor?.val} />
+          </ProductPlaceholder>
+        )}
 
+        <PriceTag>
+          <PriceText>R$ {price.toFixed(0)}</PriceText>
+        </PriceTag>
+
+        <FavoriteButton>
+          <Ionicons name="heart-outline" size={18} color="white" />
+        </FavoriteButton>
+      </ProductCardContainer>
+    </Pressable>
+  );
+}
+
+// Main Component
 export default function HomeScreen({ navigation }: Props) {
   const { width } = useWindowDimensions();
-  const isDesktop = isWeb && width > 1024;
-  const isTablet = isWeb && width > 768 && width <= 1024;
-  const numColumns = isDesktop ? 4 : isTablet ? 3 : 2;
+  const insets = useSafeAreaInsets();
+  const theme = useTheme();
+  const isDesktop = isWeb && width > 900;
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchFocused, setSearchFocused] = useState(false);
+  const [activeTab, setActiveTab] = useState('novidades');
 
-  const contentPadding = isWeb ? 32 : 16;
+  const tabs = [
+    { id: 'novidades', label: 'novidades' },
+    { id: 'ofertas', label: 'ofertas' },
+    { id: 'premium', label: 'premium' },
+    { id: 'marcas', label: 'marcas' },
+  ];
 
   const fetchProducts = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
-      const response = await getProducts({
-        search: searchQuery || undefined,
-        category: selectedCategory !== 'all' ? selectedCategory : undefined,
-        limit: 40,
-        sort: 'recent',
-      });
+      const response = await getProducts({ limit: 50, sort: 'recent' });
       setProducts(response.products || []);
     } catch (error) {
-      console.error('Erro ao carregar produtos:', error);
+      console.error('Erro:', error);
       setProducts([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [searchQuery, selectedCategory]);
+  }, []);
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      fetchProducts();
-    }, 250);
-    return () => clearTimeout(timeout);
+    fetchProducts();
   }, [fetchProducts]);
 
   const onRefresh = useCallback(() => {
@@ -140,185 +398,217 @@ export default function HomeScreen({ navigation }: Props) {
     fetchProducts(false);
   }, [fetchProducts]);
 
-  const data = useMemo(() => products || [], [products]);
+  // Layout calculations
+  const gap = 8;
+  const padding = isWeb ? 24 : 12;
+  const numColumns = isDesktop ? 4 : 2;
+  const baseWidth = (width - padding * 2 - gap * (numColumns - 1)) / numColumns;
 
-  const renderItem = ({ item }: { item: Product }) => {
-    const imageUrl = item.image_url || (item.images && item.images[0]?.image_url) || '';
-    const priceValue = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
-    return (
-      <ProductCard
-        id={item.id}
-        image={imageUrl}
-        title={item.brand ? `${item.brand} - ${item.title}` : item.title}
-        price={priceValue}
-        originalPrice={item.original_price}
-        size={item.size}
-        condition={item.condition}
-        numColumns={numColumns}
-        onPress={() => navigation.navigate('ItemDetail', { item })}
-      />
-    );
-  };
+  // Create masonry layout
+  const leftColumn: { item: Product; height: number }[] = [];
+  const rightColumn: { item: Product; height: number }[] = [];
+  let leftHeight = 0;
+  let rightHeight = 0;
 
-  const ListHeader = () => (
-    <View style={{ paddingHorizontal: contentPadding }}>
-      {/* Hero Section */}
-      <LinearGradient
-        colors={['#61005D', '#8B5CF6']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        className="rounded-3xl p-6 mt-4 mb-5 overflow-hidden"
-      >
-        <View className="flex-row justify-between items-center">
-          <View className="flex-1 pr-4">
-            <Text className="text-[10px] font-bold text-white/70 tracking-widest mb-2">
-              MODA CIRCULAR
-            </Text>
-            <Text className="text-2xl font-extrabold text-white leading-8 mb-2">
-              Encontre pecas{'\n'}com historia
-            </Text>
-            <Text className="text-sm text-white/85 font-medium">
-              Curadoria especial, precos justos
-            </Text>
-          </View>
-          <View className="opacity-80">
-            <Ionicons name="leaf" size={48} color="rgba(255,255,255,0.25)" />
-          </View>
-        </View>
-      </LinearGradient>
+  products.forEach((product, index) => {
+    const heights = [baseWidth * 1.2, baseWidth * 1.5, baseWidth * 1.3, baseWidth * 1.4];
+    const h = heights[index % heights.length];
 
-      {/* Search Bar */}
-      <View
-        className={`flex-row items-center bg-surface border-[1.5px] rounded-2xl px-4 py-3.5 gap-3 mb-5 ${
-          searchFocused ? 'border-primary bg-white' : 'border-border'
-        }`}
-      >
-        <Ionicons
-          name="search"
-          size={20}
-          color={searchFocused ? '#61005D' : '#9CA3AF'}
-        />
-        <TextInput
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder="Buscar marca, peca, tamanho..."
-          placeholderTextColor="#9CA3AF"
-          className="flex-1 text-[15px] text-text-primary"
-          onFocus={() => setSearchFocused(true)}
-          onBlur={() => setSearchFocused(false)}
-        />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity
-            onPress={() => setSearchQuery('')}
-            hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
-          >
-            <View className="w-5 h-5 rounded-full bg-text-tertiary items-center justify-center">
-              <Ionicons name="close" size={14} color="#FFFFFF" />
-            </View>
-          </TouchableOpacity>
-        )}
-      </View>
+    if (leftHeight <= rightHeight) {
+      leftColumn.push({ item: product, height: h });
+      leftHeight += h + gap;
+    } else {
+      rightColumn.push({ item: product, height: h });
+      rightHeight += h + gap;
+    }
+  });
 
-      {/* Categories */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 4, gap: 16 }}
-        className="mb-5 -mx-4"
-      >
-        {CATEGORIES.map((cat) => (
-          <CategoryStory
-            key={cat.id}
-            category={cat}
-            isActive={selectedCategory === cat.id}
-            onPress={() => setSelectedCategory(cat.id)}
-          />
-        ))}
-      </ScrollView>
-
-      {/* Section Header */}
-      <View className="flex-row items-center justify-between mb-4">
-        <View>
-          <Text className="text-xl font-bold text-text-primary tracking-tight">
-            Destaques
-          </Text>
-          <Text className="text-[13px] text-text-tertiary mt-0.5">
-            {products.length} pecas disponiveis
-          </Text>
-        </View>
-        <TouchableOpacity
-          className="w-10 h-10 rounded-full bg-surface border border-border items-center justify-center"
-          onPress={() => navigation.navigate('Search')}
-        >
-          <Ionicons name="options-outline" size={18} color="#6B7280" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
-  const ListEmpty = () => (
-    <View className="items-center py-16 px-8">
-      <View className="w-24 h-24 rounded-full bg-background-dark items-center justify-center mb-5">
-        <Ionicons name="search-outline" size={48} color="#9CA3AF" />
-      </View>
-      <Text className="text-xl font-bold text-text-primary mb-2">
-        Nada encontrado
-      </Text>
-      <Text className="text-[15px] text-text-secondary text-center mb-6">
-        Tente outra busca ou categoria
-      </Text>
-      <TouchableOpacity
-        className="px-6 py-3 bg-primary-extraLight rounded-xl"
-        onPress={() => {
-          setSearchQuery('');
-          setSelectedCategory('all');
-        }}
-      >
-        <Text className="text-sm font-semibold text-primary">
-          Limpar filtros
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
+  const navItems = [
+    { key: 'Home', icon: 'home', label: 'Início' },
+    { key: 'Search', icon: 'search', label: 'Buscar' },
+    { key: 'NewItem', icon: 'add', label: 'Vender', isCenter: true },
+    { key: 'Favorites', icon: 'heart', label: 'Salvos' },
+    { key: 'Profile', icon: 'person', label: 'Perfil' },
+  ];
 
   return (
-    <View className="flex-1 bg-background">
-      {isWeb ? (
-        <MainHeader navigation={navigation} />
-      ) : (
-        <AppHeader navigation={navigation} />
-      )}
+    <Container>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.brand?.val}
+            colors={[theme.brand?.val || '#5D8A7D']}
+          />
+        }
+        contentContainerStyle={{ paddingBottom: isWeb ? 40 : 100 }}
+      >
+        {/* Top Banner */}
+        <TopBanner>
+          <TopBannerText>moda sustentável é nosso modo de mudar o mundo ✨</TopBannerText>
+        </TopBanner>
 
-      {loading ? (
-        <View className="flex-1 justify-center items-center gap-4">
-          <ActivityIndicator size="large" color="#61005D" />
-          <Text className="text-[15px] text-text-secondary">
-            Carregando pecas...
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={data}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          numColumns={numColumns}
-          columnWrapperStyle={numColumns > 1 ? { gap: 12, paddingHorizontal: contentPadding } : undefined}
-          ListHeaderComponent={ListHeader}
-          ListEmptyComponent={ListEmpty}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor="#61005D"
-              colors={['#61005D']}
+        {/* Header */}
+        <Header paddingTop={isWeb ? '$3' : insets.top + 8}>
+          <Logo>brechó</Logo>
+
+          <SearchContainer>
+            <Ionicons name="search" size={18} color={theme.placeholderColor?.val} />
+            <SearchInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder='busque "zara"'
+              placeholderTextColor={theme.placeholderColor?.val}
             />
-          }
-          contentContainerStyle={{ paddingBottom: isWeb ? 40 : 100 }}
-        />
-      )}
+          </SearchContainer>
 
-      <BottomNavigation navigation={navigation} activeRoute="Home" />
-    </View>
+          <XStack gap="$2" alignItems="center">
+            {isWeb && (
+              <>
+                <Pressable>
+                  <Text fontSize={14} fontWeight="500" color="$color">feminino</Text>
+                </Pressable>
+                <Pressable>
+                  <Text fontSize={14} fontWeight="500" color="$color" marginLeft="$3">masculino</Text>
+                </Pressable>
+              </>
+            )}
+            <Pressable onPress={() => navigation.navigate('Favorites')}>
+              <IconButton>
+                <Ionicons name="heart-outline" size={22} color={theme.color?.val} />
+              </IconButton>
+            </Pressable>
+            <Pressable onPress={() => navigation.navigate('Profile')}>
+              <IconButton>
+                <Ionicons name="person-outline" size={22} color={theme.color?.val} />
+              </IconButton>
+            </Pressable>
+            <Pressable onPress={() => navigation.navigate('NewItem')}>
+              <SellButton>
+                <Text color="white" fontSize={14} fontWeight="600">quero vender</Text>
+              </SellButton>
+            </Pressable>
+          </XStack>
+        </Header>
+
+        {/* Tabs */}
+        <TabsContainer horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
+          {tabs.map((tab) => (
+            <Pressable key={tab.id} onPress={() => setActiveTab(tab.id)}>
+              <Tab
+                borderBottomWidth={activeTab === tab.id ? 2 : 0}
+                borderBottomColor="$brand"
+              >
+                <TabText active={activeTab === tab.id}>{tab.label}</TabText>
+              </Tab>
+            </Pressable>
+          ))}
+        </TabsContainer>
+
+        {/* Promo Banner */}
+        <PromoCard>
+          <LinearGradient
+            colors={['#5D8A7D', '#7BA396']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ padding: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+          >
+            <YStack>
+              <Text fontSize={32} fontWeight="800" color="white">até 70% off</Text>
+              <Text fontSize={15} color="rgba(255,255,255,0.85)">em peças selecionadas</Text>
+            </YStack>
+            <Pressable>
+              <Stack backgroundColor="white" paddingHorizontal="$5" paddingVertical="$3" borderRadius="$full">
+                <Text color="$brand" fontSize={14} fontWeight="600">ver tudo</Text>
+              </Stack>
+            </Pressable>
+          </LinearGradient>
+        </PromoCard>
+
+        {/* Section Header */}
+        <SectionHeader>
+          <YStack>
+            <SectionTitle>acabou de chegar</SectionTitle>
+            <SectionSubtitle>corre que é novidade quentinha</SectionSubtitle>
+          </YStack>
+          <Pressable>
+            <SeeAllLink>não vai perder</SeeAllLink>
+          </Pressable>
+        </SectionHeader>
+
+        {/* Products Grid */}
+        {loading ? (
+          <LoadingContainer>
+            <Spinner size="large" color="$brand" />
+          </LoadingContainer>
+        ) : (
+          <ProductsGrid paddingHorizontal={padding}>
+            <ProductColumn marginRight={gap / 2}>
+              {leftColumn.map(({ item, height }) => (
+                <ProductItem
+                  key={item.id}
+                  item={item}
+                  width={baseWidth}
+                  height={height}
+                  onPress={() => navigation.navigate('ItemDetail', { item })}
+                />
+              ))}
+            </ProductColumn>
+            <ProductColumn marginLeft={gap / 2}>
+              {rightColumn.map(({ item, height }) => (
+                <ProductItem
+                  key={item.id}
+                  item={item}
+                  width={baseWidth}
+                  height={height}
+                  onPress={() => navigation.navigate('ItemDetail', { item })}
+                />
+              ))}
+            </ProductColumn>
+          </ProductsGrid>
+        )}
+      </ScrollView>
+
+      {/* Bottom Navigation */}
+      {!isDesktop && (
+        <BottomNav paddingBottom={Math.max(insets.bottom, 12)}>
+          {navItems.map((item) => {
+            const isActive = item.key === 'Home';
+
+            if (item.isCenter) {
+              return (
+                <Pressable key={item.key} onPress={() => navigation.navigate(item.key as any)}>
+                  <CenterNavButton>
+                    <LinearGradient
+                      colors={['#5D8A7D', '#7BA396']}
+                      style={{ width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <Ionicons name="add" size={32} color="white" />
+                    </LinearGradient>
+                  </CenterNavButton>
+                </Pressable>
+              );
+            }
+
+            return (
+              <Pressable key={item.key} onPress={() => navigation.navigate(item.key as any)}>
+                <NavItem>
+                  <NavIconWrap active={isActive}>
+                    <Ionicons
+                      name={isActive ? (item.icon as any) : (`${item.icon}-outline` as any)}
+                      size={24}
+                      color={isActive ? theme.brand?.val : theme.placeholderColor?.val}
+                    />
+                  </NavIconWrap>
+                  <NavLabel active={isActive}>{item.label}</NavLabel>
+                </NavItem>
+              </Pressable>
+            );
+          })}
+        </BottomNav>
+      )}
+    </Container>
   );
 }

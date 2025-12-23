@@ -3,6 +3,7 @@ import {
   View,
   Text,
   Image,
+  StyleSheet,
   TouchableOpacity,
   Platform,
   useWindowDimensions,
@@ -19,7 +20,6 @@ interface ProductCardProps {
   price: number;
   originalPrice?: number | null;
   likes?: number;
-  views?: number;
   isFavorited?: boolean;
   isSold?: boolean;
   condition?: string;
@@ -48,154 +48,297 @@ export default function ProductCard({
   compact = false,
 }: ProductCardProps) {
   const { width } = useWindowDimensions();
-  const containerPadding = isWeb ? 32 : 16;
-  const gap = 12;
+  const containerPadding = isWeb ? 24 : 12;
+  const gap = 10;
   const cardWidth = (width - containerPadding * 2 - gap * (numColumns - 1)) / numColumns;
-  const imageHeight = cardWidth * 1.25;
+  const imageHeight = cardWidth * 1.35;
 
   const hasDiscount = originalPrice && originalPrice > price;
   const discountPercent = hasDiscount
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
 
-  const getConditionColor = () => {
-    switch (condition?.toLowerCase()) {
-      case 'novo':
-      case 'novo com etiqueta':
-        return 'bg-success';
-      case 'seminovo':
-        return 'bg-primary';
-      default:
-        return 'bg-warning';
-    }
-  };
-
   return (
     <TouchableOpacity
-      className="bg-surface rounded-2xl overflow-hidden mb-4 shadow-card"
-      style={{ width: cardWidth }}
+      style={[styles.card, { width: cardWidth }]}
       onPress={onPress}
-      activeOpacity={0.95}
+      activeOpacity={0.92}
     >
-      {/* Image Container */}
-      <View className="relative bg-background-dark overflow-hidden" style={{ height: imageHeight }}>
+      {/* Imagem com overlay */}
+      <View style={[styles.imageContainer, { height: imageHeight }]}>
         {image ? (
-          <Image
-            source={{ uri: image }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
+          <Image source={{ uri: image }} style={styles.image} resizeMode="cover" />
         ) : (
-          <View className="flex-1 items-center justify-center bg-background-dark">
-            <Ionicons name="shirt-outline" size={32} color="#D1D5DB" />
+          <View style={styles.placeholder}>
+            <Ionicons name="image-outline" size={40} color="#CBD5E1" />
           </View>
         )}
 
-        {/* Top gradient overlay */}
+        {/* Gradiente escuro no topo */}
         <LinearGradient
-          colors={['rgba(0,0,0,0.25)', 'transparent']}
-          className="absolute top-0 left-0 right-0 h-14"
+          colors={['rgba(0,0,0,0.4)', 'transparent', 'transparent', 'rgba(0,0,0,0.2)']}
+          style={StyleSheet.absoluteFill}
         />
 
-        {/* Favorite button */}
+        {/* Badge de desconto */}
+        {hasDiscount && (
+          <View style={styles.discountBadge}>
+            <Text style={styles.discountText}>-{discountPercent}%</Text>
+          </View>
+        )}
+
+        {/* Badge NOVO */}
+        {isNew && !hasDiscount && (
+          <View style={styles.newBadge}>
+            <Text style={styles.newText}>NOVO</Text>
+          </View>
+        )}
+
+        {/* Botao favorito */}
         {onFavorite && (
           <TouchableOpacity
-            className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-black/25 items-center justify-center"
+            style={styles.favoriteBtn}
             onPress={(e) => {
               e.stopPropagation();
               onFavorite();
             }}
-            hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
           >
             <Ionicons
               name={isFavorited ? 'heart' : 'heart-outline'}
-              size={20}
-              color={isFavorited ? '#EF4444' : '#FFFFFF'}
+              size={22}
+              color={isFavorited ? '#F43F5E' : '#FFF'}
             />
           </TouchableOpacity>
         )}
 
-        {/* Discount badge */}
-        {hasDiscount && (
-          <View className="absolute top-2.5 left-2.5 bg-error px-2 py-1 rounded-md">
-            <Text className="text-white text-[11px] font-bold tracking-wide">
-              -{discountPercent}%
-            </Text>
-          </View>
-        )}
-
-        {/* New badge */}
-        {isNew && !hasDiscount && (
-          <LinearGradient
-            colors={['#61005D', '#A855F7']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md"
-          >
-            <Text className="text-white text-[10px] font-extrabold tracking-widest">
-              NOVO
-            </Text>
-          </LinearGradient>
-        )}
-
-        {/* Sold overlay */}
+        {/* Overlay vendido */}
         {isSold && (
-          <View className="absolute inset-0 bg-black/60 items-center justify-center">
-            <View className="flex-row items-center gap-1.5 bg-black/50 px-4 py-2 rounded-full">
-              <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
-              <Text className="text-white text-xs font-bold tracking-widest">
-                VENDIDO
-              </Text>
+          <View style={styles.soldOverlay}>
+            <View style={styles.soldBadge}>
+              <Ionicons name="checkmark-done" size={20} color="#FFF" />
+              <Text style={styles.soldText}>VENDIDO</Text>
             </View>
           </View>
         )}
 
-        {/* Likes container */}
-        {likes > 0 && !isSold && (
-          <View className="absolute bottom-2.5 left-2.5 flex-row items-center gap-1 bg-black/40 px-2 py-1 rounded-full">
-            <Ionicons name="heart" size={12} color="#FFFFFF" />
-            <Text className="text-white text-[11px] font-semibold">
-              {likes}
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Info section */}
-      <View className={compact ? 'p-2.5' : 'p-3'}>
-        {/* Price row */}
-        <View className="flex-row items-center gap-2 mb-1">
-          <Text className="text-base font-extrabold text-text-primary tracking-tight">
-            R$ {price.toFixed(0)}
-          </Text>
-          {hasDiscount && (
-            <Text className="text-[13px] text-text-tertiary line-through">
-              R$ {originalPrice?.toFixed(0)}
-            </Text>
+        {/* Info no rodape da imagem */}
+        <View style={styles.imageFooter}>
+          {size && (
+            <View style={styles.sizeTag}>
+              <Text style={styles.sizeText}>{size}</Text>
+            </View>
+          )}
+          {likes > 0 && (
+            <View style={styles.likesTag}>
+              <Ionicons name="heart" size={11} color="#FFF" />
+              <Text style={styles.likesText}>{likes}</Text>
+            </View>
           )}
         </View>
+      </View>
 
-        {/* Title */}
-        <Text className="text-[13px] text-text-secondary leading-[18px] mb-2" numberOfLines={2}>
-          {title}
-        </Text>
-
-        {/* Size and condition tags */}
-        {!compact && (size || condition) && (
-          <View className="flex-row items-center gap-2">
-            {size && (
-              <View className="bg-background-dark px-2.5 py-1 rounded-md">
-                <Text className="text-[11px] text-text-secondary font-semibold">
-                  {size}
-                </Text>
-              </View>
-            )}
-            {condition && (
-              <View className={`w-2 h-2 rounded-full ${getConditionColor()}`} />
-            )}
+      {/* Informacoes */}
+      <View style={styles.info}>
+        <View style={styles.priceRow}>
+          <Text style={styles.price}>R${price.toFixed(0)}</Text>
+          {hasDiscount && (
+            <Text style={styles.oldPrice}>R${originalPrice?.toFixed(0)}</Text>
+          )}
+        </View>
+        <Text style={styles.title} numberOfLines={1}>{title}</Text>
+        {condition && (
+          <View style={styles.conditionRow}>
+            <View style={[
+              styles.conditionDot,
+              condition.toLowerCase().includes('novo') ? styles.conditionNew :
+              condition.toLowerCase().includes('semi') ? styles.conditionGood :
+              styles.conditionUsed
+            ]} />
+            <Text style={styles.conditionText}>{condition}</Text>
           </View>
         )}
       </View>
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    marginBottom: 12,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 4,
+      },
+      web: {
+        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+      },
+    }),
+  },
+  imageContainer: {
+    backgroundColor: '#F1F5F9',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  placeholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8FAFC',
+  },
+  discountBadge: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    backgroundColor: '#F43F5E',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  discountText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  newBadge: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    backgroundColor: '#8B5CF6',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  newText: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  favoriteBtn: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  soldOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  soldBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 30,
+  },
+  soldText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  imageFooter: {
+    position: 'absolute',
+    bottom: 10,
+    left: 10,
+    right: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  sizeTag: {
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  sizeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  likesTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  likesText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  info: {
+    padding: 12,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+    marginBottom: 4,
+  },
+  price: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: -0.5,
+  },
+  oldPrice: {
+    fontSize: 14,
+    color: '#94A3B8',
+    textDecorationLine: 'line-through',
+  },
+  title: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 6,
+  },
+  conditionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  conditionDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  conditionNew: {
+    backgroundColor: '#10B981',
+  },
+  conditionGood: {
+    backgroundColor: '#8B5CF6',
+  },
+  conditionUsed: {
+    backgroundColor: '#F59E0B',
+  },
+  conditionText: {
+    fontSize: 12,
+    color: '#94A3B8',
+  },
+});

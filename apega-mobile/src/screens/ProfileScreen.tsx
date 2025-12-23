@@ -1,96 +1,381 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  View,
+  YStack,
+  XStack,
   Text,
-  TouchableOpacity,
-  ActivityIndicator,
   Image,
-  FlatList,
-  RefreshControl,
-  Platform,
-  useWindowDimensions,
-} from 'react-native';
+  ScrollView,
+  Stack,
+  styled,
+  useTheme,
+  Spinner,
+  Separator,
+} from 'tamagui';
+import { RefreshControl, Pressable, useWindowDimensions, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BottomNavigation, Header, MainHeader } from '../components';
-import ProductCard from '../components/ProductCard';
 import { useAuth } from '../contexts/AuthContext';
 import { getMyProducts, Product } from '../services/products';
+import { Button, Avatar } from '../components/ui';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 
 const isWeb = Platform.OS === 'web';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
-type ProfileTab = 'all' | 'active' | 'sold';
 
-// Stat Item Component
-const StatItem = ({ value, label }: { value: number; label: string }) => (
-  <View className="items-center">
-    <Text className="text-xl font-bold text-text-primary">{value}</Text>
-    <Text className="text-xs text-text-secondary mt-0.5">{label}</Text>
-  </View>
-);
+// Styled Components
+const Container = styled(YStack, {
+  flex: 1,
+  backgroundColor: '$background',
+});
 
-// Tab Button Component
-const TabButton = ({
-  label,
+const Header = styled(XStack, {
+  paddingHorizontal: '$4',
+  paddingVertical: '$3',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  borderBottomWidth: 1,
+  borderBottomColor: '$borderColor',
+  backgroundColor: '$background',
+});
+
+const Logo = styled(Text, {
+  fontSize: 20,
+  fontWeight: '700',
+  color: '$brand',
+  fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+});
+
+const ProfileSection = styled(YStack, {
+  alignItems: 'center',
+  paddingVertical: '$6',
+  paddingHorizontal: '$4',
+  borderBottomWidth: 1,
+  borderBottomColor: '$borderColor',
+});
+
+const AvatarContainer = styled(Stack, {
+  position: 'relative',
+  marginBottom: '$4',
+});
+
+const EditAvatarButton = styled(Stack, {
+  position: 'absolute',
+  bottom: 0,
+  right: 0,
+  width: 32,
+  height: 32,
+  borderRadius: 16,
+  backgroundColor: '$brand',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderWidth: 3,
+  borderColor: '$background',
+});
+
+const UserName = styled(Text, {
+  fontSize: 22,
+  fontWeight: '600',
+  color: '$color',
+  marginBottom: '$1',
+});
+
+const UserEmail = styled(Text, {
+  fontSize: 14,
+  color: '$placeholderColor',
+});
+
+const RatingContainer = styled(XStack, {
+  alignItems: 'center',
+  gap: '$1',
+  marginTop: '$2',
+});
+
+const StatsContainer = styled(XStack, {
+  paddingVertical: '$4',
+  paddingHorizontal: '$4',
+  borderBottomWidth: 1,
+  borderBottomColor: '$borderColor',
+});
+
+const StatItem = styled(YStack, {
+  flex: 1,
+  alignItems: 'center',
+});
+
+const StatValue = styled(Text, {
+  fontSize: 24,
+  fontWeight: '700',
+  color: '$color',
+});
+
+const StatLabel = styled(Text, {
+  fontSize: 13,
+  color: '$placeholderColor',
+  marginTop: '$1',
+});
+
+const StatDivider = styled(Stack, {
+  width: 1,
+  backgroundColor: '$borderColor',
+});
+
+const MenuSection = styled(YStack, {
+  paddingTop: '$5',
+  paddingHorizontal: '$4',
+});
+
+const MenuSectionTitle = styled(Text, {
+  fontSize: 13,
+  fontWeight: '600',
+  color: '$placeholderColor',
+  textTransform: 'lowercase',
+  marginBottom: '$3',
+  paddingLeft: '$1',
+});
+
+const MenuItem = styled(XStack, {
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingVertical: '$3',
+  pressStyle: {
+    opacity: 0.7,
+  },
+});
+
+const MenuLeft = styled(XStack, {
+  alignItems: 'center',
+  flex: 1,
+  gap: '$3',
+});
+
+const MenuIconWrap = styled(Stack, {
+  width: 40,
+  height: 40,
+  borderRadius: 20,
+  backgroundColor: '$backgroundStrong',
+  alignItems: 'center',
+  justifyContent: 'center',
+
+  variants: {
+    complete: {
+      true: {
+        backgroundColor: '$brand',
+      },
+    },
+  } as const,
+});
+
+const MenuContent = styled(YStack, {
+  flex: 1,
+});
+
+const MenuLabel = styled(Text, {
+  fontSize: 15,
+  fontWeight: '500',
+  color: '$color',
+});
+
+const MenuValue = styled(Text, {
+  fontSize: 13,
+  color: '$placeholderColor',
+  marginTop: 2,
+});
+
+const MenuDivider = styled(Stack, {
+  height: 1,
+  backgroundColor: '$borderColor',
+  marginLeft: 52,
+});
+
+const LogoutButton = styled(XStack, {
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '$2',
+  paddingVertical: '$4',
+  marginTop: '$5',
+  marginHorizontal: '$4',
+  borderTopWidth: 1,
+  borderTopColor: '$borderColor',
+  pressStyle: {
+    opacity: 0.7,
+  },
+});
+
+const VersionText = styled(Text, {
+  fontSize: 12,
+  color: '$placeholderColor',
+  textAlign: 'center',
+  paddingVertical: '$4',
+});
+
+// Guest State Components
+const GuestContainer = styled(YStack, {
+  flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '$6',
+});
+
+const GuestAvatar = styled(Stack, {
+  width: 100,
+  height: 100,
+  borderRadius: 50,
+  backgroundColor: '$backgroundStrong',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginBottom: '$5',
+});
+
+const GuestTitle = styled(Text, {
+  fontSize: 24,
+  fontWeight: '600',
+  color: '$color',
+  marginBottom: '$2',
+});
+
+const GuestSubtitle = styled(Text, {
+  fontSize: 15,
+  color: '$placeholderColor',
+  textAlign: 'center',
+  marginBottom: '$6',
+  lineHeight: 22,
+});
+
+// Bottom Navigation
+const BottomNav = styled(XStack, {
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  right: 0,
+  backgroundColor: 'rgba(255,255,255,0.98)',
+  borderTopWidth: 1,
+  borderTopColor: '$borderColor',
+  paddingTop: '$3',
+  justifyContent: 'space-around',
+  alignItems: 'flex-end',
+});
+
+const NavItem = styled(YStack, {
+  flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingVertical: '$1',
+  pressStyle: {
+    opacity: 0.7,
+  },
+});
+
+const NavIconWrap = styled(Stack, {
+  width: 48,
+  height: 32,
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: 16,
+
+  variants: {
+    active: {
+      true: {
+        backgroundColor: '$brandMuted',
+      },
+    },
+  } as const,
+});
+
+const NavLabel = styled(Text, {
+  fontSize: 11,
+  fontWeight: '600',
+  color: '$placeholderColor',
+  marginTop: '$1',
+
+  variants: {
+    active: {
+      true: {
+        color: '$brand',
+        fontWeight: '700',
+      },
+    },
+  } as const,
+});
+
+const CenterNavButton = styled(Stack, {
+  marginTop: -28,
+  width: 60,
+  height: 60,
+  borderRadius: 30,
+  alignItems: 'center',
+  justifyContent: 'center',
+  shadowColor: '$brand',
+  shadowOffset: { width: 0, height: 8 },
+  shadowOpacity: 0.4,
+  shadowRadius: 16,
+  elevation: 8,
+  pressStyle: {
+    scale: 0.95,
+  },
+  animation: 'bouncy',
+});
+
+// Menu Item Component
+function MenuItemRow({
   icon,
-  isActive,
-  onPress
+  label,
+  value,
+  onPress,
+  isComplete = false,
 }: {
-  label: string;
   icon: string;
-  isActive: boolean;
-  onPress: () => void;
-}) => (
-  <TouchableOpacity
-    className={`flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-full border ${
-      isActive
-        ? 'border-primary bg-primary-extraLight'
-        : 'border-border bg-surface'
-    }`}
-    onPress={onPress}
-    activeOpacity={0.7}
-  >
-    <Ionicons
-      name={icon as any}
-      size={18}
-      color={isActive ? '#61005D' : '#9CA3AF'}
-    />
-    <Text className={`text-xs font-semibold ${isActive ? 'text-primary' : 'text-text-tertiary'}`}>
-      {label}
-    </Text>
-  </TouchableOpacity>
-);
+  label: string;
+  value?: string;
+  onPress?: () => void;
+  isComplete?: boolean;
+}) {
+  const theme = useTheme();
+
+  return (
+    <Pressable onPress={onPress}>
+      <MenuItem>
+        <MenuLeft>
+          <MenuIconWrap complete={isComplete}>
+            <Ionicons
+              name={icon as any}
+              size={18}
+              color={isComplete ? 'white' : theme.placeholderColor?.val}
+            />
+          </MenuIconWrap>
+          <MenuContent>
+            <MenuLabel>{label}</MenuLabel>
+            {value && <MenuValue>{value}</MenuValue>}
+          </MenuContent>
+        </MenuLeft>
+        <Ionicons name="chevron-forward" size={20} color={theme.borderColor?.val} />
+      </MenuItem>
+    </Pressable>
+  );
+}
 
 export default function ProfileScreen({ navigation }: Props) {
   const { width } = useWindowDimensions();
-  const isDesktop = isWeb && width > 1024;
-  const isTablet = isWeb && width > 768 && width <= 1024;
-  const numColumns = isDesktop ? 4 : isTablet ? 3 : 2;
+  const insets = useSafeAreaInsets();
+  const theme = useTheme();
+  const isDesktop = isWeb && width > 900;
 
-  const { user, isAuthenticated, isLoading, refreshUser } = useAuth();
+  const { user, isAuthenticated, isLoading, refreshUser, logout } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<ProfileTab>('all');
-
-  const contentPadding = isWeb ? 32 : 16;
 
   const loadProducts = useCallback(async () => {
     if (!isAuthenticated) return;
-    setLoadingProducts(true);
     try {
-      const response = await getMyProducts(activeTab === 'all' ? undefined : activeTab);
+      const response = await getMyProducts();
       setProducts(response.products || []);
     } catch (error) {
-      console.error('Erro ao carregar produtos:', error);
+      console.error('Erro:', error);
       setProducts([]);
-    } finally {
-      setLoadingProducts(false);
     }
-  }, [isAuthenticated, activeTab]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -106,270 +391,310 @@ export default function ProfileScreen({ navigation }: Props) {
     setRefreshing(false);
   };
 
-  const stats = useMemo(() => {
-    const activeCount = products.filter((p) => p.status === 'active').length;
-    const soldCount = products.filter((p) => p.status === 'sold').length;
-    return {
-      active: activeCount,
-      sold: soldCount,
+  const stats = useMemo(
+    () => ({
+      active: products.filter((p) => p.status === 'active').length,
+      sold: products.filter((p) => p.status === 'sold').length,
       total: products.length,
-    };
-  }, [products]);
+    }),
+    [products]
+  );
 
-  const renderProduct = ({ item }: { item: Product }) => {
-    const imageUrl = item.image_url || (item.images && item.images[0]?.image_url) || '';
-    const priceValue = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
-    return (
-      <ProductCard
-        id={item.id}
-        image={imageUrl}
-        title={item.title}
-        price={priceValue}
-        originalPrice={item.original_price}
-        condition={item.condition}
-        numColumns={numColumns}
-        onPress={() => navigation.navigate('ItemDetail', { item })}
-        compact
-      />
-    );
-  };
+  const navItems = [
+    { key: 'Home', icon: 'home', label: 'Início' },
+    { key: 'Search', icon: 'search', label: 'Buscar' },
+    { key: 'NewItem', icon: 'add', label: 'Vender', isCenter: true },
+    { key: 'Favorites', icon: 'heart', label: 'Salvos' },
+    { key: 'Profile', icon: 'person', label: 'Perfil' },
+  ];
 
-  // Loading state
   if (isLoading) {
     return (
-      <View className="flex-1 justify-center items-center bg-background">
-        <ActivityIndicator size="large" color="#61005D" />
-      </View>
+      <Container alignItems="center" justifyContent="center">
+        <Spinner size="large" color="$brand" />
+      </Container>
     );
   }
 
-  // Guest state
+  // Guest State
   if (!isAuthenticated || !user) {
     return (
-      <View className="flex-1 bg-background">
-        {isWeb ? (
-          <MainHeader navigation={navigation} title="Perfil" />
-        ) : (
-          <Header navigation={navigation} title="Perfil" showBack={false} />
-        )}
+      <Container>
+        <Header paddingTop={isWeb ? '$3' : insets.top + 8}>
+          <Pressable onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color={theme.color?.val} />
+          </Pressable>
+          <Logo>brechó</Logo>
+          <Stack width={24} />
+        </Header>
 
-        <View className="flex-1 items-center justify-center p-8">
-          <LinearGradient
-            colors={['#61005D', '#A855F7']}
-            className="w-24 h-24 rounded-full items-center justify-center mb-6 shadow-primary"
-          >
-            <Ionicons name="person" size={48} color="#FFFFFF" />
-          </LinearGradient>
+        <GuestContainer>
+          <GuestAvatar>
+            <Ionicons name="person-outline" size={48} color={theme.placeholderColor?.val} />
+          </GuestAvatar>
 
-          <Text className="text-2xl font-bold text-text-primary mb-2 text-center">
-            Entre para continuar
-          </Text>
-          <Text className="text-[15px] text-text-secondary text-center mb-8 leading-6">
-            Crie sua loja, anuncie pecas e acompanhe suas vendas
-          </Text>
+          <GuestTitle>entre na sua conta</GuestTitle>
+          <GuestSubtitle>para vender, comprar e acompanhar seus pedidos</GuestSubtitle>
 
-          <TouchableOpacity
-            className="w-full max-w-[280px] mb-4"
-            onPress={() => navigation.navigate('Login')}
-          >
-            <LinearGradient
-              colors={['#61005D', '#A855F7']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              className="py-4 rounded-xl items-center shadow-primary"
+          <YStack width="100%" maxWidth={300} gap="$3">
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              onPress={() => navigation.navigate('Login')}
             >
-              <Text className="text-base font-bold text-white">Entrar</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+              entrar
+            </Button>
+            <Button
+              variant="secondary"
+              size="lg"
+              fullWidth
+              onPress={() => navigation.navigate('Register')}
+            >
+              criar conta
+            </Button>
+          </YStack>
+        </GuestContainer>
 
-          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-            <Text className="text-[15px] font-semibold text-primary">
-              Criar conta gratuita
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {!isDesktop && (
+          <BottomNav paddingBottom={Math.max(insets.bottom, 12)}>
+            {navItems.map((item) => {
+              const isActive = item.key === 'Profile';
 
-        <BottomNavigation navigation={navigation} activeRoute="Profile" />
-      </View>
+              if (item.isCenter) {
+                return (
+                  <Pressable key={item.key} onPress={() => navigation.navigate(item.key as any)}>
+                    <CenterNavButton>
+                      <LinearGradient
+                        colors={['#5D8A7D', '#7BA396']}
+                        style={{ width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <Ionicons name="add" size={32} color="white" />
+                      </LinearGradient>
+                    </CenterNavButton>
+                  </Pressable>
+                );
+              }
+
+              return (
+                <Pressable key={item.key} onPress={() => navigation.navigate(item.key as any)}>
+                  <NavItem>
+                    <NavIconWrap active={isActive}>
+                      <Ionicons
+                        name={isActive ? (item.icon as any) : (`${item.icon}-outline` as any)}
+                        size={24}
+                        color={isActive ? theme.brand?.val : theme.placeholderColor?.val}
+                      />
+                    </NavIconWrap>
+                    <NavLabel active={isActive}>{item.label}</NavLabel>
+                  </NavItem>
+                </Pressable>
+              );
+            })}
+          </BottomNav>
+        )}
+      </Container>
     );
   }
 
   const rating = typeof user.rating === 'number' ? user.rating : parseFloat(user.rating || '0');
+  const hasAddress = user.city && user.state;
+  const hasPhone = user.phone;
 
   return (
-    <View className="flex-1 bg-background">
-      {isWeb ? (
-        <MainHeader navigation={navigation} title="Perfil" />
-      ) : (
-        <Header navigation={navigation} title="Perfil" showBack={false} />
-      )}
+    <Container>
+      <Header paddingTop={isWeb ? '$3' : insets.top + 8}>
+        <Pressable onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color={theme.color?.val} />
+        </Pressable>
+        <Logo>brechó</Logo>
+        <Pressable onPress={() => navigation.navigate('EditProfile')}>
+          <Avatar src={user.avatar_url} name={user.name} size="sm" />
+        </Pressable>
+      </Header>
 
-      <FlatList
-        data={products}
-        renderItem={renderProduct}
-        keyExtractor={(item) => item.id}
-        numColumns={numColumns}
-        columnWrapperStyle={numColumns > 1 ? { gap: 12, paddingHorizontal: contentPadding } : undefined}
-        ListHeaderComponent={
-          <View style={{ paddingHorizontal: contentPadding }}>
-            {/* Profile Header */}
-            <View className="flex-row items-center pt-5 pb-4">
-              {/* Avatar with gradient ring */}
-              <LinearGradient
-                colors={['#61005D', '#A855F7']}
-                className="w-[90px] h-[90px] rounded-full p-[3px] mr-5"
-              >
-                <View className="flex-1 bg-surface rounded-full items-center justify-center overflow-hidden">
-                  {user.avatar_url ? (
-                    <Image
-                      source={{ uri: user.avatar_url }}
-                      className="w-full h-full"
-                    />
-                  ) : (
-                    <Text className="text-3xl font-bold text-primary">
-                      {user.name?.charAt(0).toUpperCase() || 'U'}
-                    </Text>
-                  )}
-                </View>
-              </LinearGradient>
-
-              {/* Stats */}
-              <View className="flex-1 flex-row justify-around">
-                <StatItem value={stats.total} label="pecas" />
-                <StatItem value={user.total_followers || 0} label="seguidores" />
-                <StatItem value={user.total_following || 0} label="seguindo" />
-              </View>
-            </View>
-
-            {/* Profile Info */}
-            <View className="mb-5">
-              <View className="flex-row items-center gap-1.5 mb-1">
-                <Text className="text-lg font-bold text-text-primary">
-                  {user.store_name || user.name}
-                </Text>
-                {user.is_verified && (
-                  <Ionicons name="checkmark-circle" size={18} color="#3B82F6" />
-                )}
-              </View>
-
-              {(user.store_description || user.bio) && (
-                <Text className="text-sm text-text-secondary leading-5 mt-1">
-                  {user.store_description || user.bio}
-                </Text>
-              )}
-
-              {user.city && user.state && (
-                <View className="flex-row items-center gap-1 mt-2">
-                  <Ionicons name="location-outline" size={14} color="#9CA3AF" />
-                  <Text className="text-[13px] text-text-tertiary">
-                    {user.city}, {user.state}
-                  </Text>
-                </View>
-              )}
-
-              {user.total_reviews > 0 && (
-                <View className="flex-row items-center gap-1 mt-2">
-                  <Ionicons name="star" size={14} color="#F59E0B" />
-                  <Text className="text-[13px] text-text-secondary">
-                    {rating.toFixed(1)} ({user.total_reviews} avaliacoes)
-                  </Text>
-                </View>
-              )}
-            </View>
-
-            {/* Action Buttons */}
-            <View className="flex-row gap-3 mb-5">
-              <TouchableOpacity
-                className="flex-1 flex-row items-center justify-center gap-1.5 py-3 bg-surface border border-border rounded-xl shadow-card"
-                onPress={() => navigation.navigate('EditProfile')}
-              >
-                <Ionicons name="pencil-outline" size={16} color="#111827" />
-                <Text className="text-[13px] font-semibold text-text-primary">
-                  Editar perfil
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className="flex-1 flex-row items-center justify-center gap-1.5 py-3 bg-primary-extraLight border border-primary-extraLight rounded-xl"
-                onPress={() => navigation.navigate('Sales')}
-              >
-                <Ionicons name="stats-chart" size={16} color="#61005D" />
-                <Text className="text-[13px] font-semibold text-primary">
-                  Painel de vendas
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Tabs */}
-            <View className="flex-row gap-2 mb-5">
-              <TabButton
-                label="Todos"
-                icon="grid-outline"
-                isActive={activeTab === 'all'}
-                onPress={() => setActiveTab('all')}
-              />
-              <TabButton
-                label="Ativos"
-                icon="pricetag-outline"
-                isActive={activeTab === 'active'}
-                onPress={() => setActiveTab('active')}
-              />
-              <TabButton
-                label="Vendidos"
-                icon="checkmark-circle-outline"
-                isActive={activeTab === 'sold'}
-                onPress={() => setActiveTab('sold')}
-              />
-            </View>
-          </View>
-        }
-        ListEmptyComponent={
-          loadingProducts ? (
-            <View className="py-16 items-center">
-              <ActivityIndicator size="large" color="#61005D" />
-            </View>
-          ) : (
-            <View className="items-center py-16 px-8">
-              <View className="w-20 h-20 rounded-full bg-background-dark items-center justify-center mb-4">
-                <Ionicons name="camera-outline" size={40} color="#9CA3AF" />
-              </View>
-              <Text className="text-lg font-bold text-text-primary mb-1.5">
-                Nenhuma peca ainda
-              </Text>
-              <Text className="text-sm text-text-secondary text-center mb-6">
-                Comece a vender suas pecas agora
-              </Text>
-              <TouchableOpacity
-                className="rounded-xl overflow-hidden"
-                onPress={() => navigation.navigate('NewItem')}
-              >
-                <LinearGradient
-                  colors={['#61005D', '#A855F7']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  className="flex-row items-center gap-2 px-6 py-3.5"
-                >
-                  <Ionicons name="add" size={20} color="#FFFFFF" />
-                  <Text className="text-[15px] font-semibold text-white">
-                    Anunciar peca
-                  </Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
-          )
-        }
+      <ScrollView
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor="#61005D"
-            colors={['#61005D']}
+            tintColor={theme.brand?.val}
+            colors={[theme.brand?.val || '#5D8A7D']}
           />
         }
-        contentContainerStyle={{ paddingBottom: isWeb ? 40 : 100 }}
-      />
+        contentContainerStyle={{ paddingBottom: isWeb ? 40 : 120 }}
+      >
+        {/* Profile Section */}
+        <ProfileSection>
+          <AvatarContainer>
+            <Avatar src={user.avatar_url} name={user.name} size="xl" />
+            <Pressable onPress={() => navigation.navigate('EditProfile')}>
+              <EditAvatarButton>
+                <Ionicons name="camera" size={14} color="white" />
+              </EditAvatarButton>
+            </Pressable>
+          </AvatarContainer>
 
-      <BottomNavigation navigation={navigation} activeRoute="Profile" />
-    </View>
+          <UserName>{user.store_name || user.name}</UserName>
+          <UserEmail>{user.email}</UserEmail>
+
+          {user.total_reviews > 0 && (
+            <RatingContainer>
+              <Ionicons name="star" size={14} color="#F5A623" />
+              <Text fontSize={14} fontWeight="600" color="$color">{rating.toFixed(1)}</Text>
+              <Text fontSize={13} color="$placeholderColor">({user.total_reviews} avaliações)</Text>
+            </RatingContainer>
+          )}
+        </ProfileSection>
+
+        {/* Stats */}
+        <StatsContainer>
+          <StatItem>
+            <StatValue>{stats.total}</StatValue>
+            <StatLabel>anúncios</StatLabel>
+          </StatItem>
+          <StatDivider />
+          <StatItem>
+            <StatValue>{stats.sold}</StatValue>
+            <StatLabel>vendas</StatLabel>
+          </StatItem>
+          <StatDivider />
+          <StatItem>
+            <StatValue>{user.total_followers || 0}</StatValue>
+            <StatLabel>seguidores</StatLabel>
+          </StatItem>
+        </StatsContainer>
+
+        {/* Menu Sections */}
+        <MenuSection>
+          <MenuSectionTitle>minha conta</MenuSectionTitle>
+          <MenuItemRow
+            icon="mail-outline"
+            label="email"
+            value={user.email}
+            isComplete={!!user.email}
+            onPress={() => navigation.navigate('EditProfile')}
+          />
+          <MenuDivider />
+          <MenuItemRow
+            icon="person-outline"
+            label="dados pessoais"
+            value={user.name ? 'completo' : 'pendente'}
+            isComplete={!!user.name}
+            onPress={() => navigation.navigate('EditProfile')}
+          />
+          <MenuDivider />
+          <MenuItemRow
+            icon="call-outline"
+            label="telefone"
+            value={hasPhone ? user.phone : 'adicionar'}
+            isComplete={!!hasPhone}
+            onPress={() => navigation.navigate('EditProfile')}
+          />
+          <MenuDivider />
+          <MenuItemRow
+            icon="location-outline"
+            label="endereço"
+            value={hasAddress ? `${user.city}, ${user.state}` : 'adicionar'}
+            isComplete={!!hasAddress}
+            onPress={() => navigation.navigate('EditProfile')}
+          />
+        </MenuSection>
+
+        <MenuSection>
+          <MenuSectionTitle>minhas vendas</MenuSectionTitle>
+          <MenuItemRow
+            icon="pricetag-outline"
+            label="meus anúncios"
+            value={`${stats.total} itens`}
+            onPress={() => navigation.navigate('MyProducts' as any)}
+          />
+          <MenuDivider />
+          <MenuItemRow
+            icon="stats-chart-outline"
+            label="painel de vendas"
+            onPress={() => navigation.navigate('Sales')}
+          />
+          <MenuDivider />
+          <MenuItemRow
+            icon="wallet-outline"
+            label="meus ganhos"
+            onPress={() => navigation.navigate('Sales')}
+          />
+        </MenuSection>
+
+        <MenuSection>
+          <MenuSectionTitle>minhas compras</MenuSectionTitle>
+          <MenuItemRow
+            icon="bag-outline"
+            label="meus pedidos"
+            onPress={() => navigation.navigate('Orders')}
+          />
+          <MenuDivider />
+          <MenuItemRow
+            icon="heart-outline"
+            label="favoritos"
+            onPress={() => navigation.navigate('Favorites')}
+          />
+        </MenuSection>
+
+        <MenuSection>
+          <MenuSectionTitle>configurações</MenuSectionTitle>
+          <MenuItemRow icon="notifications-outline" label="notificações" onPress={() => {}} />
+          <MenuDivider />
+          <MenuItemRow icon="shield-checkmark-outline" label="privacidade" onPress={() => {}} />
+          <MenuDivider />
+          <MenuItemRow icon="help-circle-outline" label="ajuda" onPress={() => {}} />
+        </MenuSection>
+
+        <Pressable onPress={logout}>
+          <LogoutButton>
+            <Ionicons name="log-out-outline" size={20} color={theme.placeholderColor?.val} />
+            <Text fontSize={15} fontWeight="500" color="$placeholderColor">sair da conta</Text>
+          </LogoutButton>
+        </Pressable>
+
+        <VersionText>versão 1.0.0</VersionText>
+      </ScrollView>
+
+      {!isDesktop && (
+        <BottomNav paddingBottom={Math.max(insets.bottom, 12)}>
+          {navItems.map((item) => {
+            const isActive = item.key === 'Profile';
+
+            if (item.isCenter) {
+              return (
+                <Pressable key={item.key} onPress={() => navigation.navigate(item.key as any)}>
+                  <CenterNavButton>
+                    <LinearGradient
+                      colors={['#5D8A7D', '#7BA396']}
+                      style={{ width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <Ionicons name="add" size={32} color="white" />
+                    </LinearGradient>
+                  </CenterNavButton>
+                </Pressable>
+              );
+            }
+
+            return (
+              <Pressable key={item.key} onPress={() => navigation.navigate(item.key as any)}>
+                <NavItem>
+                  <NavIconWrap active={isActive}>
+                    <Ionicons
+                      name={isActive ? (item.icon as any) : (`${item.icon}-outline` as any)}
+                      size={24}
+                      color={isActive ? theme.brand?.val : theme.placeholderColor?.val}
+                    />
+                  </NavIconWrap>
+                  <NavLabel active={isActive}>{item.label}</NavLabel>
+                </NavItem>
+              </Pressable>
+            );
+          })}
+        </BottomNav>
+      )}
+    </Container>
   );
 }
