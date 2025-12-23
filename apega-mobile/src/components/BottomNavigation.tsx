@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,7 +14,7 @@ interface BottomNavigationProps {
 }
 
 const NAV_ITEMS = [
-  { key: 'Home', icon: 'home', label: 'início' },
+  { key: 'Home', icon: 'home', label: 'inicio' },
   { key: 'Search', icon: 'search', label: 'buscar' },
   { key: 'NewItem', icon: 'add', label: 'vender', isCenter: true },
   { key: 'Favorites', icon: 'heart', label: 'curtidos' },
@@ -27,7 +27,6 @@ export default function BottomNavigation({ navigation, activeRoute = 'Home' }: B
   const { isAuthenticated } = useAuth();
   const isDesktop = isWeb && width > 768;
 
-  // Não mostra footer na web desktop
   if (isDesktop) {
     return null;
   }
@@ -55,7 +54,6 @@ export default function BottomNavigation({ navigation, activeRoute = 'Home' }: B
   const renderNavItem = (item: typeof NAV_ITEMS[0]) => {
     const isActive = activeRoute === item.key;
 
-    // Botão central premium - VENDER (estilo Enjoei)
     if (item.isCenter) {
       return (
         <TouchableOpacity
@@ -77,7 +75,6 @@ export default function BottomNavigation({ navigation, activeRoute = 'Home' }: B
       );
     }
 
-    // Itens normais - minimalista
     return (
       <TouchableOpacity
         key={item.key}
@@ -87,9 +84,9 @@ export default function BottomNavigation({ navigation, activeRoute = 'Home' }: B
       >
         <View style={styles.iconContainer}>
           <Ionicons
-            name={isActive ? item.icon as any : `${item.icon}-outline` as any}
+            name={isActive ? (item.icon as any) : (`${item.icon}-outline` as any)}
             size={22}
-            color={isActive ? COLORS.primary : '#8E8E93'}
+            color={isActive ? COLORS.textPrimary : COLORS.textTertiary}
           />
           {isActive && <View style={styles.activeIndicator} />}
         </View>
@@ -111,9 +108,9 @@ export default function BottomNavigation({ navigation, activeRoute = 'Home' }: B
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FAFAFA',
+    backgroundColor: COLORS.surface,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.06)',
+    borderTopColor: COLORS.border,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -158,12 +155,12 @@ const styles = StyleSheet.create({
   },
   navLabel: {
     fontSize: 10,
-    color: '#8E8E93',
+    color: COLORS.textTertiary,
     fontWeight: '500',
     marginTop: 2,
   },
   navLabelActive: {
-    color: COLORS.primary,
+    color: COLORS.textPrimary,
     fontWeight: '600',
   },
   centerButton: {
@@ -173,9 +170,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
   centerButtonGradient: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
     ...Platform.select({
@@ -189,7 +186,7 @@ const styles = StyleSheet.create({
         elevation: 8,
       },
       web: {
-        boxShadow: '0 4px 12px rgba(97,0,93,0.4)',
+        boxShadow: '0 4px 12px rgba(97,0,93,0.25)',
       },
     }),
   },

@@ -5,17 +5,15 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  StatusBar,
-  Platform,
-  useWindowDimensions,
   ActivityIndicator,
   Image,
+  Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
-import { BottomNavigation, Tab, Button } from '../components';
+import { BottomNavigation, Header, MainHeader, Tab, Button } from '../components';
 import { getPurchases, type Order as ApiOrder } from '../services/orders';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
@@ -27,10 +25,9 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Orders'>;
 type NormalizedStatus = 'pending' | 'in_transit' | 'delivered';
 
 export default function OrdersScreen({ navigation }: Props) {
-  const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const isDesktop = isWeb && width > 768;
-  const isTablet = isWeb && width > 480 && width <= 768;
+  const isDesktop = isWeb && width > 900;
+
   const [activeTab, setActiveTab] = useState<string>('all');
   const [orders, setOrders] = useState<ApiOrder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,12 +40,8 @@ export default function OrdersScreen({ navigation }: Props) {
   ];
 
   const normalizeStatus = (status: ApiOrder['status']): NormalizedStatus => {
-    if (status === 'in_transit' || status === 'shipped') {
-      return 'in_transit';
-    }
-    if (status === 'delivered' || status === 'completed') {
-      return 'delivered';
-    }
+    if (status === 'in_transit' || status === 'shipped') return 'in_transit';
+    if (status === 'delivered' || status === 'completed') return 'delivered';
     return 'pending';
   };
 
@@ -56,9 +49,7 @@ export default function OrdersScreen({ navigation }: Props) {
     setLoading(true);
     try {
       const response = await getPurchases();
-      if (response.orders) {
-        setOrders(response.orders);
-      }
+      if (response.orders) setOrders(response.orders);
     } catch (error) {
       console.error('Erro ao carregar pedidos:', error);
     } finally {
@@ -110,22 +101,13 @@ export default function OrdersScreen({ navigation }: Props) {
   const renderOrderCard = (order: ApiOrder) => (
     <TouchableOpacity
       key={order.id}
-      style={[styles.orderCard, isDesktop && { padding: SPACING.lg }]}
-      onPress={() => console.log('Order details', order.id)}
+      style={styles.orderCard}
       activeOpacity={0.7}
     >
       <View style={styles.orderHeader}>
-        <Text style={[styles.orderId, isDesktop && { fontSize: TYPOGRAPHY.sizes.lg }]}>
-          pedido #{order.order_number || order.id}
-        </Text>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) + '20' }]}>
-          <Text
-            style={[
-              styles.statusText,
-              { color: getStatusColor(order.status) },
-              isDesktop && { fontSize: TYPOGRAPHY.sizes.sm },
-            ]}
-          >
+        <Text style={styles.orderId}>pedido #{order.order_number || order.id}</Text>
+        <View style={[styles.statusBadge, { borderColor: getStatusColor(order.status) }]}>
+          <Text style={[styles.statusText, { color: getStatusColor(order.status) }]}>
             {getStatusLabel(order.status)}
           </Text>
         </View>
@@ -133,40 +115,25 @@ export default function OrdersScreen({ navigation }: Props) {
 
       <View style={styles.orderProduct}>
         {order.product_image ? (
-          <Image
-            source={{ uri: order.product_image }}
-            style={[styles.productImage, isDesktop && { width: 80, height: 80 }]}
-          />
+          <Image source={{ uri: order.product_image }} style={styles.productImage} />
         ) : (
-          <View style={[styles.productImage, isDesktop && { width: 80, height: 80 }]}>
-            <Ionicons name="image" size={isDesktop ? 40 : 32} color={COLORS.textTertiary} />
+          <View style={styles.productImage}>
+            <Ionicons name="image-outline" size={24} color={COLORS.textTertiary} />
           </View>
         )}
         <View style={styles.productInfo}>
-          <Text style={[styles.productName, isDesktop && { fontSize: TYPOGRAPHY.sizes.lg }]}>
-            {order.product_title}
-          </Text>
+          <Text style={styles.productName}>{order.product_title}</Text>
           {order.product_size && (
-            <Text style={[styles.productSize, isDesktop && { fontSize: TYPOGRAPHY.sizes.base }]}>
-              tamanho {order.product_size}
-            </Text>
+            <Text style={styles.productMeta}>tam {order.product_size}</Text>
           )}
-          <Text style={[styles.sellerName, isDesktop && { fontSize: TYPOGRAPHY.sizes.base }]}>
-            vendedor: {order.seller_name || '---'}
-          </Text>
+          <Text style={styles.productMeta}>vendedor: {order.seller_name || '---'}</Text>
         </View>
       </View>
 
       <View style={styles.orderFooter}>
         <View>
-          <Text style={[styles.orderDate, isDesktop && { fontSize: TYPOGRAPHY.sizes.sm }]}
-          >
-            {new Date(order.created_at).toLocaleDateString('pt-BR')}
-          </Text>
-          <Text style={[styles.orderAmount, isDesktop && { fontSize: TYPOGRAPHY.sizes.xl }]}
-          >
-            R$ {(order.total_amount || order.product_price || 0).toFixed(2)}
-          </Text>
+          <Text style={styles.orderDate}>{new Date(order.created_at).toLocaleDateString('pt-BR')}</Text>
+          <Text style={styles.orderAmount}>R$ {(order.total_amount || order.product_price || 0).toFixed(2)}</Text>
         </View>
         {normalizeStatus(order.status) === 'in_transit' && order.shipping_code && (
           <Button
@@ -190,26 +157,17 @@ export default function OrdersScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Meus Pedidos</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      {isWeb ? (
+        <MainHeader navigation={navigation} title="Pedidos" />
+      ) : (
+        <Header navigation={navigation} title="Pedidos" />
+      )}
 
       <Tab items={tabs} activeTab={activeTab} onTabPress={setActiveTab} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.content,
-          {
-            paddingHorizontal: isDesktop ? 60 : isTablet ? 40 : SPACING.md,
-            maxWidth: isDesktop ? 800 : isTablet ? 600 : '100%',
-          },
-        ]}
+        contentContainerStyle={[styles.content, isDesktop && styles.contentDesktop]}
       >
         {loading ? (
           <View style={styles.emptyState}>
@@ -220,15 +178,11 @@ export default function OrdersScreen({ navigation }: Props) {
           filteredOrders.map(renderOrderCard)
         ) : (
           <View style={styles.emptyState}>
-            <Ionicons name="cube-outline" size={isDesktop ? 80 : 64} color={COLORS.textTertiary} />
-            <Text style={[styles.emptyTitle, isDesktop && { fontSize: TYPOGRAPHY.sizes.xl }]}>nenhum pedido</Text>
-            <Text style={[styles.emptySubtitle, isDesktop && { fontSize: TYPOGRAPHY.sizes.base }]}
-            >
-              seus pedidos aparecem aqui
-            </Text>
+            <Ionicons name="cube-outline" size={56} color={COLORS.textTertiary} />
+            <Text style={styles.emptyTitle}>Nenhum pedido</Text>
+            <Text style={styles.emptySubtitle}>Seus pedidos aparecem aqui.</Text>
           </View>
         )}
-
         <View style={{ height: 80 }} />
       </ScrollView>
 
@@ -242,35 +196,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    backgroundColor: COLORS.background,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
   content: {
     padding: SPACING.md,
+  },
+  contentDesktop: {
+    maxWidth: 860,
     alignSelf: 'center',
     width: '100%',
   },
   orderCard: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
     marginBottom: SPACING.md,
     ...SHADOWS.xs,
   },
@@ -286,9 +225,10 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
   },
   statusBadge: {
+    borderWidth: 1,
+    borderRadius: BORDER_RADIUS.sm,
     paddingHorizontal: SPACING.sm,
     paddingVertical: 4,
-    borderRadius: BORDER_RADIUS.sm,
   },
   statusText: {
     fontSize: TYPOGRAPHY.sizes.xs,
@@ -301,10 +241,10 @@ const styles = StyleSheet.create({
   productImage: {
     width: 60,
     height: 60,
-    backgroundColor: COLORS.gray[100],
     borderRadius: BORDER_RADIUS.md,
-    justifyContent: 'center',
+    backgroundColor: COLORS.background,
     alignItems: 'center',
+    justifyContent: 'center',
     marginRight: SPACING.md,
   },
   productInfo: {
@@ -315,29 +255,27 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.sizes.base,
     fontWeight: TYPOGRAPHY.weights.medium,
     color: COLORS.textPrimary,
-    marginBottom: 2,
+    marginBottom: 4,
   },
-  productSize: {
+  productMeta: {
     fontSize: TYPOGRAPHY.sizes.sm,
     color: COLORS.textSecondary,
-    marginBottom: 2,
-  },
-  sellerName: {
-    fontSize: TYPOGRAPHY.sizes.sm,
-    color: COLORS.textTertiary,
   },
   orderFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: SPACING.md,
     borderTopWidth: 1,
     borderTopColor: COLORS.borderLight,
+    paddingTop: SPACING.sm,
   },
   orderDate: {
     fontSize: TYPOGRAPHY.sizes.xs,
     color: COLORS.textSecondary,
-    marginBottom: 2,
+  },
+  note: {
+    fontSize: TYPOGRAPHY.sizes.xs,
+    color: COLORS.textSecondary,
   },
   orderAmount: {
     fontSize: TYPOGRAPHY.sizes.lg,

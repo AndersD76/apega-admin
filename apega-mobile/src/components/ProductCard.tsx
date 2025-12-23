@@ -1,17 +1,16 @@
-import React from 'react';
+﻿import React from 'react';
 import {
   View,
   Text,
   Image,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 
-const { width: screenWidth } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
 
 interface ProductCardProps {
@@ -33,7 +32,6 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({
-  id,
   image,
   title,
   price,
@@ -49,9 +47,10 @@ export default function ProductCard({
   numColumns = 2,
   compact = false,
 }: ProductCardProps) {
-  const containerPadding = isWeb ? 40 : 16;
-  const gap = 8;
-  const cardWidth = (screenWidth - containerPadding * 2 - gap * (numColumns - 1)) / numColumns;
+  const { width } = useWindowDimensions();
+  const containerPadding = isWeb ? 32 : 16;
+  const gap = 12;
+  const cardWidth = (width - containerPadding * 2 - gap * (numColumns - 1)) / numColumns;
   const imageSize = cardWidth;
 
   const hasDiscount = originalPrice && originalPrice > price;
@@ -61,22 +60,19 @@ export default function ProductCard({
 
   return (
     <TouchableOpacity
-      style={[
-        styles.container,
-        { width: cardWidth },
-        compact && styles.containerCompact,
-      ]}
+      style={[styles.container, { width: cardWidth }, compact && styles.containerCompact]}
       onPress={onPress}
       activeOpacity={0.9}
     >
-      <View style={[styles.imageContainer, { width: imageSize, height: imageSize }]}>
-        <Image
-          source={{ uri: image }}
-          style={styles.image}
-          resizeMode="cover"
-        />
+      <View style={[styles.imageWrap, { width: imageSize, height: imageSize }]}>
+        {image ? (
+          <Image source={{ uri: image }} style={styles.image} resizeMode="cover" />
+        ) : (
+          <View style={styles.imagePlaceholder}>
+            <Ionicons name="image-outline" size={24} color={COLORS.gray[400]} />
+          </View>
+        )}
 
-        {/* Favorite Button */}
         {onFavorite && (
           <TouchableOpacity
             style={styles.favoriteBtn}
@@ -87,20 +83,18 @@ export default function ProductCard({
           >
             <Ionicons
               name={isFavorited ? 'heart' : 'heart-outline'}
-              size={20}
-              color={isFavorited ? COLORS.secondary : COLORS.white}
+              size={18}
+              color={isFavorited ? COLORS.error : COLORS.white}
             />
           </TouchableOpacity>
         )}
 
-        {/* Discount Badge */}
         {hasDiscount && (
           <View style={styles.discountBadge}>
             <Text style={styles.discountText}>-{discountPercent}%</Text>
           </View>
         )}
 
-        {/* Sold Overlay */}
         {isSold && (
           <View style={styles.soldOverlay}>
             <Text style={styles.soldText}>VENDIDO</Text>
@@ -109,7 +103,6 @@ export default function ProductCard({
       </View>
 
       <View style={[styles.info, compact && styles.infoCompact]}>
-        {/* Price */}
         <View style={styles.priceRow}>
           <Text style={styles.price}>R$ {price.toFixed(0)}</Text>
           {hasDiscount && (
@@ -117,12 +110,10 @@ export default function ProductCard({
           )}
         </View>
 
-        {/* Title */}
         <Text style={styles.title} numberOfLines={2}>
           {title}
         </Text>
 
-        {/* Size and Condition */}
         {(size || condition) && !compact && (
           <View style={styles.tagsRow}>
             {size && (
@@ -138,18 +129,17 @@ export default function ProductCard({
           </View>
         )}
 
-        {/* Stats */}
         {!compact && (likes > 0 || views > 0) && (
           <View style={styles.statsRow}>
             {likes > 0 && (
               <View style={styles.stat}>
-                <Ionicons name="heart-outline" size={12} color={COLORS.gray[500]} />
+                <Ionicons name="heart-outline" size={12} color={COLORS.textTertiary} />
                 <Text style={styles.statText}>{likes}</Text>
               </View>
             )}
             {views > 0 && (
               <View style={styles.stat}>
-                <Ionicons name="eye-outline" size={12} color={COLORS.gray[500]} />
+                <Ionicons name="eye-outline" size={12} color={COLORS.textTertiary} />
                 <Text style={styles.statText}>{views}</Text>
               </View>
             )}
@@ -162,31 +152,39 @@ export default function ProductCard({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.white,
-    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.lg,
     overflow: 'hidden',
-    marginBottom: 8,
-    ...SHADOWS.sm,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    ...SHADOWS.xs,
   },
   containerCompact: {
-    marginBottom: 4,
+    marginBottom: 6,
   },
-  imageContainer: {
+  imageWrap: {
     position: 'relative',
-    backgroundColor: COLORS.gray[100],
+    backgroundColor: COLORS.background,
   },
   image: {
     width: '100%',
     height: '100%',
   },
+  imagePlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.backgroundDark,
+  },
   favoriteBtn: {
     position: 'absolute',
     top: 8,
     right: 8,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(0,0,0,0.35)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -194,25 +192,25 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: COLORS.secondary,
+    backgroundColor: COLORS.error,
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: 6,
   },
   discountText: {
-    color: COLORS.white,
+    color: COLORS.textInverse,
     fontSize: 11,
     fontWeight: '700',
   },
   soldOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.55)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   soldText: {
-    color: COLORS.white,
-    fontSize: 14,
+    color: COLORS.textInverse,
+    fontSize: 13,
     fontWeight: '700',
     letterSpacing: 1,
   },
@@ -220,7 +218,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   infoCompact: {
-    padding: 6,
+    padding: 8,
   },
   priceRow: {
     flexDirection: 'row',
@@ -229,13 +227,13 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   price: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: COLORS.textPrimary,
   },
   originalPrice: {
     fontSize: 12,
-    color: COLORS.priceOld,
+    color: COLORS.textTertiary,
     textDecorationLine: 'line-through',
   },
   title: {
@@ -250,10 +248,10 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   tag: {
-    backgroundColor: COLORS.gray[100],
+    backgroundColor: COLORS.borderLight,
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: 6,
   },
   conditionTag: {
     backgroundColor: COLORS.primaryExtraLight,
@@ -274,6 +272,6 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 11,
-    color: COLORS.gray[500],
+    color: COLORS.textTertiary,
   },
 });

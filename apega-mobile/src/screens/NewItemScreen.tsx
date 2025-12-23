@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -15,12 +15,14 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS, CATEGORIES, CONDITIONS, SIZES, SUBSCRIPTION_PLANS } from '../constants/theme';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 import { useAuth } from '../contexts/AuthContext';
 import { createProduct, uploadProductImages } from '../services/products';
+import { Header, MainHeader } from '../components';
 
 const isWeb = Platform.OS === 'web';
 
@@ -29,18 +31,15 @@ type Props = NativeStackScreenProps<RootStackParamList, 'NewItem'>;
 export default function NewItemScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const isDesktop = isWeb && width > 768;
-  const styles = useMemo(() => createStyles(isDesktop), [isDesktop]);
+  const isDesktop = isWeb && width > 900;
   const { user, isAuthenticated, isLoading } = useAuth();
 
-  // Verificar se é premium (default false se não houver user)
   const isPremium = user?.subscription_type === 'premium';
   const maxPhotos = isPremium ? SUBSCRIPTION_PLANS.premium.limits.maxPhotos : SUBSCRIPTION_PLANS.free.limits.maxPhotos;
 
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
 
-  // Dados da peça
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [brand, setBrand] = useState('');
@@ -51,7 +50,6 @@ export default function NewItemScreen({ navigation }: Props) {
   const [originalPrice, setOriginalPrice] = useState('');
   const [condition, setCondition] = useState('seminovo');
 
-  // Modais
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showConditionModal, setShowConditionModal] = useState(false);
   const [showSizeModal, setShowSizeModal] = useState(false);
@@ -63,33 +61,37 @@ export default function NewItemScreen({ navigation }: Props) {
     }
   }, [isAuthenticated, isLoading, navigation]);
 
+  const getCategoryLabel = (value: string) => CATEGORIES.find((item) => item.id === value)?.name || value;
 
-  const getCategoryLabel = (value: string) => {
-    return CATEGORIES.find((item) => item.id === value)?.name || value;
+  const formatPrice = (text: string) => {
+    const numbers = text.replace(/\D/g, '');
+    if (!numbers) return '';
+    const value = parseInt(numbers, 10) / 100;
+    if (Number.isNaN(value)) return '0,00';
+    return value.toFixed(2).replace('.', ',');
+  };
+
+  const ensurePhotoSlots = () => {
+    if (images.length < maxPhotos) return true;
+    Alert.alert(
+      'Limite atingido',
+      isPremium
+        ? `Voce pode adicionar no maximo ${maxPhotos} fotos.`
+        : `Usuarios gratuitos podem adicionar ate ${maxPhotos} fotos.`
+    );
+    return false;
   };
 
   const pickImage = async () => {
-    // Verificar limite de fotos
-    if (images.length >= maxPhotos) {
-      Alert.alert(
-        'Limite atingido',
-        isPremium
-          ? `Você pode adicionar no máximo ${maxPhotos} fotos.`
-          : `Usuários gratuitos podem adicionar até ${maxPhotos} fotos. Seja Premium para adicionar até 10 fotos!`,
-        isPremium ? [{ text: 'OK' }] : [
-          { text: 'Continuar', style: 'cancel' },
-          { text: 'Ser Premium', onPress: () => navigation.navigate('Subscription' as any) }
-        ]
-      );
+    if (!ensurePhotoSlots()) {
       setShowImagePicker(false);
       return;
     }
 
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
       if (status !== 'granted') {
-        Alert.alert('Permissão negada', 'Precisamos de permissão para acessar suas fotos');
+        Alert.alert('Permissao negada', 'Precisamos acessar suas fotos.');
         return;
       }
 
@@ -103,37 +105,25 @@ export default function NewItemScreen({ navigation }: Props) {
       });
 
       if (!result.canceled) {
-        const newImages = result.assets.map(asset => asset.uri).slice(0, remainingSlots);
+        const newImages = result.assets.map((asset) => asset.uri).slice(0, remainingSlots);
         setImages([...images, ...newImages]);
       }
       setShowImagePicker(false);
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível selecionar a imagem');
+      Alert.alert('Erro', 'Nao foi possivel selecionar a imagem.');
     }
   };
 
   const takePhoto = async () => {
-    // Verificar limite de fotos
-    if (images.length >= maxPhotos) {
-      Alert.alert(
-        'Limite atingido',
-        isPremium
-          ? `Você pode adicionar no máximo ${maxPhotos} fotos.`
-          : `Usuários gratuitos podem adicionar até ${maxPhotos} fotos. Seja Premium para adicionar até 10 fotos!`,
-        isPremium ? [{ text: 'OK' }] : [
-          { text: 'Continuar', style: 'cancel' },
-          { text: 'Ser Premium', onPress: () => navigation.navigate('Subscription' as any) }
-        ]
-      );
+    if (!ensurePhotoSlots()) {
       setShowImagePicker(false);
       return;
     }
 
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
-
       if (status !== 'granted') {
-        Alert.alert('Permissão negada', 'Precisamos de permissão para acessar sua câmera');
+        Alert.alert('Permissao negada', 'Precisamos acessar a camera.');
         return;
       }
 
@@ -148,7 +138,7 @@ export default function NewItemScreen({ navigation }: Props) {
       }
       setShowImagePicker(false);
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível tirar a foto');
+      Alert.alert('Erro', 'Nao foi possivel tirar a foto.');
     }
   };
 
@@ -161,47 +151,28 @@ export default function NewItemScreen({ navigation }: Props) {
       navigation.navigate('Login', { redirectTo: 'NewItem' });
       return;
     }
-    // Validações
+
     if (images.length === 0) {
-      Alert.alert('Erro', 'Adicione pelo menos uma foto da peça');
+      Alert.alert('Erro', 'Adicione pelo menos uma foto.');
       return;
     }
-
-    if (!title.trim()) {
-      Alert.alert('Erro', 'Preencha o título da peça');
-      return;
-    }
-
-    if (!description.trim()) {
-      Alert.alert('Erro', 'Preencha a descrição');
-      return;
-    }
-
-    if (!price.trim()) {
-      Alert.alert('Erro', 'Preencha o preço');
-      return;
-    }
-
-    if (!category.trim()) {
-      Alert.alert('Erro', 'Selecione uma categoria');
+    if (!title.trim() || !description.trim() || !price.trim() || !category.trim()) {
+      Alert.alert('Erro', 'Preencha os campos obrigatorios.');
       return;
     }
 
     setUploading(true);
 
     try {
-      // Converter preços de string para número
       const priceValue = parseFloat(price.replace(',', '.'));
       const originalPriceValue = originalPrice ? parseFloat(originalPrice.replace(',', '.')) : undefined;
 
-      // Mapear condição para o formato esperado pelo backend
       const conditionMap: { [key: string]: 'novo' | 'seminovo' | 'usado' } = {
-        'novo': 'novo',
-        'seminovo': 'seminovo',
-        'usado': 'usado',
+        novo: 'novo',
+        seminovo: 'seminovo',
+        usado: 'usado',
       };
 
-      // Criar produto via API
       const result = await createProduct({
         title: title.trim(),
         description: description.trim(),
@@ -214,112 +185,50 @@ export default function NewItemScreen({ navigation }: Props) {
         category: category || undefined,
       });
 
-      console.log('Produto criado:', result);
-
-      // Upload das imagens
       if (result.product && images.length > 0) {
-        console.log('Fazendo upload de', images.length, 'imagens...');
-        try {
-          const uploadResult = await uploadProductImages(result.product.id, images);
-          console.log('Imagens enviadas:', uploadResult);
-        } catch (uploadError) {
-          console.error('Erro ao fazer upload das imagens:', uploadError);
-          // Não bloquear o sucesso - o produto foi criado
-        }
+        await uploadProductImages(result.product.id, images);
       }
 
-      Alert.alert(
-        'Sucesso!',
-        'Seu anúncio foi publicado com sucesso!',
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('Home'),
-          },
-        ]
-      );
+      Alert.alert('Sucesso!', 'Seu anuncio foi publicado.', [
+        { text: 'OK', onPress: () => navigation.navigate('Home') },
+      ]);
     } catch (error: any) {
-      console.error('Erro ao publicar anúncio:', error);
-      Alert.alert('Erro', error.message || 'Não foi possível publicar o anúncio');
+      Alert.alert('Erro', error.message || 'Nao foi possivel publicar.');
     } finally {
       setUploading(false);
     }
   };
 
-  const formatPrice = (text: string) => {
-    const numbers = text.replace(/\D/g, '');
-    if (!numbers) return '';
-    const value = parseInt(numbers) / 100;
-    if (isNaN(value)) return '0,00';
-    return value.toFixed(2).replace('.', ',');
-  };
-
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
 
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + SPACING.sm }]}>
-        {isDesktop ? (
-          <>
-            <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-              <Text style={styles.logo}>apega<Text style={styles.logoLight}>desapega</Text></Text>
-            </TouchableOpacity>
-            <View style={styles.navDesktop}>
-              <TouchableOpacity onPress={() => navigation.navigate('Search')}>
-                <Text style={styles.navLink}>Explorar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigation.navigate('Favorites')}>
-                <Text style={styles.navLink}>Favoritos</Text>
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.headerTitle}>Nova Peça</Text>
-          </>
-        ) : (
-          <>
-            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-              <Text style={styles.backIcon}>←</Text>
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Nova Peça</Text>
-            <View style={{ width: 40 }} />
-          </>
-        )}
-      </View>
+      {isWeb ? (
+        <MainHeader navigation={navigation} title="Nova peca" />
+      ) : (
+        <Header navigation={navigation} title="Nova peca" />
+      )}
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Fotos */}
-        <View style={styles.section}>
+        <View style={[styles.section, isDesktop && styles.sectionDesktop]}>
           <Text style={styles.sectionTitle}>Fotos</Text>
           <Text style={styles.sectionSubtitle}>
-            {isPremium
-              ? `Adicione até ${maxPhotos} fotos da sua peça`
-              : `Adicione até ${maxPhotos} fotos (Premium: até 10)`}
-          </Text>
-          <Text style={styles.photoCounter}>
-            {images.length}/{maxPhotos} fotos
+            {isPremium ? `Ate ${maxPhotos} fotos` : `Ate ${maxPhotos} fotos (Premium ate 10)`}
           </Text>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imagesList}>
-            {/* Botão de adicionar foto - só mostra se ainda tem espaço */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imagesRow}>
             {images.length < maxPhotos && (
-              <TouchableOpacity
-                style={styles.addPhotoButton}
-                onPress={() => setShowImagePicker(true)}
-              >
-                <Text style={styles.addPhotoIcon}>+</Text>
+              <TouchableOpacity style={styles.addPhotoButton} onPress={() => setShowImagePicker(true)}>
+                <Ionicons name="add" size={24} color={COLORS.textSecondary} />
                 <Text style={styles.addPhotoText}>Adicionar</Text>
               </TouchableOpacity>
             )}
 
-            {/* Fotos adicionadas */}
             {images.map((uri, index) => (
-              <View key={index} style={styles.imageWrapper}>
+              <View key={index} style={styles.imageWrap}>
                 <Image source={{ uri }} style={styles.imagePreview} />
-                <TouchableOpacity
-                  style={styles.removeImageButton}
-                  onPress={() => removeImage(index)}
-                >
-                  <Text style={styles.removeImageText}>×</Text>
+                <TouchableOpacity style={styles.removeImageButton} onPress={() => removeImage(index)}>
+                  <Ionicons name="close" size={16} color={COLORS.white} />
                 </TouchableOpacity>
                 {index === 0 && (
                   <View style={styles.mainPhotoBadge}>
@@ -331,32 +240,30 @@ export default function NewItemScreen({ navigation }: Props) {
           </ScrollView>
         </View>
 
-        {/* Informações Básicas */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Informações Básicas</Text>
+        <View style={[styles.section, isDesktop && styles.sectionDesktop]}>
+          <Text style={styles.sectionTitle}>Informacoes basicas</Text>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Título *</Text>
+            <Text style={styles.label}>Titulo *</Text>
             <TextInput
               style={styles.input}
               value={title}
               onChangeText={setTitle}
-              placeholder="Ex: Vestido Floral Midi"
+              placeholder="Ex: Vestido floral midi"
               placeholderTextColor={COLORS.textTertiary}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Descrição *</Text>
+            <Text style={styles.label}>Descricao *</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
               value={description}
               onChangeText={setDescription}
-              placeholder="Descreva a peça, tecido, detalhes..."
+              placeholder="Descreva a peca, tecido, detalhes"
               placeholderTextColor={COLORS.textTertiary}
               multiline
               numberOfLines={4}
-              textAlignVertical="top"
             />
           </View>
 
@@ -366,59 +273,45 @@ export default function NewItemScreen({ navigation }: Props) {
               style={styles.input}
               value={brand}
               onChangeText={setBrand}
-              placeholder="Ex: Farm, Zara, etc"
+              placeholder="Ex: Farm, Zara"
               placeholderTextColor={COLORS.textTertiary}
             />
           </View>
         </View>
 
-        {/* Detalhes */}
-        <View style={styles.section}>
+        <View style={[styles.section, isDesktop && styles.sectionDesktop]}>
           <Text style={styles.sectionTitle}>Detalhes</Text>
 
           <View style={styles.inputRow}>
-            <View style={[styles.inputGroup, { flex: 1 }]}>
+            <View style={[styles.inputGroup, styles.inputGroupFlex]}>
               <Text style={styles.label}>Categoria *</Text>
-              <TouchableOpacity
-                style={styles.selectInput}
-                onPress={() => setShowCategoryModal(true)}
-              >
+              <TouchableOpacity style={styles.selectInput} onPress={() => setShowCategoryModal(true)}>
                 <Text style={category ? styles.selectText : styles.selectPlaceholder}>
                   {category ? getCategoryLabel(category) : 'Selecione'}
                 </Text>
-                <Text style={styles.selectIcon}>â€º</Text>
+                <Ionicons name="chevron-down" size={18} color={COLORS.textTertiary} />
               </TouchableOpacity>
             </View>
-
-            <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>Condição *</Text>
-              <TouchableOpacity
-                style={styles.selectInput}
-                onPress={() => setShowConditionModal(true)}
-              >
+            <View style={[styles.inputGroup, styles.inputGroupFlex]}>
+              <Text style={styles.label}>Condicao *</Text>
+              <TouchableOpacity style={styles.selectInput} onPress={() => setShowConditionModal(true)}>
                 <Text style={condition ? styles.selectText : styles.selectPlaceholder}>
-                  {CONDITIONS.find(c => c.id === condition)?.label || 'Selecione'}
+                  {CONDITIONS.find((c) => c.id === condition)?.label || 'Selecione'}
                 </Text>
-                <Text style={styles.selectIcon}>â€º</Text>
+                <Ionicons name="chevron-down" size={18} color={COLORS.textTertiary} />
               </TouchableOpacity>
             </View>
           </View>
 
           <View style={styles.inputRow}>
-            <View style={[styles.inputGroup, { flex: 1 }]}>
+            <View style={[styles.inputGroup, styles.inputGroupFlex]}>
               <Text style={styles.label}>Tamanho</Text>
-              <TouchableOpacity
-                style={styles.selectInput}
-                onPress={() => setShowSizeModal(true)}
-              >
-                <Text style={size ? styles.selectText : styles.selectPlaceholder}>
-                  {size || 'Selecione'}
-                </Text>
-                <Text style={styles.selectIcon}>â€º</Text>
+              <TouchableOpacity style={styles.selectInput} onPress={() => setShowSizeModal(true)}>
+                <Text style={size ? styles.selectText : styles.selectPlaceholder}>{size || 'Selecione'}</Text>
+                <Ionicons name="chevron-down" size={18} color={COLORS.textTertiary} />
               </TouchableOpacity>
             </View>
-
-            <View style={[styles.inputGroup, { flex: 1 }]}>
+            <View style={[styles.inputGroup, styles.inputGroupFlex]}>
               <Text style={styles.label}>Cor</Text>
               <TextInput
                 style={styles.input}
@@ -431,13 +324,12 @@ export default function NewItemScreen({ navigation }: Props) {
           </View>
         </View>
 
-        {/* Preço */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Preço</Text>
+        <View style={[styles.section, isDesktop && styles.sectionDesktop]}>
+          <Text style={styles.sectionTitle}>Preco</Text>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Preço de venda *</Text>
-            <View style={styles.priceInputWrapper}>
+            <Text style={styles.label}>Preco de venda *</Text>
+            <View style={styles.priceInputWrap}>
               <Text style={styles.currencySymbol}>R$</Text>
               <TextInput
                 style={styles.priceInput}
@@ -451,8 +343,8 @@ export default function NewItemScreen({ navigation }: Props) {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Preço original (opcional)</Text>
-            <View style={styles.priceInputWrapper}>
+            <Text style={styles.label}>Preco original (opcional)</Text>
+            <View style={styles.priceInputWrap}>
               <Text style={styles.currencySymbol}>R$</Text>
               <TextInput
                 style={styles.priceInput}
@@ -463,52 +355,37 @@ export default function NewItemScreen({ navigation }: Props) {
                 keyboardType="numeric"
               />
             </View>
-            <Text style={styles.hint}>
-              Mostre quanto custava para destacar o desconto
-            </Text>
           </View>
         </View>
 
-        <View style={{ height: 100 }} />
+        <View style={{ height: 120 }} />
       </ScrollView>
 
-      {/* Footer com botão de publicar */}
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, SPACING.lg) }]}>
         <TouchableOpacity
           style={[styles.publishButton, uploading && styles.publishButtonDisabled]}
           onPress={handleSubmit}
           disabled={uploading}
-          activeOpacity={0.9}
         >
           {uploading ? (
             <ActivityIndicator color={COLORS.white} />
           ) : (
-            <Text style={styles.publishButtonText}>Publicar Anúncio</Text>
+            <Text style={styles.publishButtonText}>Publicar anuncio</Text>
           )}
         </TouchableOpacity>
       </View>
 
-      {/* Modal de Categoria */}
-      <Modal
-        visible={showCategoryModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowCategoryModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowCategoryModal(false)}
-        >
+      <Modal visible={showCategoryModal} transparent animationType="slide" onRequestClose={() => setShowCategoryModal(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowCategoryModal(false)}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selecione a Categoria</Text>
+              <Text style={styles.modalTitle}>Selecione a categoria</Text>
               <TouchableOpacity onPress={() => setShowCategoryModal(false)}>
-                <Text style={styles.modalClose}>×</Text>
+                <Ionicons name="close" size={22} color={COLORS.textSecondary} />
               </TouchableOpacity>
             </View>
             <ScrollView>
-              {CATEGORIES.filter(c => c.id !== 'all' && c.id !== 'premium').map((cat) => (
+              {CATEGORIES.filter((c) => c.id !== 'all' && c.id !== 'premium').map((cat) => (
                 <TouchableOpacity
                   key={cat.id}
                   style={styles.modalOption}
@@ -518,9 +395,7 @@ export default function NewItemScreen({ navigation }: Props) {
                   }}
                 >
                   <Text style={styles.modalOptionText}>{cat.name}</Text>
-                  {category === cat.id && (
-                    <Text style={styles.modalCheck}>âœ“</Text>
-                  )}
+                  {category === cat.id && <Ionicons name="checkmark" size={18} color={COLORS.primary} />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -528,23 +403,13 @@ export default function NewItemScreen({ navigation }: Props) {
         </TouchableOpacity>
       </Modal>
 
-      {/* Modal de Condição */}
-      <Modal
-        visible={showConditionModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowConditionModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowConditionModal(false)}
-        >
+      <Modal visible={showConditionModal} transparent animationType="slide" onRequestClose={() => setShowConditionModal(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowConditionModal(false)}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selecione a Condição</Text>
+              <Text style={styles.modalTitle}>Selecione a condicao</Text>
               <TouchableOpacity onPress={() => setShowConditionModal(false)}>
-                <Text style={styles.modalClose}>×</Text>
+                <Ionicons name="close" size={22} color={COLORS.textSecondary} />
               </TouchableOpacity>
             </View>
             <ScrollView>
@@ -558,9 +423,7 @@ export default function NewItemScreen({ navigation }: Props) {
                   }}
                 >
                   <Text style={styles.modalOptionText}>{cond.label}</Text>
-                  {condition === cond.id && (
-                    <Text style={styles.modalCheck}>âœ“</Text>
-                  )}
+                  {condition === cond.id && <Ionicons name="checkmark" size={18} color={COLORS.primary} />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -568,87 +431,48 @@ export default function NewItemScreen({ navigation }: Props) {
         </TouchableOpacity>
       </Modal>
 
-      {/* Modal de Tamanho */}
-      <Modal
-        visible={showSizeModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowSizeModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowSizeModal(false)}
-        >
+      <Modal visible={showSizeModal} transparent animationType="slide" onRequestClose={() => setShowSizeModal(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowSizeModal(false)}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selecione o Tamanho</Text>
+              <Text style={styles.modalTitle}>Selecione o tamanho</Text>
               <TouchableOpacity onPress={() => setShowSizeModal(false)}>
-                <Text style={styles.modalClose}>×</Text>
+                <Ionicons name="close" size={22} color={COLORS.textSecondary} />
               </TouchableOpacity>
             </View>
-            <ScrollView>
-              <View style={styles.sizeGrid}>
-                {SIZES.feminino.map((s) => (
-                  <TouchableOpacity
-                    key={s}
-                    style={[styles.sizeOption, size === s && styles.sizeOptionSelected]}
-                    onPress={() => {
-                      setSize(s);
-                      setShowSizeModal(false);
-                    }}
-                  >
-                    <Text style={[styles.sizeOptionText, size === s && styles.sizeOptionTextSelected]}>
-                      {s}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+            <ScrollView contentContainerStyle={styles.sizeGrid}>
+              {SIZES.feminino.map((s) => (
+                <TouchableOpacity
+                  key={s}
+                  style={[styles.sizeOption, size === s && styles.sizeOptionSelected]}
+                  onPress={() => {
+                    setSize(s);
+                    setShowSizeModal(false);
+                  }}
+                >
+                  <Text style={[styles.sizeOptionText, size === s && styles.sizeOptionTextSelected]}>{s}</Text>
+                </TouchableOpacity>
+              ))}
             </ScrollView>
           </View>
         </TouchableOpacity>
       </Modal>
 
-      {/* Modal de Seleção de Imagem */}
-      <Modal
-        visible={showImagePicker}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowImagePicker(false)}
-      >
+      <Modal visible={showImagePicker} transparent animationType="fade" onRequestClose={() => setShowImagePicker(false)}>
         <View style={styles.imagePickerOverlay}>
-          <TouchableOpacity
-            style={styles.imagePickerBackdrop}
-            activeOpacity={1}
-            onPress={() => setShowImagePicker(false)}
-          />
+          <TouchableOpacity style={styles.imagePickerBackdrop} activeOpacity={1} onPress={() => setShowImagePicker(false)} />
           <View style={styles.imagePickerModal}>
-            <TouchableOpacity
-              style={styles.imagePickerOption}
-              onPress={() => {
-                console.log('Tirar Foto pressed');
-                takePhoto();
-              }}
-            >
-              <Text style={styles.imagePickerIcon}>ðŸ“·</Text>
-              <Text style={styles.imagePickerText}>Tirar Foto</Text>
+            <TouchableOpacity style={styles.imagePickerOption} onPress={takePhoto}>
+              <Ionicons name="camera-outline" size={20} color={COLORS.primary} />
+              <Text style={styles.imagePickerText}>Tirar foto</Text>
             </TouchableOpacity>
             <View style={styles.imagePickerDivider} />
-            <TouchableOpacity
-              style={styles.imagePickerOption}
-              onPress={() => {
-                console.log('Escolher da Galeria pressed');
-                pickImage();
-              }}
-            >
-              <Text style={styles.imagePickerIcon}>ðŸ–¼ï¸</Text>
-              <Text style={styles.imagePickerText}>Escolher da Galeria</Text>
+            <TouchableOpacity style={styles.imagePickerOption} onPress={pickImage}>
+              <Ionicons name="images-outline" size={20} color={COLORS.primary} />
+              <Text style={styles.imagePickerText}>Escolher da galeria</Text>
             </TouchableOpacity>
             <View style={styles.imagePickerDivider} />
-            <TouchableOpacity
-              style={styles.imagePickerCancelOption}
-              onPress={() => setShowImagePicker(false)}
-            >
+            <TouchableOpacity style={styles.imagePickerCancelOption} onPress={() => setShowImagePicker(false)}>
               <Text style={styles.imagePickerCancelText}>Cancelar</Text>
             </TouchableOpacity>
           </View>
@@ -658,64 +482,24 @@ export default function NewItemScreen({ navigation }: Props) {
   );
 }
 
-const createStyles = (isDesktop: boolean) => StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingBottom: SPACING.md,
-    paddingHorizontal: isDesktop ? 60 : SPACING.lg,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  logo: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: COLORS.primary,
-    letterSpacing: -0.5,
-  },
-  logoLight: {
-    fontWeight: '400',
-    color: COLORS.gray[400],
-  },
-  navDesktop: {
-    flexDirection: 'row',
-    gap: 32,
-  },
-  navLink: {
-    fontSize: 15,
-    color: COLORS.gray[700],
-    fontWeight: '500',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-  },
-  backIcon: {
-    fontSize: 28,
-    color: COLORS.textPrimary,
-  },
-  headerTitle: {
-    fontSize: TYPOGRAPHY.sizes['2xl'],
-    fontWeight: TYPOGRAPHY.weights.bold,
-    color: COLORS.textPrimary,
   },
   content: {
     flex: 1,
   },
   section: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     padding: SPACING.lg,
     marginTop: SPACING.md,
-    maxWidth: isDesktop ? 700 : '100%',
+  },
+  sectionDesktop: {
+    maxWidth: 720,
     alignSelf: 'center',
     width: '100%',
+    borderRadius: BORDER_RADIUS.lg,
   },
   sectionTitle: {
     fontSize: TYPOGRAPHY.sizes.xl,
@@ -726,40 +510,28 @@ const createStyles = (isDesktop: boolean) => StyleSheet.create({
   sectionSubtitle: {
     fontSize: TYPOGRAPHY.sizes.sm,
     color: COLORS.textSecondary,
-    marginBottom: SPACING.xs,
+    marginBottom: SPACING.md,
   },
-  photoCounter: {
-    fontSize: TYPOGRAPHY.sizes.sm,
-    fontWeight: TYPOGRAPHY.weights.semibold,
-    color: COLORS.primary,
-    marginBottom: SPACING.sm,
-  },
-  imagesList: {
-    flexDirection: 'row',
-    marginTop: SPACING.sm,
+  imagesRow: {
+    marginTop: SPACING.xs,
   },
   addPhotoButton: {
     width: 120,
     height: 120,
-    backgroundColor: COLORS.gray[50],
     borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 2,
-    borderStyle: 'dashed',
+    borderWidth: 1,
     borderColor: COLORS.border,
+    backgroundColor: COLORS.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: SPACING.md,
   },
-  addPhotoIcon: {
-    fontSize: 32,
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.xs,
-  },
   addPhotoText: {
+    marginTop: 6,
     fontSize: TYPOGRAPHY.sizes.sm,
     color: COLORS.textSecondary,
   },
-  imageWrapper: {
+  imageWrap: {
     position: 'relative',
     marginRight: SPACING.md,
   },
@@ -767,7 +539,7 @@ const createStyles = (isDesktop: boolean) => StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: BORDER_RADIUS.lg,
-    backgroundColor: COLORS.gray[100],
+    backgroundColor: COLORS.backgroundDark,
   },
   removeImageButton: {
     position: 'absolute',
@@ -779,31 +551,29 @@ const createStyles = (isDesktop: boolean) => StyleSheet.create({
     backgroundColor: COLORS.error,
     justifyContent: 'center',
     alignItems: 'center',
-    ...SHADOWS.md,
-  },
-  removeImageText: {
-    fontSize: 20,
-    color: COLORS.white,
-    fontWeight: TYPOGRAPHY.weights.bold,
+    ...SHADOWS.sm,
   },
   mainPhotoBadge: {
     position: 'absolute',
-    bottom: 8,
-    left: 8,
-    right: 8,
+    bottom: 6,
+    left: 6,
+    right: 6,
     backgroundColor: COLORS.primary,
-    paddingVertical: 4,
     borderRadius: BORDER_RADIUS.sm,
+    paddingVertical: 2,
     alignItems: 'center',
   },
   mainPhotoText: {
     fontSize: 9,
     fontWeight: TYPOGRAPHY.weights.extrabold,
-    color: COLORS.white,
+    color: COLORS.textInverse,
     letterSpacing: 0.5,
   },
   inputGroup: {
     marginBottom: SPACING.md,
+  },
+  inputGroupFlex: {
+    flex: 1,
   },
   label: {
     fontSize: TYPOGRAPHY.sizes.sm,
@@ -818,11 +588,11 @@ const createStyles = (isDesktop: boolean) => StyleSheet.create({
     padding: SPACING.md,
     fontSize: TYPOGRAPHY.sizes.base,
     color: COLORS.textPrimary,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
   },
   textArea: {
     height: 120,
-    paddingTop: SPACING.md,
+    textAlignVertical: 'top',
   },
   inputRow: {
     flexDirection: 'row',
@@ -836,7 +606,7 @@ const createStyles = (isDesktop: boolean) => StyleSheet.create({
     borderColor: COLORS.border,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
   },
   selectText: {
     fontSize: TYPOGRAPHY.sizes.base,
@@ -846,17 +616,13 @@ const createStyles = (isDesktop: boolean) => StyleSheet.create({
     fontSize: TYPOGRAPHY.sizes.base,
     color: COLORS.textTertiary,
   },
-  selectIcon: {
-    fontSize: 24,
-    color: COLORS.textTertiary,
-  },
-  priceInputWrapper: {
+  priceInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: BORDER_RADIUS.lg,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
   },
   currencySymbol: {
     fontSize: TYPOGRAPHY.sizes.lg,
@@ -871,28 +637,18 @@ const createStyles = (isDesktop: boolean) => StyleSheet.create({
     fontWeight: TYPOGRAPHY.weights.semibold,
     color: COLORS.primary,
   },
-  hint: {
-    fontSize: TYPOGRAPHY.sizes.xs,
-    color: COLORS.textSecondary,
-    marginTop: SPACING.xs,
-  },
   footer: {
     padding: SPACING.lg,
-    paddingHorizontal: isDesktop ? 60 : SPACING.lg,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
-    ...SHADOWS.xl,
+    ...SHADOWS.sm,
   },
   publishButton: {
     backgroundColor: COLORS.primary,
     paddingVertical: SPACING.md,
     borderRadius: BORDER_RADIUS.lg,
     alignItems: 'center',
-    maxWidth: isDesktop ? 400 : '100%',
-    alignSelf: isDesktop ? 'center' : undefined,
-    width: '100%',
-    ...SHADOWS.md,
   },
   publishButtonDisabled: {
     backgroundColor: COLORS.gray[400],
@@ -900,7 +656,7 @@ const createStyles = (isDesktop: boolean) => StyleSheet.create({
   publishButtonText: {
     fontSize: TYPOGRAPHY.sizes.base,
     fontWeight: TYPOGRAPHY.weights.semibold,
-    color: COLORS.white,
+    color: COLORS.textInverse,
   },
   modalOverlay: {
     flex: 1,
@@ -908,7 +664,7 @@ const createStyles = (isDesktop: boolean) => StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     borderTopLeftRadius: BORDER_RADIUS['2xl'],
     borderTopRightRadius: BORDER_RADIUS['2xl'],
     maxHeight: '70%',
@@ -922,14 +678,9 @@ const createStyles = (isDesktop: boolean) => StyleSheet.create({
     borderBottomColor: COLORS.border,
   },
   modalTitle: {
-    fontSize: TYPOGRAPHY.sizes.xl,
+    fontSize: TYPOGRAPHY.sizes.lg,
     fontWeight: TYPOGRAPHY.weights.bold,
     color: COLORS.textPrimary,
-  },
-  modalClose: {
-    fontSize: 36,
-    color: COLORS.textSecondary,
-    fontWeight: '300',
   },
   modalOption: {
     flexDirection: 'row',
@@ -943,11 +694,6 @@ const createStyles = (isDesktop: boolean) => StyleSheet.create({
     fontSize: TYPOGRAPHY.sizes.base,
     color: COLORS.textPrimary,
   },
-  modalCheck: {
-    fontSize: 24,
-    color: COLORS.primary,
-    fontWeight: TYPOGRAPHY.weights.bold,
-  },
   sizeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -957,7 +703,7 @@ const createStyles = (isDesktop: boolean) => StyleSheet.create({
   sizeOption: {
     width: 60,
     height: 60,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: BORDER_RADIUS.lg,
     justifyContent: 'center',
@@ -965,7 +711,7 @@ const createStyles = (isDesktop: boolean) => StyleSheet.create({
   },
   sizeOptionSelected: {
     borderColor: COLORS.primary,
-    backgroundColor: COLORS.primaryLight,
+    backgroundColor: COLORS.primaryExtraLight,
   },
   sizeOptionText: {
     fontSize: TYPOGRAPHY.sizes.base,
@@ -973,7 +719,7 @@ const createStyles = (isDesktop: boolean) => StyleSheet.create({
     color: COLORS.textPrimary,
   },
   sizeOptionTextSelected: {
-    color: COLORS.white,
+    color: COLORS.primary,
   },
   imagePickerOverlay: {
     flex: 1,
@@ -989,12 +735,11 @@ const createStyles = (isDesktop: boolean) => StyleSheet.create({
     bottom: 0,
   },
   imagePickerModal: {
-    backgroundColor: COLORS.white,
-    marginHorizontal: SPACING.lg,
-    borderRadius: BORDER_RADIUS.xl,
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.lg,
     overflow: 'hidden',
     width: '85%',
-    ...SHADOWS.lg,
+    ...SHADOWS.md,
   },
   imagePickerOption: {
     flexDirection: 'row',
@@ -1003,21 +748,18 @@ const createStyles = (isDesktop: boolean) => StyleSheet.create({
     padding: SPACING.lg,
     gap: SPACING.sm,
   },
-  imagePickerIcon: {
-    fontSize: 24,
-  },
   imagePickerText: {
-    fontSize: TYPOGRAPHY.sizes.lg,
+    fontSize: TYPOGRAPHY.sizes.base,
     color: COLORS.primary,
     fontWeight: TYPOGRAPHY.weights.semibold,
   },
   imagePickerCancelOption: {
     padding: SPACING.lg,
     alignItems: 'center',
-    backgroundColor: COLORS.gray[50],
+    backgroundColor: COLORS.background,
   },
   imagePickerCancelText: {
-    fontSize: TYPOGRAPHY.sizes.lg,
+    fontSize: TYPOGRAPHY.sizes.base,
     color: COLORS.textSecondary,
     fontWeight: TYPOGRAPHY.weights.medium,
   },
@@ -1026,5 +768,3 @@ const createStyles = (isDesktop: boolean) => StyleSheet.create({
     backgroundColor: COLORS.border,
   },
 });
-
-

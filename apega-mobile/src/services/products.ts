@@ -171,20 +171,17 @@ export const uploadSingleImage = async (
 // Obter contagem de produtos por categoria
 export const getCategoryCounts = async (): Promise<{ [key: string]: number }> => {
   try {
-    // Buscar todos os produtos para contar por categoria
     const response = await getProducts({ limit: 500 });
     const products = response.products || [];
 
-    // Contar produtos por categoria
     const counts: { [key: string]: number } = {};
-    products.forEach(product => {
-      const category = product.category || 'Outros';
+    products.forEach((product) => {
+      const category = product.category_name || 'Outros';
       counts[category] = (counts[category] || 0) + 1;
     });
 
     return counts;
-  } catch (error) {
-    // Retorna objeto vazio se falhar
+  } catch {
     return {};
   }
 };

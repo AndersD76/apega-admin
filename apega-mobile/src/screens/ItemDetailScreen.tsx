@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -8,458 +8,279 @@ import {
   TouchableOpacity,
   Dimensions,
   StatusBar,
-  Alert,
+  ActivityIndicator,
   Platform,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
 import { ShareModal, OfferModal } from '../components';
+import { getProduct, Product } from '../services/products';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
-
-type Props = NativeStackScreenProps<RootStackParamList, 'ItemDetail'>;
 
 const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
 const isDesktop = isWeb && width > 900;
 
+type Props = NativeStackScreenProps<RootStackParamList, 'ItemDetail'>;
+
 export default function ItemDetailScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const { item } = route.params;
+  const { itemId, item } = route.params || {};
+
+  const [product, setProduct] = useState<Product | null>(item || null);
+  const [loading, setLoading] = useState(!item && !!itemId);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showOfferModal, setShowOfferModal] = useState(false);
 
-  if (!item) {
+  useEffect(() => {
+    const fetchItem = async () => {
+      if (!itemId) return;
+      setLoading(true);
+      try {
+        const response = await getProduct(itemId, 'detail');
+        setProduct(response.product);
+      } catch (error) {
+        console.error('Erro ao carregar produto:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (!product && itemId) {
+      fetchItem();
+    }
+  }, [itemId, product]);
+
+  const images = useMemo(() => {
+    if (!product) return [] as string[];
+    const urls = (product.images || []).map((img) => img.image_url);
+    if (urls.length === 0 && product.image_url) {
+      urls.push(product.image_url);
+    }
+    return urls;
+  }, [product]);
+
+  const priceValue = product?.price ? (typeof product.price === 'string' ? parseFloat(product.price) : product.price) : 0;
+  const originalPrice = product?.original_price || undefined;
+  const hasDiscount = originalPrice && originalPrice > priceValue;
+  const discountPercent = hasDiscount
+    ? Math.round(((originalPrice - priceValue) / originalPrice) * 100)
+    : 0;
+
+  const formatPrice = (value: number | undefined) => {
+    if (!value || Number.isNaN(value)) return 'R$ 0';
+    return `R$ ${value.toFixed(0)}`;
+  };
+
+  const handleBuyNow = () => {
+    if (!product) return;
+    navigation.navigate('Checkout', { item: product });
+  };
+
+  const handleAddToCart = () => {
+    Alert.alert('Boa escolha!', 'Produto adicionado a sacola.');
+  };
+
+  if (loading) {
     return (
-      <View style={styles.loading}>
-        <View style={styles.emptyIcon}>
-          <Ionicons name="bag-outline" size={64} color={COLORS.primary} />
-        </View>
-        <Text style={styles.errorText}>Item não encontrado</Text>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Carregando produto...</Text>
+      </View>
+    );
+  }
+
+  if (!product) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Produto nao encontrado.</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Text style={styles.backButtonText}>Voltar</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  const formatPrice = (price: number | undefined) => {
-    if (price === undefined || price === null || isNaN(price)) return 'R$ 0';
-    return `R$ ${price.toFixed(0)}`;
-  };
-
-  const images = item.images && item.images.length > 0
-    ? item.images
-    : item.imageUrl ? [item.imageUrl] : [];
-
-  const discount = item.discount || (item.originalPrice
-    ? Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)
-    : 0);
-
-  const handleBuyNow = () => {
-    navigation.navigate('Checkout', { item });
-  };
-
-  const handleAddToCart = () => {
-    Alert.alert('Boa escolha!', 'Produto adicionado à sua sacolinha!');
-  };
-
-  const handleMakeOffer = () => {
-    setShowOfferModal(true);
-  };
-
-  const handleShare = () => {
-    setShowShareModal(true);
-  };
-
   const imageWidth = isDesktop ? width * 0.5 : width;
-  const imageHeight = isDesktop ? 650 : width * 1.25;
+  const imageHeight = isDesktop ? 650 : width * 1.2;
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      {/* Header Flutuante */}
       <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity
-          style={styles.headerBtn}
+          style={styles.headerButton}
           onPress={() => navigation.goBack()}
           activeOpacity={0.8}
         >
-          <LinearGradient
-            colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.9)']}
-            style={styles.headerBtnGradient}
-          >
-            <Ionicons name="arrow-back" size={22} color="#333" />
-          </LinearGradient>
+          <Ionicons name="arrow-back" size={22} color={COLORS.textPrimary} />
         </TouchableOpacity>
-
         <View style={styles.headerRight}>
           <TouchableOpacity
-            style={styles.headerBtn}
-            onPress={handleShare}
+            style={styles.headerButton}
+            onPress={() => setShowShareModal(true)}
             activeOpacity={0.8}
           >
-            <LinearGradient
-              colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.9)']}
-              style={styles.headerBtnGradient}
-            >
-              <Ionicons name="share-social-outline" size={20} color="#333" />
-            </LinearGradient>
+            <Ionicons name="share-social-outline" size={20} color={COLORS.textPrimary} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.headerBtn}
+            style={styles.headerButton}
             onPress={() => setIsFavorite(!isFavorite)}
             activeOpacity={0.8}
           >
-            <LinearGradient
-              colors={isFavorite ? [COLORS.primary, COLORS.primaryDark] : ['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.9)']}
-              style={styles.headerBtnGradient}
-            >
-              <Ionicons
-                name={isFavorite ? 'heart' : 'heart-outline'}
-                size={20}
-                color={isFavorite ? '#fff' : '#333'}
-              />
-            </LinearGradient>
+            <Ionicons
+              name={isFavorite ? 'heart' : 'heart-outline'}
+              size={20}
+              color={isFavorite ? COLORS.error : COLORS.textPrimary}
+            />
           </TouchableOpacity>
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} bounces={true}>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <View style={[styles.mainLayout, isDesktop && styles.mainLayoutDesktop]}>
-          {/* Imagens */}
           <View style={[styles.imageSection, isDesktop && styles.imageSectionDesktop]}>
-            <View style={styles.imageContainer}>
-              <ScrollView
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                onScroll={(e) => {
-                  const index = Math.round(e.nativeEvent.contentOffset.x / imageWidth);
-                  setSelectedImageIndex(index);
-                }}
-                scrollEventThrottle={16}
-              >
-                {images.length > 0 ? (
-                  images.map((image: string, index: number) => (
-                    <Image
-                      key={index}
-                      source={{ uri: image }}
-                      style={[styles.image, { width: imageWidth, height: imageHeight }]}
-                      resizeMode="cover"
-                    />
-                  ))
-                ) : (
-                  <View style={[styles.imagePlaceholder, { width: imageWidth, height: imageHeight }]}>
-                    <Ionicons name="image-outline" size={80} color={COLORS.gray[300]} />
-                    <Text style={styles.placeholderText}>Sem imagem</Text>
-                  </View>
-                )}
-              </ScrollView>
-
-              {/* Indicadores de imagem */}
-              {images.length > 1 && (
-                <View style={styles.imageIndicators}>
-                  {images.map((_: string, index: number) => (
-                    <View
-                      key={index}
-                      style={[
-                        styles.indicator,
-                        selectedImageIndex === index && styles.indicatorActive,
-                      ]}
-                    />
-                  ))}
-                </View>
-              )}
-
-              {/* Badge de desconto */}
-              {discount > 0 && (
-                <View style={[styles.discountBadge, { top: insets.top + 70 }]}>
-                  <LinearGradient
-                    colors={['#FF6B6B', '#EE5A5A']}
-                    style={styles.discountGradient}
-                  >
-                    <Text style={styles.discountText}>-{discount}%</Text>
-                  </LinearGradient>
-                </View>
-              )}
-            </View>
-
-            {/* Thumbnails */}
-            {images.length > 1 && (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.thumbnails}
-              >
-                {images.map((image: string, index: number) => (
-                  <TouchableOpacity
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onScroll={(e) => {
+                const index = Math.round(e.nativeEvent.contentOffset.x / imageWidth);
+                setSelectedImageIndex(index);
+              }}
+              scrollEventThrottle={16}
+            >
+              {images.length > 0 ? (
+                images.map((image, index) => (
+                  <Image
                     key={index}
-                    onPress={() => setSelectedImageIndex(index)}
-                    activeOpacity={0.8}
-                  >
-                    <View style={[
-                      styles.thumbnail,
-                      selectedImageIndex === index && styles.thumbnailActive,
-                    ]}>
-                      <Image source={{ uri: image }} style={styles.thumbnailImage} />
-                    </View>
-                  </TouchableOpacity>
+                    source={{ uri: image }}
+                    style={{ width: imageWidth, height: imageHeight }}
+                    resizeMode="cover"
+                  />
+                ))
+              ) : (
+                <View style={[styles.imagePlaceholder, { width: imageWidth, height: imageHeight }]}>
+                  <Ionicons name="image-outline" size={64} color={COLORS.textTertiary} />
+                  <Text style={styles.placeholderText}>Sem imagem</Text>
+                </View>
+              )}
+            </ScrollView>
+
+            {images.length > 1 && (
+              <View style={styles.imageIndicators}>
+                {images.map((_, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.indicator,
+                      selectedImageIndex === index && styles.indicatorActive,
+                    ]}
+                  />
                 ))}
-              </ScrollView>
+              </View>
+            )}
+
+            {hasDiscount && (
+              <View style={styles.discountBadge}>
+                <Text style={styles.discountText}>-{discountPercent}%</Text>
+              </View>
             )}
           </View>
 
-          {/* Conteúdo */}
           <View style={[styles.contentSection, isDesktop && styles.contentSectionDesktop]}>
-            <View style={styles.content}>
-              {/* Preço */}
+            <View style={styles.contentCard}>
               <View style={styles.priceRow}>
-                <View>
-                  <Text style={styles.price}>{formatPrice(item.price)}</Text>
-                  {item.originalPrice && (
-                    <Text style={styles.originalPrice}>
-                      de {formatPrice(item.originalPrice)}
+                <Text style={styles.price}>{formatPrice(priceValue)}</Text>
+                {hasDiscount && (
+                  <Text style={styles.originalPrice}>{formatPrice(originalPrice)}</Text>
+                )}
+              </View>
+
+              <Text style={styles.title}>{product.title}</Text>
+              {product.brand && (
+                <Text style={styles.brand}>{product.brand}</Text>
+              )}
+
+              <View style={styles.tagsRow}>
+                {product.size && (
+                  <View style={styles.tag}>
+                    <Text style={styles.tagText}>Tam {product.size}</Text>
+                  </View>
+                )}
+                {product.condition && (
+                  <View style={styles.tag}>
+                    <Text style={styles.tagText}>{product.condition}</Text>
+                  </View>
+                )}
+              </View>
+
+              {product.description ? (
+                <Text style={styles.description}>{product.description}</Text>
+              ) : null}
+
+              <View style={styles.sellerCard}>
+                <View style={styles.sellerAvatar}>
+                  {product.seller_avatar ? (
+                    <Image source={{ uri: product.seller_avatar }} style={styles.sellerAvatarImage} />
+                  ) : (
+                    <Text style={styles.sellerInitial}>
+                      {(product.seller_name || 'A').charAt(0).toUpperCase()}
                     </Text>
                   )}
                 </View>
-                {discount > 0 && (
-                  <View style={styles.saveBadge}>
-                    <Ionicons name="pricetag" size={14} color={COLORS.success} />
-                    <Text style={styles.saveText}>Você economiza {formatPrice((item.originalPrice || 0) - item.price)}</Text>
-                  </View>
-                )}
-              </View>
-
-              {/* Título e Marca */}
-              <View style={styles.titleSection}>
-                {item.brand && (
-                  <View style={styles.brandBadge}>
-                    <Ionicons name="diamond-outline" size={14} color={COLORS.primary} />
-                    <Text style={styles.brandText}>{item.brand}</Text>
-                  </View>
-                )}
-                <Text style={styles.title}>{item.title}</Text>
-              </View>
-
-              {/* Atributos */}
-              <View style={styles.attributes}>
-                {item.size && (
-                  <View style={styles.attribute}>
-                    <Ionicons name="resize-outline" size={18} color={COLORS.primary} />
-                    <View>
-                      <Text style={styles.attrLabel}>Tamanho</Text>
-                      <Text style={styles.attrValue}>{item.size}</Text>
-                    </View>
-                  </View>
-                )}
-                {item.condition && (
-                  <View style={[styles.attribute, styles.attributeSuccess]}>
-                    <Ionicons name="checkmark-circle" size={18} color={COLORS.success} />
-                    <View>
-                      <Text style={styles.attrLabel}>Condição</Text>
-                      <Text style={[styles.attrValue, { color: COLORS.success }]}>
-                        {item.condition === 'novo' ? 'Novo' :
-                         item.condition === 'seminovo' ? 'Seminovo' : 'Usado'}
-                      </Text>
-                    </View>
-                  </View>
-                )}
-              </View>
-
-              {/* CTA Desktop */}
-              {isDesktop && (
-                <View style={styles.desktopCTA}>
-                  <TouchableOpacity
-                    style={styles.mainCTA}
-                    activeOpacity={0.9}
-                    onPress={handleBuyNow}
-                  >
-                    <LinearGradient
-                      colors={[COLORS.primary, COLORS.primaryDark]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.mainCTAGradient}
-                    >
-                      <Ionicons name="bag-check" size={22} color="#fff" />
-                      <Text style={styles.mainCTAText}>Comprar Agora</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-
-                  <View style={styles.secondaryCTAs}>
-                    <TouchableOpacity
-                      style={styles.secondaryCTA}
-                      activeOpacity={0.8}
-                      onPress={handleAddToCart}
-                    >
-                      <Ionicons name="bag-add-outline" size={20} color={COLORS.primary} />
-                      <Text style={styles.secondaryCTAText}>Sacolinha</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.secondaryCTA}
-                      activeOpacity={0.8}
-                      onPress={handleMakeOffer}
-                    >
-                      <Ionicons name="cash-outline" size={20} color={COLORS.primary} />
-                      <Text style={styles.secondaryCTAText}>Fazer Oferta</Text>
-                    </TouchableOpacity>
+                <View style={styles.sellerInfo}>
+                  <Text style={styles.sellerName}>{product.seller_name || 'Vendedor Apega'}</Text>
+                  <View style={styles.sellerMeta}>
+                    <Ionicons name="star" size={12} color={COLORS.premium} />
+                    <Text style={styles.sellerMetaText}>{product.seller_rating || 0} de 5</Text>
                   </View>
                 </View>
-              )}
-
-              {/* Descrição */}
-              {item.description && (
-                <View style={styles.section}>
-                  <View style={styles.sectionHeader}>
-                    <Ionicons name="document-text-outline" size={20} color={COLORS.primary} />
-                    <Text style={styles.sectionTitle}>Descrição</Text>
-                  </View>
-                  <Text style={styles.description}>{item.description}</Text>
-                </View>
-              )}
-
-              {/* Vendedor */}
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <Ionicons name="person-outline" size={20} color={COLORS.primary} />
-                  <Text style={styles.sectionTitle}>Vendedor</Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.sellerCard}
-                  activeOpacity={0.8}
-                >
-                  <LinearGradient
-                    colors={[COLORS.primary, COLORS.primaryDark]}
-                    style={styles.sellerAvatar}
-                  >
-                    <Text style={styles.sellerInitial}>
-                      {(item.seller?.name || 'A').charAt(0).toUpperCase()}
-                    </Text>
-                  </LinearGradient>
-                  <View style={styles.sellerInfo}>
-                    <Text style={styles.sellerName}>
-                      {item.seller?.name || 'Vendedor Apega'}
-                    </Text>
-                    <View style={styles.sellerMeta}>
-                      <Ionicons name="star" size={14} color="#FFD700" />
-                      <Text style={styles.sellerStats}>
-                        {item.seller?.sales || 0} vendas • Membro desde 2024
-                      </Text>
-                    </View>
-                  </View>
-                  <Ionicons name="chevron-forward" size={22} color={COLORS.gray[400]} />
-                </TouchableOpacity>
+                <Ionicons name="chevron-forward" size={20} color={COLORS.textTertiary} />
               </View>
-
-              {/* Garantias */}
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.primary} />
-                  <Text style={styles.sectionTitle}>Por que comprar aqui</Text>
-                </View>
-                <View style={styles.guarantees}>
-                  <View style={styles.guarantee}>
-                    <View style={[styles.guaranteeIcon, { backgroundColor: '#E8F5E9' }]}>
-                      <Ionicons name="shield-checkmark" size={22} color="#4CAF50" />
-                    </View>
-                    <View style={styles.guaranteeContent}>
-                      <Text style={styles.guaranteeTitle}>Compra Protegida</Text>
-                      <Text style={styles.guaranteeText}>Seu dinheiro de volta se não for como descrito</Text>
-                    </View>
-                  </View>
-                  <View style={styles.guarantee}>
-                    <View style={[styles.guaranteeIcon, { backgroundColor: '#E3F2FD' }]}>
-                      <Ionicons name="swap-horizontal" size={22} color="#2196F3" />
-                    </View>
-                    <View style={styles.guaranteeContent}>
-                      <Text style={styles.guaranteeTitle}>7 Dias para Devolver</Text>
-                      <Text style={styles.guaranteeText}>Não gostou? Devolva sem complicação</Text>
-                    </View>
-                  </View>
-                  <View style={styles.guarantee}>
-                    <View style={[styles.guaranteeIcon, { backgroundColor: '#FFF3E0' }]}>
-                      <Ionicons name="leaf" size={22} color="#FF9800" />
-                    </View>
-                    <View style={styles.guaranteeContent}>
-                      <Text style={styles.guaranteeTitle}>Moda Sustentável</Text>
-                      <Text style={styles.guaranteeText}>Cada peça tem história. Cada compra, um impacto.</Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-
-              <View style={{ height: 160 }} />
             </View>
           </View>
         </View>
+
+        <View style={{ height: 140 }} />
       </ScrollView>
 
-      {/* Footer Mobile */}
       {!isDesktop && (
-        <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
-          <View style={styles.footerContent}>
-            <TouchableOpacity
-              style={styles.mainCTA}
-              activeOpacity={0.9}
-              onPress={handleBuyNow}
-            >
-              <LinearGradient
-                colors={[COLORS.primary, COLORS.primaryDark]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.mainCTAGradient}
-              >
-                <Ionicons name="bag-check" size={20} color="#fff" />
-                <Text style={styles.mainCTAText}>Comprar por {formatPrice(item.price)}</Text>
-              </LinearGradient>
+        <View style={[styles.actionBar, { paddingBottom: insets.bottom + 12 }]}>
+          <TouchableOpacity style={styles.primaryButton} onPress={handleBuyNow}>
+            <Text style={styles.primaryButtonText}>Comprar por {formatPrice(priceValue)}</Text>
+          </TouchableOpacity>
+          <View style={styles.secondaryActions}>
+            <TouchableOpacity style={styles.secondaryButton} onPress={handleAddToCart}>
+              <Ionicons name="bag-add-outline" size={18} color={COLORS.primary} />
+              <Text style={styles.secondaryButtonText}>Sacola</Text>
             </TouchableOpacity>
-
-            <View style={styles.footerActions}>
-              <TouchableOpacity
-                style={styles.footerAction}
-                activeOpacity={0.8}
-                onPress={handleAddToCart}
-              >
-                <Ionicons name="bag-add-outline" size={22} color={COLORS.primary} />
-                <Text style={styles.footerActionText}>Sacolinha</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.footerAction}
-                activeOpacity={0.8}
-                onPress={handleMakeOffer}
-              >
-                <Ionicons name="cash-outline" size={22} color={COLORS.primary} />
-                <Text style={styles.footerActionText}>Oferta</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity style={styles.secondaryButton} onPress={() => setShowOfferModal(true)}>
+              <Ionicons name="cash-outline" size={18} color={COLORS.primary} />
+              <Text style={styles.secondaryButtonText}>Oferta</Text>
+            </TouchableOpacity>
           </View>
         </View>
       )}
 
-      {/* Modals */}
       <ShareModal
         visible={showShareModal}
         onClose={() => setShowShareModal(false)}
-        itemTitle={item.title}
+        itemTitle={product.title}
         itemImage={images[0]}
       />
 
       <OfferModal
         visible={showOfferModal}
         onClose={() => setShowOfferModal(false)}
-        item={item}
+        item={product}
         onOfferSubmit={(value) => {
-          Alert.alert('Bora negociar!', `Sua oferta de ${formatPrice(value)} foi enviada. Agora é só esperar!`);
+          Alert.alert('Oferta enviada', `Sua oferta de ${formatPrice(value)} foi enviada.`);
           setShowOfferModal(false);
         }}
       />
@@ -470,41 +291,29 @@ export default function ItemDetailScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF9F7',
+    backgroundColor: COLORS.background,
   },
-  loading: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    gap: 16,
+    padding: 24,
   },
-  emptyIcon: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: COLORS.primaryExtraLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.gray[700],
+  loadingText: {
+    marginTop: 12,
+    color: COLORS.textSecondary,
   },
   backButton: {
+    marginTop: 16,
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
   },
   backButtonText: {
-    color: '#fff',
-    fontSize: 15,
+    color: COLORS.textInverse,
     fontWeight: '600',
   },
-
-  // Header
   header: {
     position: 'absolute',
     top: 0,
@@ -517,33 +326,20 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     zIndex: 10,
   },
-  headerRight: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  headerBtn: {
-    borderRadius: 25,
-    overflow: 'hidden',
-    ...Platform.select({
-      web: { boxShadow: '0 2px 12px rgba(0,0,0,0.15)' },
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-        elevation: 5,
-      },
-    }),
-  },
-  headerBtnGradient: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+  headerButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
-
-  // Layout
+  headerRight: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   mainLayout: {
     flex: 1,
   },
@@ -552,42 +348,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 60,
     paddingTop: 20,
   },
-  imageSection: {},
   imageSectionDesktop: {
-    width: '55%',
-    paddingRight: 40,
+    width: '55%'
   },
-  contentSection: {},
   contentSectionDesktop: {
-    width: '45%',
-    paddingTop: 80,
-  },
-
-  // Imagem
-  imageContainer: {
-    position: 'relative',
-  },
-  image: {
-    backgroundColor: COLORS.gray[100],
+    width: '45%'
   },
   imagePlaceholder: {
-    backgroundColor: COLORS.gray[100],
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 12,
+    backgroundColor: COLORS.backgroundDark,
   },
   placeholderText: {
-    fontSize: 16,
-    color: COLORS.gray[400],
+    marginTop: 12,
+    color: COLORS.textTertiary,
   },
   imageIndicators: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 16,
     left: 0,
     right: 0,
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
     gap: 8,
   },
   indicator: {
@@ -597,331 +379,167 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.5)',
   },
   indicatorActive: {
-    width: 28,
+    width: 24,
     backgroundColor: '#fff',
   },
   discountBadge: {
     position: 'absolute',
-    right: 16,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  discountGradient: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    top: 16,
+    left: 16,
+    backgroundColor: COLORS.error,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
   },
   discountText: {
-    color: '#fff',
-    fontSize: 16,
+    color: COLORS.textInverse,
     fontWeight: '700',
+    fontSize: 12,
   },
-
-  // Thumbnails
-  thumbnails: {
-    flexDirection: 'row',
-    gap: 12,
-    paddingHorizontal: isDesktop ? 0 : 16,
-    paddingVertical: 16,
-  },
-  thumbnail: {
-    width: 70,
-    height: 90,
-    borderRadius: 8,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  thumbnailActive: {
-    borderColor: COLORS.primary,
-  },
-  thumbnailImage: {
-    width: '100%',
-    height: '100%',
-  },
-
-  // Content
-  content: {
-    padding: isDesktop ? 0 : 24,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    marginTop: -24,
+  contentCard: {
+    backgroundColor: COLORS.surface,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    marginTop: -20,
   },
   priceRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-    paddingTop: 28,
-  },
-  price: {
-    fontSize: 42,
-    fontWeight: '700',
-    color: COLORS.gray[900],
-    letterSpacing: -0.5,
-  },
-  originalPrice: {
-    fontSize: 16,
-    color: COLORS.gray[400],
-    textDecorationLine: 'line-through',
-    marginTop: 6,
-  },
-  saveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E8F5E9',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
-  },
-  saveText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.success,
-  },
-  titleSection: {
-    marginBottom: 28,
-  },
-  brandBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+    alignItems: 'baseline',
+    gap: 10,
     marginBottom: 12,
   },
-  brandText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.gray[400],
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  title: {
+  price: {
     fontSize: 26,
     fontWeight: '700',
-    color: COLORS.gray[800],
-    lineHeight: 34,
+    color: COLORS.textPrimary,
   },
-
-  // Atributos
-  attributes: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 28,
+  originalPrice: {
+    fontSize: 14,
+    color: COLORS.textTertiary,
+    textDecorationLine: 'line-through',
   },
-  attribute: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FAF9F7',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderRadius: 20,
-    gap: 12,
-    flex: 1,
-  },
-  attributeSuccess: {
-    backgroundColor: COLORS.primaryExtraLight,
-  },
-  attrLabel: {
-    fontSize: 12,
-    color: COLORS.gray[500],
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  attrValue: {
-    fontSize: 15,
+  title: {
+    fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray[800],
+    color: COLORS.textPrimary,
   },
-
-  // Desktop CTA
-  desktopCTA: {
-    marginBottom: 32,
-    paddingBottom: 32,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray[200],
+  brand: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginTop: 4,
   },
-
-  // CTAs
-  mainCTA: {
-    borderRadius: 28,
-    overflow: 'hidden',
-    marginBottom: 16,
-  },
-  mainCTAGradient: {
+  tagsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
     gap: 8,
+    marginTop: 12,
+    marginBottom: 12,
   },
-  mainCTAText: {
-    color: '#fff',
-    fontSize: 16,
+  tag: {
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  tagText: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
     fontWeight: '600',
-  },
-  secondaryCTAs: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  secondaryCTA: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-    paddingVertical: 14,
-    borderRadius: 16,
-    gap: 8,
-  },
-  secondaryCTAText: {
-    color: COLORS.primary,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-
-  // Section
-  section: {
-    marginBottom: 32,
-    backgroundColor: '#FAF9F7',
-    padding: 20,
-    borderRadius: 20,
-    marginHorizontal: -24,
-    paddingHorizontal: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: COLORS.gray[800],
   },
   description: {
-    fontSize: 15,
-    color: COLORS.gray[600],
-    lineHeight: 24,
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    lineHeight: 20,
   },
-
-  // Seller
   sellerCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 18,
-    borderRadius: 20,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.gray[200],
+    borderColor: COLORS.border,
+    borderRadius: 14,
+    padding: 12,
+    marginTop: 16,
   },
   sellerAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: COLORS.primaryExtraLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    marginRight: 12,
+    overflow: 'hidden',
+  },
+  sellerAvatarImage: {
+    width: '100%',
+    height: '100%',
   },
   sellerInitial: {
-    color: '#fff',
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '700',
+    color: COLORS.primary,
   },
   sellerInfo: {
     flex: 1,
   },
   sellerName: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: COLORS.gray[800],
-    marginBottom: 4,
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
   },
   sellerMeta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    marginTop: 4,
   },
-  sellerStats: {
-    fontSize: 13,
-    color: COLORS.gray[500],
+  sellerMetaText: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
   },
-
-  // Garantias
-  guarantees: {
-    gap: 12,
-  },
-  guarantee: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: COLORS.gray[100],
-  },
-  guaranteeIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 14,
-  },
-  guaranteeContent: {
-    flex: 1,
-  },
-  guaranteeTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: COLORS.gray[800],
-    marginBottom: 4,
-  },
-  guaranteeText: {
-    fontSize: 13,
-    color: COLORS.gray[500],
-    lineHeight: 18,
-  },
-
-  // Footer
-  footer: {
+  actionBar: {
     position: 'absolute',
-    bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    ...Platform.select({
-      web: { boxShadow: '0 -4px 24px rgba(0,0,0,0.08)' },
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 16,
-        elevation: 16,
-      },
-    }),
+    bottom: 0,
+    backgroundColor: COLORS.surface,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    paddingHorizontal: 16,
+    paddingTop: 12,
   },
-  footerContent: {
-    padding: 20,
-  },
-  footerActions: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 32,
-  },
-  footerAction: {
+  primaryButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    paddingVertical: 12,
     alignItems: 'center',
-    gap: 4,
   },
-  footerActionText: {
-    fontSize: 12,
-    fontWeight: '600',
+  primaryButtonText: {
+    color: COLORS.textInverse,
+    fontWeight: '700',
+  },
+  secondaryActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 10,
+    justifyContent: 'center',
+  },
+  secondaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  secondaryButtonText: {
     color: COLORS.primary,
+    fontWeight: '600',
+    fontSize: 12,
   },
 });

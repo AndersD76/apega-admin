@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {
   View,
   Text,
@@ -25,28 +25,16 @@ export default function MainHeader({ navigation, showBack = false, title }: Main
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isDesktop = isWeb && width > 1024;
-  const isTablet = isWeb && width > 600 && width <= 1024;
   const { user, isAuthenticated } = useAuth();
-
-  const handleSellPress = () => {
-    if (isAuthenticated) {
-      navigation.navigate('NewItem');
-    } else {
-      navigation.navigate('Login', { redirectTo: 'NewItem' });
-    }
-  };
 
   return (
     <>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAF9F7" />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <View style={styles.headerLeft}>
           {showBack && (
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={styles.backButton}
-            >
-              <Ionicons name="arrow-back" size={24} color={COLORS.gray[700]} />
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={22} color={COLORS.textSecondary} />
             </TouchableOpacity>
           )}
           <TouchableOpacity onPress={() => navigation.navigate('Home')}>
@@ -62,9 +50,6 @@ export default function MainHeader({ navigation, showBack = false, title }: Main
             <TouchableOpacity onPress={() => navigation.navigate('Search')}>
               <Text style={styles.navLink}>Explorar</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleSellPress}>
-              <Text style={styles.navLink}>Venda conosco</Text>
-            </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('Favorites')}>
               <Text style={styles.navLink}>Favoritos</Text>
             </TouchableOpacity>
@@ -73,41 +58,18 @@ export default function MainHeader({ navigation, showBack = false, title }: Main
 
         <View style={styles.headerRight}>
           {isAuthenticated && user ? (
-            <TouchableOpacity
-              style={styles.headerUserBtn}
-              onPress={() => navigation.navigate('Profile')}
-            >
-              {(() => {
-                const isPremium = user.subscription_type === 'premium';
-                return (
-                  <>
-                    <View style={[
-                      styles.headerUserAvatar,
-                      isPremium && styles.headerUserAvatarPremium
-                    ]}>
-                      <Text style={styles.headerUserInitial}>
-                        {user.name?.charAt(0).toUpperCase() || 'U'}
-                      </Text>
-                    </View>
-                    <View style={styles.headerUserInfo}>
-                      <Text style={styles.headerUserName} numberOfLines={1}>
-                        {user.name || 'Usuario'}
-                      </Text>
-                      {isPremium && (
-                        <View style={styles.headerUserBadgePremium}>
-                          <Text style={styles.headerUserBadgeTextPremium}>PREMIUM</Text>
-                        </View>
-                      )}
-                    </View>
-                  </>
-                );
-              })()}
+            <TouchableOpacity style={styles.headerUserBtn} onPress={() => navigation.navigate('Profile')}>
+              <View style={styles.headerUserAvatar}>
+                <Text style={styles.headerUserInitial}>
+                  {user.name?.charAt(0).toUpperCase() || 'U'}
+                </Text>
+              </View>
+              <Text style={styles.headerUserName} numberOfLines={1}>
+                {user.name || 'Usuario'}
+              </Text>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity
-              style={styles.headerBtnFilled}
-              onPress={() => navigation.navigate('Profile')}
-            >
+            <TouchableOpacity style={styles.headerBtnFilled} onPress={() => navigation.navigate('Profile')}>
               <Text style={styles.headerBtnFilledText}>Entrar</Text>
             </TouchableOpacity>
           )}
@@ -122,121 +84,92 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FAF9F7',
-    paddingHorizontal: isWeb ? 40 : 16,
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: isWeb ? 32 : 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray[200],
+    borderBottomColor: COLORS.border,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
   },
   backButton: {
     padding: 4,
-    marginRight: 8,
+    marginRight: 4,
   },
   logo: {
     fontSize: isWeb ? 22 : 20,
     fontWeight: '800',
-    color: COLORS.primary,
+    color: COLORS.textPrimary,
     letterSpacing: -0.5,
   },
   logoLight: {
-    fontWeight: '400',
-    color: COLORS.gray[600],
+    fontWeight: '300',
+    color: COLORS.textTertiary,
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray[700],
-    marginLeft: 16,
-    paddingLeft: 16,
+    color: COLORS.textSecondary,
+    marginLeft: 12,
+    paddingLeft: 12,
     borderLeftWidth: 1,
-    borderLeftColor: COLORS.gray[300],
+    borderLeftColor: COLORS.border,
   },
   navDesktop: {
     flexDirection: 'row',
-    gap: 32,
+    gap: 24,
   },
   navLink: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray[600],
+    color: COLORS.textSecondary,
   },
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
   },
   headerBtnFilled: {
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingVertical: 9,
+    borderRadius: 16,
     backgroundColor: COLORS.primary,
   },
   headerBtnFilledText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#fff',
+    color: COLORS.textInverse,
   },
   headerUserBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 24,
-    backgroundColor: COLORS.primaryExtraLight || '#f0f5f3',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 18,
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
   },
   headerUserAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  headerUserAvatarPremium: {
-    backgroundColor: '#7B1FA2',
-    borderWidth: 2,
-    borderColor: '#FFD700',
-  },
   headerUserInitial: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '700',
-    color: '#fff',
-  },
-  headerUserInfo: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    gap: 2,
+    color: COLORS.textInverse,
   },
   headerUserName: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
-    color: COLORS.gray[700],
-    maxWidth: 150,
-  },
-  headerUserBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  headerUserBadgeFree: {
-    backgroundColor: COLORS.gray[200],
-  },
-  headerUserBadgePremium: {
-    backgroundColor: '#FFD700',
-  },
-  headerUserBadgeText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: COLORS.gray[600],
-    letterSpacing: 0.5,
-  },
-  headerUserBadgeTextPremium: {
-    color: '#7B1FA2',
+    color: COLORS.textPrimary,
+    maxWidth: 120,
   },
 });

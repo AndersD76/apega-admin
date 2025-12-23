@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,20 +11,18 @@ import {
   ActivityIndicator,
   Linking,
   Platform,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
-import { Button, Modal } from '../components';
+import { Button, Header, MainHeader, Modal } from '../components';
 import api from '../services/api';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 
-const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
-const isDesktop = isWeb && width > 768;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Checkout'>;
 
@@ -51,12 +49,10 @@ interface ShippingOption {
     picture: string;
   };
   price: string;
-  custom_price: string;
   delivery_range: {
     min: number;
     max: number;
   };
-  currency: string;
 }
 
 type PaymentMethod = 'pix' | 'card' | 'boleto';
@@ -70,9 +66,10 @@ interface PaymentMethodOption {
 
 export default function CheckoutScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const isDesktop = isWeb && width > 900;
   const { item } = route.params;
 
-  // States
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<PaymentMethod>('pix');
@@ -88,66 +85,42 @@ export default function CheckoutScreen({ route, navigation }: Props) {
 
   const formatPrice = (price: number | string | undefined) => {
     const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-    if (numPrice === undefined || numPrice === null || isNaN(numPrice)) return 'R$ 0,00';
+    if (numPrice === undefined || numPrice === null || Number.isNaN(numPrice)) return 'R$ 0,00';
     return `R$ ${numPrice.toFixed(2).replace('.', ',')}`;
   };
 
   const paymentMethods: PaymentMethodOption[] = [
-    {
-      id: 'pix',
-      name: 'PIX',
-      detail: 'Pagamento instantâneo',
-      icon: 'qr-code',
-    },
-    {
-      id: 'card',
-      name: 'Cartão de Crédito',
-      detail: 'Até 12x sem juros',
-      icon: 'card',
-    },
-    {
-      id: 'boleto',
-      name: 'Boleto Bancário',
-      detail: 'Vencimento em 3 dias úteis',
-      icon: 'barcode',
-    },
+    { id: 'pix', name: 'PIX', detail: 'Pagamento instantaneo', icon: 'qr-code' },
+    { id: 'card', name: 'Cartao', detail: 'Ate 12x', icon: 'card' },
+    { id: 'boleto', name: 'Boleto', detail: 'Vencimento em 3 dias', icon: 'barcode' },
   ];
 
-  // Load addresses
   const loadAddresses = useCallback(async () => {
     try {
       const response = await api.get('/addresses');
       if (response.success && response.addresses) {
         setAddresses(response.addresses);
-        // Select default address
         const defaultAddr = response.addresses.find((a: Address) => a.is_default);
-        if (defaultAddr) {
-          setSelectedAddressId(defaultAddr.id);
-        } else if (response.addresses.length > 0) {
-          setSelectedAddressId(response.addresses[0].id);
-        }
+        if (defaultAddr) setSelectedAddressId(defaultAddr.id);
+        else if (response.addresses.length > 0) setSelectedAddressId(response.addresses[0].id);
       }
     } catch (error) {
-      console.error('Erro ao carregar endereços:', error);
+      console.error('Erro ao carregar enderecos:', error);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Calculate shipping when address changes
   const calculateShipping = useCallback(async (zipcode: string) => {
     if (!zipcode || !item?.id) return;
-
     setLoadingShipping(true);
     try {
       const response = await api.post('/shipping/calculate', {
         product_id: item.id,
         to_zipcode: zipcode.replace(/\D/g, ''),
       });
-
       if (response.success && response.options) {
         setShippingOptions(response.options);
-        // Select cheapest option by default
         if (response.options.length > 0) {
           const cheapest = response.options.reduce((prev: ShippingOption, curr: ShippingOption) =>
             parseFloat(curr.price) < parseFloat(prev.price) ? curr : prev
@@ -157,7 +130,6 @@ export default function CheckoutScreen({ route, navigation }: Props) {
       }
     } catch (error) {
       console.error('Erro ao calcular frete:', error);
-      // Fallback to fixed shipping
       setShippingOptions([]);
       setSelectedShipping(null);
     } finally {
@@ -170,22 +142,20 @@ export default function CheckoutScreen({ route, navigation }: Props) {
   }, [loadAddresses]);
 
   useEffect(() => {
-    const selectedAddress = addresses.find(a => a.id === selectedAddressId);
+    const selectedAddress = addresses.find((a) => a.id === selectedAddressId);
     if (selectedAddress?.zipcode) {
       calculateShipping(selectedAddress.zipcode);
     }
   }, [selectedAddressId, addresses, calculateShipping]);
 
-  // Calculate totals
   const subtotal = item?.price || 0;
-  const shippingPrice = selectedShipping ? parseFloat(selectedShipping.price) : 15.00;
+  const shippingPrice = selectedShipping ? parseFloat(selectedShipping.price) : 15;
   const total = subtotal + shippingPrice;
-  const cashback = subtotal * 0.05; // 5% cashback
+  const cashback = subtotal * 0.05;
 
-  // Handle payment
   const handlePayment = async () => {
     if (!selectedAddressId) {
-      Alert.alert('Erro', 'Selecione um endereço de entrega');
+      Alert.alert('Erro', 'Selecione um endereco de entrega');
       return;
     }
 
@@ -210,31 +180,18 @@ export default function CheckoutScreen({ route, navigation }: Props) {
           if (response.success && response.payment) {
             const qrCode = response.payment.pix_qr_code || response.payment.qrCode;
             const qrCodeBase64 = response.payment.pix_qr_code_base64 || response.payment.qrCodeBase64;
-            setPixData({
-              qr_code: qrCode,
-              qr_code_base64: qrCodeBase64,
-            });
+            setPixData({ qr_code: qrCode, qr_code_base64: qrCodeBase64 });
             setShowPixModal(true);
           }
           break;
-
         case 'card':
-          // Para cartão, redirecionar para uma tela de cartão ou usar SDK do Mercado Pago
-          Alert.alert(
-            'Cartão de Crédito',
-            'Funcionalidade de cartão será implementada com o SDK do Mercado Pago',
-            [{ text: 'OK' }]
-          );
+          Alert.alert('Cartao', 'Pagamento via cartao sera integrado ao Mercado Pago.');
           break;
-
         case 'boleto':
           response = await api.post('/checkout/boleto', paymentData);
           if (response.success && response.payment) {
             const boletoUrl = response.payment.boleto_url || response.payment.boletoUrl;
-            setBoletoData({
-              barcode: response.payment.barcode,
-              url: boletoUrl,
-            });
+            setBoletoData({ barcode: response.payment.barcode, url: boletoUrl });
             setShowBoletoModal(true);
           }
           break;
@@ -246,46 +203,35 @@ export default function CheckoutScreen({ route, navigation }: Props) {
     }
   };
 
-  // Copy PIX code
   const copyPixCode = async () => {
     if (pixData?.qr_code) {
       await Clipboard.setStringAsync(pixData.qr_code);
-      Alert.alert('Copiado!', 'Código PIX copiado para a área de transferência');
+      Alert.alert('Copiado', 'Codigo PIX copiado');
     }
   };
 
-  // Copy Boleto barcode
   const copyBoletoCode = async () => {
     if (boletoData?.barcode) {
       await Clipboard.setStringAsync(boletoData.barcode);
-      Alert.alert('Copiado!', 'Código de barras copiado para a área de transferência');
+      Alert.alert('Copiado', 'Codigo de barras copiado');
     }
   };
 
-  // Open Boleto URL
   const openBoletoUrl = () => {
     if (boletoData?.url) {
       Linking.openURL(boletoData.url);
     }
   };
 
-  // Finish order after payment
   const finishOrder = () => {
     setShowPixModal(false);
     setShowBoletoModal(false);
     Alert.alert(
-      'Pedido Realizado!',
-      `Seu pedido de "${item?.title}" foi realizado com sucesso!\n\nVocê ganhará ${formatPrice(cashback)} de cashback após a confirmação do pagamento!`,
+      'Pedido realizado',
+      `Seu pedido de "${item?.title}" foi realizado. Cashback: ${formatPrice(cashback)}.`,
       [
-        {
-          text: 'Ver Pedidos',
-          onPress: () => navigation.navigate('Profile'),
-        },
-        {
-          text: 'Voltar ao Início',
-          onPress: () => navigation.navigate('Home'),
-          style: 'cancel',
-        },
+        { text: 'Ver pedidos', onPress: () => navigation.navigate('Profile') },
+        { text: 'Voltar ao inicio', onPress: () => navigation.navigate('Home'), style: 'cancel' },
       ]
     );
   };
@@ -301,206 +247,135 @@ export default function CheckoutScreen({ route, navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
 
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + SPACING.sm }]}>
-        {isDesktop ? (
-          <>
-            <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-              <Text style={styles.logo}>apega<Text style={styles.logoLight}>desapega</Text></Text>
-            </TouchableOpacity>
-            <View style={styles.navDesktop}>
-              <TouchableOpacity onPress={() => navigation.navigate('Search')}>
-                <Text style={styles.navLink}>Explorar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigation.navigate('Favorites')}>
-                <Text style={styles.navLink}>Favoritos</Text>
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.headerTitle}>checkout</Text>
-          </>
-        ) : (
-          <>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>checkout</Text>
-            <View style={{ width: 24 }} />
-          </>
-        )}
-      </View>
+      {isWeb ? (
+        <MainHeader navigation={navigation} title="Checkout" />
+      ) : (
+        <Header navigation={navigation} title="Checkout" />
+      )}
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-      >
-        {/* Product Summary */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>seu produto</Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+        <View style={[styles.section, isDesktop && styles.sectionDesktop]}>
+          <Text style={styles.sectionTitle}>Produto</Text>
           <View style={styles.productCard}>
             {item?.imageUrl ? (
               <Image source={{ uri: item.imageUrl }} style={styles.productImage} />
             ) : (
-              <View style={[styles.productImage, { backgroundColor: '#E5E7EB', justifyContent: 'center', alignItems: 'center' }]} />
+              <View style={styles.productImage} />
             )}
             <View style={styles.productInfo}>
               <Text style={styles.productBrand}>{item?.brand || 'Marca'}</Text>
-              <Text style={styles.productTitle} numberOfLines={2}>
-                {item?.title}
-              </Text>
+              <Text style={styles.productTitle} numberOfLines={2}>{item?.title}</Text>
               <Text style={styles.productPrice}>{formatPrice(item?.price)}</Text>
             </View>
           </View>
         </View>
 
-        {/* Delivery Address */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>endereço de entrega</Text>
+        <View style={[styles.section, isDesktop && styles.sectionDesktop]}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Endereco</Text>
             <TouchableOpacity onPress={() => navigation.navigate('AddAddress' as any)}>
-              <Text style={styles.addButton}>+ adicionar</Text>
+              <Text style={styles.sectionAction}>Adicionar</Text>
             </TouchableOpacity>
           </View>
-
           {addresses.length === 0 ? (
             <View style={styles.emptyCard}>
-              <Ionicons name="location-outline" size={32} color={COLORS.gray[400]} />
-              <Text style={styles.emptyText}>Nenhum endereço cadastrado</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('AddAddress' as any)}>
-                <Text style={styles.addButton}>Adicionar endereço</Text>
-              </TouchableOpacity>
+              <Ionicons name="location-outline" size={32} color={COLORS.textTertiary} />
+              <Text style={styles.emptyText}>Nenhum endereco cadastrado</Text>
             </View>
           ) : (
             addresses.map((address) => (
               <TouchableOpacity
                 key={address.id}
-                style={[
-                  styles.addressCard,
-                  selectedAddressId === address.id && styles.selectedCard,
-                ]}
+                style={[styles.optionCard, selectedAddressId === address.id && styles.optionCardActive]}
                 onPress={() => setSelectedAddressId(address.id)}
               >
-                <View style={styles.radioContainer}>
-                  <Ionicons
-                    name={selectedAddressId === address.id ? 'radio-button-on' : 'radio-button-off'}
-                    size={20}
-                    color={selectedAddressId === address.id ? COLORS.primary : COLORS.gray[400]}
-                  />
-                </View>
-                <View style={styles.addressInfo}>
-                  <Text style={styles.addressName}>
-                    {address.name || 'Endereço'}
-                    {address.is_default && (
-                      <Text style={styles.defaultBadge}> (padrão)</Text>
-                    )}
-                  </Text>
-                  <Text style={styles.addressText}>
-                    {address.street}, {address.number}
-                    {address.complement ? ` - ${address.complement}` : ''}
-                  </Text>
-                  <Text style={styles.addressText}>
-                    {address.neighborhood} - {address.city}/{address.state}
-                  </Text>
-                  <Text style={styles.addressText}>CEP: {address.zipcode}</Text>
+                <Ionicons
+                  name={selectedAddressId === address.id ? 'radio-button-on' : 'radio-button-off'}
+                  size={18}
+                  color={selectedAddressId === address.id ? COLORS.primary : COLORS.textTertiary}
+                />
+                <View style={styles.optionInfo}>
+                  <Text style={styles.optionTitle}>{address.name || 'Endereco'}</Text>
+                  <Text style={styles.optionText}>{address.street}, {address.number}</Text>
+                  <Text style={styles.optionText}>{address.neighborhood} - {address.city}/{address.state}</Text>
+                  <Text style={styles.optionText}>CEP: {address.zipcode}</Text>
                 </View>
               </TouchableOpacity>
             ))
           )}
         </View>
 
-        {/* Shipping Options */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>opções de frete</Text>
-
+        <View style={[styles.section, isDesktop && styles.sectionDesktop]}>
+          <Text style={styles.sectionTitle}>Frete</Text>
           {loadingShipping ? (
-            <View style={styles.loadingCard}>
+            <View style={styles.loadingInline}>
               <ActivityIndicator size="small" color={COLORS.primary} />
-              <Text style={styles.loadingShippingText}>Calculando frete...</Text>
+              <Text style={styles.loadingInlineText}>Calculando frete...</Text>
             </View>
           ) : shippingOptions.length > 0 ? (
             shippingOptions.map((option) => (
               <TouchableOpacity
                 key={option.id}
-                style={[
-                  styles.shippingCard,
-                  selectedShipping?.id === option.id && styles.selectedCard,
-                ]}
+                style={[styles.optionCard, selectedShipping?.id === option.id && styles.optionCardActive]}
                 onPress={() => setSelectedShipping(option)}
               >
-                <View style={styles.radioContainer}>
-                  <Ionicons
-                    name={selectedShipping?.id === option.id ? 'radio-button-on' : 'radio-button-off'}
-                    size={20}
-                    color={selectedShipping?.id === option.id ? COLORS.primary : COLORS.gray[400]}
-                  />
-                </View>
-                {option.company.picture && (
-                  <Image
-                    source={{ uri: option.company.picture }}
-                    style={styles.shippingLogo}
-                  />
-                )}
-                <View style={styles.shippingInfo}>
-                  <Text style={styles.shippingName}>{option.name}</Text>
-                  <Text style={styles.shippingDetail}>
+                <Ionicons
+                  name={selectedShipping?.id === option.id ? 'radio-button-on' : 'radio-button-off'}
+                  size={18}
+                  color={selectedShipping?.id === option.id ? COLORS.primary : COLORS.textTertiary}
+                />
+                {option.company.picture ? (
+                  <Image source={{ uri: option.company.picture }} style={styles.shippingLogo} />
+                ) : null}
+                <View style={styles.optionInfo}>
+                  <Text style={styles.optionTitle}>{option.name}</Text>
+                  <Text style={styles.optionText}>
                     {option.delivery_range.min === option.delivery_range.max
-                      ? `${option.delivery_range.min} dias úteis`
-                      : `${option.delivery_range.min} a ${option.delivery_range.max} dias úteis`}
+                      ? `${option.delivery_range.min} dias`
+                      : `${option.delivery_range.min} a ${option.delivery_range.max} dias`}
                   </Text>
                 </View>
-                <Text style={styles.shippingPrice}>{formatPrice(option.price)}</Text>
+                <Text style={styles.optionPrice}>{formatPrice(option.price)}</Text>
               </TouchableOpacity>
             ))
           ) : (
-            <View style={styles.fixedShippingCard}>
-              <Ionicons name="cube-outline" size={24} color={COLORS.textSecondary} />
-              <View style={styles.shippingInfo}>
-                <Text style={styles.shippingName}>Frete Padrão</Text>
-                <Text style={styles.shippingDetail}>5 a 10 dias úteis</Text>
+            <View style={styles.optionCard}>
+              <Ionicons name="cube-outline" size={20} color={COLORS.textSecondary} />
+              <View style={styles.optionInfo}>
+                <Text style={styles.optionTitle}>Frete padrao</Text>
+                <Text style={styles.optionText}>5 a 10 dias</Text>
               </View>
-              <Text style={styles.shippingPrice}>{formatPrice(15)}</Text>
+              <Text style={styles.optionPrice}>{formatPrice(15)}</Text>
             </View>
           )}
         </View>
 
-        {/* Payment Method */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>forma de pagamento</Text>
-
+        <View style={[styles.section, isDesktop && styles.sectionDesktop]}>
+          <Text style={styles.sectionTitle}>Pagamento</Text>
           {paymentMethods.map((payment) => (
             <TouchableOpacity
               key={payment.id}
-              style={[
-                styles.paymentCard,
-                selectedPayment === payment.id && styles.selectedCard,
-              ]}
+              style={[styles.optionCard, selectedPayment === payment.id && styles.optionCardActive]}
               onPress={() => setSelectedPayment(payment.id)}
             >
-              <View style={styles.radioContainer}>
-                <Ionicons
-                  name={selectedPayment === payment.id ? 'radio-button-on' : 'radio-button-off'}
-                  size={20}
-                  color={selectedPayment === payment.id ? COLORS.primary : COLORS.gray[400]}
-                />
-              </View>
               <Ionicons
-                name={payment.icon}
-                size={24}
-                color={COLORS.textSecondary}
-                style={styles.paymentIcon}
+                name={selectedPayment === payment.id ? 'radio-button-on' : 'radio-button-off'}
+                size={18}
+                color={selectedPayment === payment.id ? COLORS.primary : COLORS.textTertiary}
               />
-              <View style={styles.paymentInfo}>
-                <Text style={styles.paymentName}>{payment.name}</Text>
-                <Text style={styles.paymentDetail}>{payment.detail}</Text>
+              <Ionicons name={payment.icon} size={20} color={COLORS.textSecondary} style={{ marginLeft: 8 }} />
+              <View style={styles.optionInfo}>
+                <Text style={styles.optionTitle}>{payment.name}</Text>
+                <Text style={styles.optionText}>{payment.detail}</Text>
               </View>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Price Summary */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>resumo do pedido</Text>
+        <View style={[styles.section, isDesktop && styles.sectionDesktop]}>
+          <Text style={styles.sectionTitle}>Resumo</Text>
           <View style={styles.summaryCard}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal</Text>
@@ -511,10 +386,8 @@ export default function CheckoutScreen({ route, navigation }: Props) {
               <Text style={styles.summaryValue}>{formatPrice(shippingPrice)}</Text>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={styles.cashbackLabel}>
-                <Ionicons name="arrow-undo" size={14} /> Cashback (5%)
-              </Text>
-              <Text style={styles.cashbackValue}>+ {formatPrice(cashback)}</Text>
+              <Text style={styles.summaryLabel}>Cashback</Text>
+              <Text style={styles.summaryValue}>+ {formatPrice(cashback)}</Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.summaryRow}>
@@ -524,12 +397,11 @@ export default function CheckoutScreen({ route, navigation }: Props) {
           </View>
         </View>
 
-        <View style={{ height: 100 }} />
+        <View style={{ height: 120 }} />
       </ScrollView>
 
-      {/* Footer */}
       <View style={[styles.footer, { paddingBottom: insets.bottom + SPACING.sm }]}>
-        <View style={styles.footerInfo}>
+        <View style={styles.footerRow}>
           <Text style={styles.footerLabel}>Total</Text>
           <Text style={styles.footerTotal}>{formatPrice(total)}</Text>
         </View>
@@ -538,83 +410,34 @@ export default function CheckoutScreen({ route, navigation }: Props) {
           variant="primary"
           onPress={handlePayment}
           disabled={processing || !selectedAddressId}
-          style={styles.checkoutButton}
+          fullWidth
         />
       </View>
 
-      {/* PIX Modal */}
-      <Modal
-        visible={showPixModal}
-        onClose={() => setShowPixModal(false)}
-        title="Pagamento PIX"
-      >
+      <Modal visible={showPixModal} onClose={() => setShowPixModal(false)} title="Pagamento PIX">
         <View style={styles.modalContent}>
           {pixData?.qr_code_base64 && (
-            <Image
-              source={{ uri: `data:image/png;base64,${pixData.qr_code_base64}` }}
-              style={styles.qrCode}
-            />
+            <Image source={{ uri: `data:image/png;base64,${pixData.qr_code_base64}` }} style={styles.qrCode} />
           )}
-          <Text style={styles.modalText}>
-            Escaneie o QR Code acima ou copie o código PIX abaixo:
-          </Text>
-          <View style={styles.pixCodeContainer}>
-            <Text style={styles.pixCode} numberOfLines={2}>
-              {pixData?.qr_code}
-            </Text>
+          <Text style={styles.modalText}>Escaneie o QR Code ou copie o codigo abaixo.</Text>
+          <View style={styles.codeBox}>
+            <Text style={styles.codeText} numberOfLines={2}>{pixData?.qr_code}</Text>
           </View>
-          <Button
-            label="Copiar código PIX"
-            variant="secondary"
-            onPress={copyPixCode}
-            style={styles.modalButton}
-          />
-          <Button
-            label="Já fiz o pagamento"
-            variant="primary"
-            onPress={finishOrder}
-            style={styles.modalButton}
-          />
+          <Button label="Copiar codigo" variant="secondary" onPress={copyPixCode} fullWidth />
+          <Button label="Ja paguei" variant="primary" onPress={finishOrder} fullWidth style={{ marginTop: SPACING.sm }} />
         </View>
       </Modal>
 
-      {/* Boleto Modal */}
-      <Modal
-        visible={showBoletoModal}
-        onClose={() => setShowBoletoModal(false)}
-        title="Boleto Bancário"
-      >
+      <Modal visible={showBoletoModal} onClose={() => setShowBoletoModal(false)} title="Boleto">
         <View style={styles.modalContent}>
-          <Ionicons name="barcode-outline" size={64} color={COLORS.primary} />
-          <Text style={styles.modalText}>
-            Seu boleto foi gerado com sucesso!
-          </Text>
-          <Text style={styles.modalSubtext}>
-            Vencimento: 3 dias úteis
-          </Text>
-          <View style={styles.boletoCodeContainer}>
-            <Text style={styles.boletoCode} numberOfLines={2}>
-              {boletoData?.barcode}
-            </Text>
+          <Ionicons name="barcode-outline" size={48} color={COLORS.primary} />
+          <Text style={styles.modalText}>Boleto gerado.</Text>
+          <View style={styles.codeBox}>
+            <Text style={styles.codeText} numberOfLines={2}>{boletoData?.barcode}</Text>
           </View>
-          <Button
-            label="Copiar código de barras"
-            variant="secondary"
-            onPress={copyBoletoCode}
-            style={styles.modalButton}
-          />
-          <Button
-            label="Visualizar boleto"
-            variant="secondary"
-            onPress={openBoletoUrl}
-            style={styles.modalButton}
-          />
-          <Button
-            label="Concluir"
-            variant="primary"
-            onPress={finishOrder}
-            style={styles.modalButton}
-          />
+          <Button label="Copiar codigo" variant="secondary" onPress={copyBoletoCode} fullWidth />
+          <Button label="Visualizar boleto" variant="secondary" onPress={openBoletoUrl} fullWidth style={{ marginTop: SPACING.sm }} />
+          <Button label="Concluir" variant="primary" onPress={finishOrder} fullWidth style={{ marginTop: SPACING.sm }} />
         </View>
       </Modal>
     </View>
@@ -627,277 +450,164 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 24,
   },
   loadingText: {
     marginTop: SPACING.md,
-    fontSize: TYPOGRAPHY.sizes.base,
     color: COLORS.textSecondary,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: isDesktop ? 60 : SPACING.md,
-    paddingBottom: SPACING.md,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderLight,
-  },
-  logo: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#1a1a1a',
-    letterSpacing: -0.5,
-  },
-  logoLight: {
-    fontWeight: '400',
-    color: COLORS.gray[400],
-  },
-  navDesktop: {
-    flexDirection: 'row',
-    gap: 32,
-  },
-  navLink: {
-    fontSize: 15,
-    color: COLORS.gray[700],
-    fontWeight: '500',
-  },
-  backButton: {
-    padding: SPACING.xs,
-  },
-  headerTitle: {
-    fontSize: TYPOGRAPHY.sizes.lg,
-    fontWeight: TYPOGRAPHY.weights.bold as any,
-    color: COLORS.textPrimary,
   },
   content: {
     paddingBottom: SPACING.xl,
-    maxWidth: isDesktop ? 800 : '100%',
+  },
+  section: {
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.lg,
+  },
+  sectionDesktop: {
+    maxWidth: 840,
     alignSelf: 'center',
     width: '100%',
   },
-  section: {
-    marginTop: SPACING.lg,
-    paddingHorizontal: isDesktop ? 60 : SPACING.md,
+  sectionTitle: {
+    fontSize: TYPOGRAPHY.sizes.sm,
+    fontWeight: TYPOGRAPHY.weights.semibold,
+    color: COLORS.textSecondary,
+    textTransform: 'uppercase',
+    marginBottom: SPACING.sm,
   },
-  sectionHeader: {
+  sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
-  sectionTitle: {
-    fontSize: TYPOGRAPHY.sizes.sm,
-    fontWeight: TYPOGRAPHY.weights.semibold as any,
-    color: COLORS.textPrimary,
-    textTransform: 'lowercase',
     marginBottom: SPACING.sm,
   },
-  addButton: {
+  sectionAction: {
     fontSize: TYPOGRAPHY.sizes.sm,
-    fontWeight: TYPOGRAPHY.weights.semibold as any,
     color: COLORS.primary,
+    fontWeight: TYPOGRAPHY.weights.semibold,
   },
   productCard: {
     flexDirection: 'row',
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
     ...SHADOWS.xs,
   },
   productImage: {
-    width: 80,
-    height: 80,
-    borderRadius: BORDER_RADIUS.sm,
-    backgroundColor: COLORS.gray[100],
+    width: 72,
+    height: 72,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.background,
   },
   productInfo: {
-    flex: 1,
     marginLeft: SPACING.md,
-    justifyContent: 'center',
+    flex: 1,
   },
   productBrand: {
     fontSize: TYPOGRAPHY.sizes.xs,
-    color: COLORS.textSecondary,
-    marginBottom: 2,
+    color: COLORS.textTertiary,
+    textTransform: 'uppercase',
   },
   productTitle: {
     fontSize: TYPOGRAPHY.sizes.base,
-    fontWeight: TYPOGRAPHY.weights.semibold as any,
+    fontWeight: TYPOGRAPHY.weights.semibold,
     color: COLORS.textPrimary,
+    marginTop: 4,
     marginBottom: 4,
   },
   productPrice: {
-    fontSize: TYPOGRAPHY.sizes.lg,
-    fontWeight: TYPOGRAPHY.weights.bold as any,
-    color: COLORS.primary,
+    fontSize: TYPOGRAPHY.sizes.base,
+    fontWeight: TYPOGRAPHY.weights.bold,
+    color: COLORS.textPrimary,
   },
   emptyCard: {
-    backgroundColor: COLORS.white,
-    padding: SPACING.xl,
-    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    padding: SPACING.lg,
     alignItems: 'center',
-    ...SHADOWS.xs,
   },
   emptyText: {
-    fontSize: TYPOGRAPHY.sizes.base,
-    color: COLORS.textSecondary,
     marginTop: SPACING.sm,
-    marginBottom: SPACING.md,
-  },
-  addressCard: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.white,
-    padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    marginBottom: SPACING.sm,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    ...SHADOWS.xs,
-  },
-  selectedCard: {
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.primaryLight,
-  },
-  radioContainer: {
-    marginRight: SPACING.md,
-    justifyContent: 'center',
-  },
-  addressInfo: {
-    flex: 1,
-  },
-  addressName: {
-    fontSize: TYPOGRAPHY.sizes.base,
-    fontWeight: TYPOGRAPHY.weights.semibold as any,
-    color: COLORS.textPrimary,
-    marginBottom: 4,
-  },
-  defaultBadge: {
-    fontSize: TYPOGRAPHY.sizes.xs,
-    color: COLORS.primary,
-    fontWeight: TYPOGRAPHY.weights.normal as any,
-  },
-  addressText: {
-    fontSize: TYPOGRAPHY.sizes.sm,
     color: COLORS.textSecondary,
+  },
+  optionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+  },
+  optionCardActive: {
+    borderColor: COLORS.primary,
+  },
+  optionInfo: {
+    flex: 1,
+    marginLeft: SPACING.sm,
+  },
+  optionTitle: {
+    fontSize: TYPOGRAPHY.sizes.base,
+    fontWeight: TYPOGRAPHY.weights.semibold,
+    color: COLORS.textPrimary,
     marginBottom: 2,
   },
-  loadingCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.white,
-    padding: SPACING.lg,
-    borderRadius: BORDER_RADIUS.md,
-    ...SHADOWS.xs,
-  },
-  loadingShippingText: {
-    marginLeft: SPACING.sm,
-    fontSize: TYPOGRAPHY.sizes.base,
+  optionText: {
+    fontSize: TYPOGRAPHY.sizes.sm,
     color: COLORS.textSecondary,
   },
-  shippingCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    marginBottom: SPACING.sm,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    ...SHADOWS.xs,
-  },
-  fixedShippingCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    ...SHADOWS.xs,
+  optionPrice: {
+    fontSize: TYPOGRAPHY.sizes.sm,
+    fontWeight: TYPOGRAPHY.weights.semibold,
+    color: COLORS.textPrimary,
   },
   shippingLogo: {
-    width: 40,
-    height: 40,
+    width: 32,
+    height: 32,
     borderRadius: BORDER_RADIUS.sm,
-    marginRight: SPACING.sm,
+    marginLeft: 6,
   },
-  shippingInfo: {
-    flex: 1,
-    marginLeft: SPACING.sm,
-  },
-  shippingName: {
-    fontSize: TYPOGRAPHY.sizes.base,
-    fontWeight: TYPOGRAPHY.weights.semibold as any,
-    color: COLORS.textPrimary,
-    marginBottom: 2,
-  },
-  shippingDetail: {
-    fontSize: TYPOGRAPHY.sizes.sm,
-    color: COLORS.textSecondary,
-  },
-  shippingPrice: {
-    fontSize: TYPOGRAPHY.sizes.base,
-    fontWeight: TYPOGRAPHY.weights.bold as any,
-    color: COLORS.primary,
-  },
-  paymentCard: {
+  loadingInline: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    marginBottom: SPACING.sm,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    ...SHADOWS.xs,
   },
-  paymentIcon: {
-    marginRight: SPACING.sm,
-  },
-  paymentInfo: {
-    flex: 1,
-  },
-  paymentName: {
-    fontSize: TYPOGRAPHY.sizes.base,
-    fontWeight: TYPOGRAPHY.weights.semibold as any,
-    color: COLORS.textPrimary,
-    marginBottom: 2,
-  },
-  paymentDetail: {
-    fontSize: TYPOGRAPHY.sizes.sm,
+  loadingInlineText: {
+    marginLeft: SPACING.sm,
     color: COLORS.textSecondary,
   },
   summaryCard: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    ...SHADOWS.xs,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: SPACING.sm,
   },
   summaryLabel: {
-    fontSize: TYPOGRAPHY.sizes.base,
+    fontSize: TYPOGRAPHY.sizes.sm,
     color: COLORS.textSecondary,
   },
   summaryValue: {
-    fontSize: TYPOGRAPHY.sizes.base,
+    fontSize: TYPOGRAPHY.sizes.sm,
     color: COLORS.textPrimary,
-    fontWeight: TYPOGRAPHY.weights.medium as any,
-  },
-  cashbackLabel: {
-    fontSize: TYPOGRAPHY.sizes.base,
-    color: COLORS.success,
-  },
-  cashbackValue: {
-    fontSize: TYPOGRAPHY.sizes.base,
-    color: COLORS.success,
-    fontWeight: TYPOGRAPHY.weights.semibold as any,
+    fontWeight: TYPOGRAPHY.weights.medium,
   },
   divider: {
     height: 1,
@@ -905,88 +615,59 @@ const styles = StyleSheet.create({
     marginVertical: SPACING.sm,
   },
   totalLabel: {
-    fontSize: TYPOGRAPHY.sizes.lg,
-    fontWeight: TYPOGRAPHY.weights.bold as any,
+    fontSize: TYPOGRAPHY.sizes.base,
+    fontWeight: TYPOGRAPHY.weights.bold,
     color: COLORS.textPrimary,
   },
   totalValue: {
-    fontSize: TYPOGRAPHY.sizes.xl,
-    fontWeight: TYPOGRAPHY.weights.bold as any,
+    fontSize: TYPOGRAPHY.sizes.base,
+    fontWeight: TYPOGRAPHY.weights.bold,
     color: COLORS.primary,
   },
   footer: {
-    backgroundColor: COLORS.white,
-    padding: SPACING.md,
+    backgroundColor: COLORS.surface,
     borderTopWidth: 1,
     borderTopColor: COLORS.borderLight,
-    ...SHADOWS.lg,
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.md,
   },
-  footerInfo: {
+  footerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: SPACING.sm,
   },
   footerLabel: {
-    fontSize: TYPOGRAPHY.sizes.base,
+    fontSize: TYPOGRAPHY.sizes.sm,
     color: COLORS.textSecondary,
   },
   footerTotal: {
-    fontSize: TYPOGRAPHY.sizes.xl,
-    fontWeight: TYPOGRAPHY.weights.bold as any,
-    color: COLORS.primary,
-  },
-  checkoutButton: {
-    width: '100%',
+    fontSize: TYPOGRAPHY.sizes.lg,
+    fontWeight: TYPOGRAPHY.weights.bold,
+    color: COLORS.textPrimary,
   },
   modalContent: {
+    paddingVertical: SPACING.md,
+    gap: SPACING.sm,
     alignItems: 'center',
-    paddingVertical: SPACING.lg,
   },
   qrCode: {
     width: 200,
     height: 200,
-    marginBottom: SPACING.lg,
   },
   modalText: {
-    fontSize: TYPOGRAPHY.sizes.base,
-    color: COLORS.textPrimary,
-    textAlign: 'center',
-    marginBottom: SPACING.md,
-  },
-  modalSubtext: {
     fontSize: TYPOGRAPHY.sizes.sm,
     color: COLORS.textSecondary,
     textAlign: 'center',
-    marginBottom: SPACING.lg,
   },
-  pixCodeContainer: {
-    backgroundColor: COLORS.gray[100],
-    padding: SPACING.md,
+  codeBox: {
+    backgroundColor: COLORS.background,
     borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
     width: '100%',
-    marginBottom: SPACING.md,
   },
-  pixCode: {
+  codeText: {
     fontSize: TYPOGRAPHY.sizes.xs,
     color: COLORS.textSecondary,
     textAlign: 'center',
-  },
-  boletoCodeContainer: {
-    backgroundColor: COLORS.gray[100],
-    padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    width: '100%',
-    marginBottom: SPACING.md,
-  },
-  boletoCode: {
-    fontSize: TYPOGRAPHY.sizes.sm,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    fontFamily: 'monospace',
-  },
-  modalButton: {
-    width: '100%',
-    marginTop: SPACING.sm,
   },
 });

@@ -112,6 +112,8 @@ router.get('/', optionalAuth, async (req, res, next) => {
       conditions.push(sql`p.city ILIKE ${'%' + city + '%'}`);
     }
 
+    const whereClause = conditions.length ? sql` AND ${sql.join(conditions, sql` AND `)}` : sql``;
+
     // OrdenaÃ§Ã£o
     let orderBy;
     switch (sort) {
@@ -142,6 +144,7 @@ router.get('/', optionalAuth, async (req, res, next) => {
       JOIN users u ON p.seller_id = u.id
       LEFT JOIN categories c ON p.category_id = c.id
       WHERE p.status = 'active'
+      ${whereClause}
       ORDER BY ${orderBy}
       LIMIT ${parseInt(limit)}
       OFFSET ${offset}
@@ -149,7 +152,11 @@ router.get('/', optionalAuth, async (req, res, next) => {
 
     // Contar total
     const countResult = await sql`
-      SELECT COUNT(*) as total FROM products WHERE status = 'active'
+      SELECT COUNT(*) as total
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE p.status = 'active'
+      ${whereClause}
     `;
 
     res.json({
@@ -501,4 +508,5 @@ router.post('/:id/images', authenticate, upload.array('images', 10), async (req,
 });
 
 module.exports = router;
+
 

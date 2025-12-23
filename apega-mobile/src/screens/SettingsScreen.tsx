@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,16 +11,11 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
-import Header from '../components/Header';
-import Input from '../components/Input';
-import Button from '../components/Button';
-import Modal from '../components/Modal';
+import { Header, MainHeader, Input, Button, Modal } from '../components';
 import { useAuth } from '../contexts/AuthContext';
 
 const isWeb = Platform.OS === 'web';
-const MAX_CONTENT_WIDTH = 700;
 
 interface SettingsScreenProps {
   navigation: any;
@@ -36,17 +31,15 @@ interface SettingItem {
 }
 
 export default function SettingsScreen({ navigation }: SettingsScreenProps) {
-  const { user, refreshUser } = useAuth();
-  const { width: windowWidth } = useWindowDimensions();
-  const isDesktop = isWeb && windowWidth > 768;
+  const { user } = useAuth();
+  const { width } = useWindowDimensions();
+  const isDesktop = isWeb && width > 900;
 
-  // Account state - initialized from user context
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [editingEmail, setEditingEmail] = useState(false);
   const [editingPhone, setEditingPhone] = useState(false);
 
-  // Load user data when component mounts or user changes
   useEffect(() => {
     if (user) {
       setEmail(user.email || '');
@@ -54,48 +47,36 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     }
   }, [user]);
 
-  // Notification toggles
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailMarketing, setEmailMarketing] = useState(false);
   const [messageNotifications, setMessageNotifications] = useState(true);
   const [offerNotifications, setOfferNotifications] = useState(true);
   const [salesNotifications, setSalesNotifications] = useState(true);
 
-  // Privacy toggles
   const [privateProfile, setPrivateProfile] = useState(false);
   const [showOnline, setShowOnline] = useState(true);
 
-  // Preferences
   const [darkMode, setDarkMode] = useState(false);
-  const [language, setLanguage] = useState('português');
-  const [location, setLocation] = useState(user?.city && user?.state ? `${user.city}, ${user.state}` : '');
+  const [language, setLanguage] = useState('portugues');
+  const [location] = useState(user?.city && user?.state ? `${user.city}, ${user.state}` : '');
 
-  // Modals
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleSaveEmail = () => {
     setEditingEmail(false);
-    Alert.alert('sucesso', 'e-mail atualizado com sucesso');
+    Alert.alert('Sucesso', 'E-mail atualizado');
   };
 
   const handleSavePhone = () => {
     setEditingPhone(false);
-    Alert.alert('sucesso', 'telefone atualizado com sucesso');
-  };
-
-  const handleChangePassword = () => {
-    setShowPasswordModal(true);
+    Alert.alert('Sucesso', 'Telefone atualizado');
   };
 
   const handleSavePassword = () => {
     setShowPasswordModal(false);
-    Alert.alert('sucesso', 'senha alterada com sucesso');
-  };
-
-  const handleBlockedUsers = () => {
-    console.log('Manage blocked users');
+    Alert.alert('Sucesso', 'Senha alterada');
   };
 
   const handleSelectLanguage = (lang: string) => {
@@ -104,49 +85,23 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   };
 
   const handleDownloadData = () => {
-    Alert.alert(
-      'baixar dados',
-      'você receberá um arquivo com todos os seus dados por e-mail em até 24 horas.',
-      [{ text: 'ok' }]
-    );
-  };
-
-  const handleDeleteAccount = () => {
-    setShowDeleteModal(true);
+    Alert.alert('Baixar dados', 'Voce recebera um arquivo por e-mail em ate 24h.');
   };
 
   const confirmDeleteAccount = () => {
     setShowDeleteModal(false);
-    Alert.alert('conta excluída', 'sua conta foi excluída permanentemente');
+    Alert.alert('Conta excluida', 'Sua conta foi excluida.');
   };
 
-  const renderSectionTitle = (title: string) => (
-    <Text style={styles.sectionTitle}>{title}</Text>
-  );
-
-  const renderDivider = () => <View style={styles.divider} />;
-
   const renderSettingItem = (item: SettingItem) => (
-    <TouchableOpacity
-      key={item.title}
-      style={styles.settingItem}
-      onPress={item.onPress}
-      activeOpacity={0.7}
-    >
-      <Ionicons
-        name={item.icon}
-        size={24}
-        color={item.iconColor || COLORS.textPrimary}
-        style={styles.settingIcon}
-      />
+    <TouchableOpacity key={item.title} style={styles.settingItem} onPress={item.onPress} activeOpacity={0.7}>
+      <Ionicons name={item.icon} size={20} color={item.iconColor || COLORS.textPrimary} style={styles.settingIcon} />
       <View style={styles.settingContent}>
         <Text style={styles.settingTitle}>{item.title}</Text>
-        {item.subtitle && (
-          <Text style={styles.settingSubtitle}>{item.subtitle}</Text>
-        )}
+        {item.subtitle ? <Text style={styles.settingSubtitle}>{item.subtitle}</Text> : null}
       </View>
       {item.rightElement || (
-        <Ionicons name="chevron-forward" size={20} color={COLORS.textTertiary} />
+        <Ionicons name="chevron-forward" size={18} color={COLORS.textTertiary} />
       )}
     </TouchableOpacity>
   );
@@ -159,12 +114,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     onValueChange: (value: boolean) => void
   ) => (
     <View key={title} style={styles.settingItem}>
-      <Ionicons
-        name={icon}
-        size={24}
-        color={COLORS.textPrimary}
-        style={styles.settingIcon}
-      />
+      <Ionicons name={icon} size={20} color={COLORS.textPrimary} style={styles.settingIcon} />
       <View style={styles.settingContent}>
         <Text style={styles.settingTitle}>{title}</Text>
         <Text style={styles.settingSubtitle}>{subtitle}</Text>
@@ -180,51 +130,26 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
   return (
     <View style={styles.container}>
-      <Header
-        navigation={navigation}
-        title="configurações"
-        variant="simple"
-        showBack
-      />
+      {isWeb ? (
+        <MainHeader navigation={navigation} title="Configuracoes" />
+      ) : (
+        <Header navigation={navigation} title="Configuracoes" showBack />
+      )}
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.content,
-          isDesktop && { maxWidth: MAX_CONTENT_WIDTH }
-        ]}
+        contentContainerStyle={[styles.content, isDesktop && styles.contentDesktop]}
       >
-        {/* Account Section */}
-        {renderSectionTitle('conta')}
-
+        <Text style={styles.sectionTitle}>Conta</Text>
         <View style={styles.card}>
           <View style={styles.fieldContainer}>
-            <View style={styles.fieldHeader}>
-              <Ionicons name="mail" size={20} color={COLORS.textSecondary} />
-              <Text style={styles.fieldLabel}>e-mail</Text>
-            </View>
+            <Text style={styles.fieldLabel}>e-mail</Text>
             {editingEmail ? (
               <View style={styles.fieldEdit}>
-                <Input
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="seu e-mail"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
+                <Input value={email} onChangeText={setEmail} placeholder="seu e-mail" keyboardType="email-address" autoCapitalize="none" />
                 <View style={styles.fieldActions}>
-                  <Button
-                    label="cancelar"
-                    variant="secondary"
-                    size="small"
-                    onPress={() => setEditingEmail(false)}
-                  />
-                  <Button
-                    label="salvar"
-                    variant="primary"
-                    size="small"
-                    onPress={handleSaveEmail}
-                  />
+                  <Button label="cancelar" variant="secondary" size="small" onPress={() => setEditingEmail(false)} />
+                  <Button label="salvar" variant="primary" size="small" onPress={handleSaveEmail} />
                 </View>
               </View>
             ) : (
@@ -240,31 +165,13 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           <View style={styles.fieldDivider} />
 
           <View style={styles.fieldContainer}>
-            <View style={styles.fieldHeader}>
-              <Ionicons name="phone-portrait" size={20} color={COLORS.textSecondary} />
-              <Text style={styles.fieldLabel}>telefone</Text>
-            </View>
+            <Text style={styles.fieldLabel}>telefone</Text>
             {editingPhone ? (
               <View style={styles.fieldEdit}>
-                <Input
-                  value={phone}
-                  onChangeText={setPhone}
-                  placeholder="seu telefone"
-                  keyboardType="phone-pad"
-                />
+                <Input value={phone} onChangeText={setPhone} placeholder="seu telefone" keyboardType="phone-pad" />
                 <View style={styles.fieldActions}>
-                  <Button
-                    label="cancelar"
-                    variant="secondary"
-                    size="small"
-                    onPress={() => setEditingPhone(false)}
-                  />
-                  <Button
-                    label="salvar"
-                    variant="primary"
-                    size="small"
-                    onPress={handleSavePhone}
-                  />
+                  <Button label="cancelar" variant="secondary" size="small" onPress={() => setEditingPhone(false)} />
+                  <Button label="salvar" variant="primary" size="small" onPress={handleSavePhone} />
                 </View>
               </View>
             ) : (
@@ -279,176 +186,78 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
           <View style={styles.fieldDivider} />
 
-          <TouchableOpacity
-            style={styles.fieldContainer}
-            onPress={handleChangePassword}
-            activeOpacity={0.7}
-          >
-            <View style={styles.fieldHeader}>
-              <Ionicons name="lock-closed" size={20} color={COLORS.textSecondary} />
-              <Text style={styles.fieldLabel}>senha</Text>
-            </View>
+          <TouchableOpacity style={styles.fieldContainer} onPress={() => setShowPasswordModal(true)} activeOpacity={0.7}>
+            <Text style={styles.fieldLabel}>senha</Text>
             <View style={styles.fieldDisplay}>
               <Text style={styles.fieldValue}>••••••••</Text>
-              <Ionicons name="chevron-forward" size={20} color={COLORS.textTertiary} />
+              <Ionicons name="chevron-forward" size={18} color={COLORS.textTertiary} />
             </View>
           </TouchableOpacity>
         </View>
 
-        {renderDivider()}
-
-        {/* Notifications Section */}
-        {renderSectionTitle('notificações')}
+        <Text style={styles.sectionTitle}>Notificacoes</Text>
         <View style={styles.card}>
-          {renderToggleItem(
-            'notifications',
-            'notificações push',
-            'receba alertas no seu dispositivo',
-            pushNotifications,
-            setPushNotifications
-          )}
+          {renderToggleItem('notifications', 'notificacoes push', 'alertas no dispositivo', pushNotifications, setPushNotifications)}
           <View style={styles.fieldDivider} />
-          {renderToggleItem(
-            'mail',
-            'e-mail marketing',
-            'ofertas e novidades por e-mail',
-            emailMarketing,
-            setEmailMarketing
-          )}
+          {renderToggleItem('mail', 'e-mail marketing', 'ofertas e novidades', emailMarketing, setEmailMarketing)}
           <View style={styles.fieldDivider} />
-          {renderToggleItem(
-            'chatbubbles',
-            'mensagens',
-            'alertas de novas mensagens',
-            messageNotifications,
-            setMessageNotifications
-          )}
+          {renderToggleItem('chatbubbles', 'mensagens', 'novas mensagens', messageNotifications, setMessageNotifications)}
           <View style={styles.fieldDivider} />
-          {renderToggleItem(
-            'pricetag',
-            'ofertas recebidas',
-            'quando alguém fizer uma oferta',
-            offerNotifications,
-            setOfferNotifications
-          )}
+          {renderToggleItem('pricetag', 'ofertas', 'quando alguem fizer oferta', offerNotifications, setOfferNotifications)}
           <View style={styles.fieldDivider} />
-          {renderToggleItem(
-            'cart',
-            'vendas',
-            'atualizações sobre suas vendas',
-            salesNotifications,
-            setSalesNotifications
-          )}
+          {renderToggleItem('cart', 'vendas', 'atualizacoes de vendas', salesNotifications, setSalesNotifications)}
         </View>
 
-        {renderDivider()}
-
-        {/* Privacy Section */}
-        {renderSectionTitle('privacidade')}
+        <Text style={styles.sectionTitle}>Privacidade</Text>
         <View style={styles.card}>
-          {renderToggleItem(
-            'eye-off',
-            'perfil privado',
-            'apenas seguidores veem seus produtos',
-            privateProfile,
-            setPrivateProfile
-          )}
+          {renderToggleItem('eye-off', 'perfil privado', 'apenas seguidores veem seus produtos', privateProfile, setPrivateProfile)}
           <View style={styles.fieldDivider} />
-          {renderToggleItem(
-            'radio-button-on',
-            'mostrar status online',
-            'outros usuários veem quando você está online',
-            showOnline,
-            setShowOnline
-          )}
-          <View style={styles.fieldDivider} />
-          <TouchableOpacity
-            style={styles.fieldContainer}
-            onPress={handleBlockedUsers}
-            activeOpacity={0.7}
-          >
-            <View style={styles.fieldHeader}>
-              <Ionicons name="ban" size={24} color={COLORS.textPrimary} />
-              <View style={{ marginLeft: SPACING.md, flex: 1 }}>
-                <Text style={styles.settingTitle}>usuários bloqueados</Text>
-                <Text style={styles.settingSubtitle}>gerenciar lista de bloqueios</Text>
-              </View>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.textTertiary} />
-          </TouchableOpacity>
+          {renderToggleItem('radio-button-on', 'status online', 'mostrar quando voce esta online', showOnline, setShowOnline)}
         </View>
 
-        {renderDivider()}
-
-        {/* Preferences Section */}
-        {renderSectionTitle('preferências')}
+        <Text style={styles.sectionTitle}>Preferencias</Text>
         <View style={styles.card}>
-          {renderToggleItem(
-            'moon',
-            'modo escuro',
-            'ative o tema escuro',
-            darkMode,
-            setDarkMode
-          )}
+          {renderToggleItem('moon', 'modo escuro', 'ativar tema escuro', darkMode, setDarkMode)}
           <View style={styles.fieldDivider} />
-          <TouchableOpacity
-            style={styles.fieldContainer}
-            onPress={() => setShowLanguageModal(true)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.fieldHeader}>
-              <Ionicons name="language" size={24} color={COLORS.textPrimary} />
-              <View style={{ marginLeft: SPACING.md, flex: 1 }}>
-                <Text style={styles.settingTitle}>idioma</Text>
-                <Text style={styles.settingSubtitle}>alterar idioma do app</Text>
-              </View>
+          <TouchableOpacity style={styles.settingItem} onPress={() => setShowLanguageModal(true)} activeOpacity={0.7}>
+            <Ionicons name="language" size={20} color={COLORS.textPrimary} style={styles.settingIcon} />
+            <View style={styles.settingContent}>
+              <Text style={styles.settingTitle}>idioma</Text>
+              <Text style={styles.settingSubtitle}>alterar idioma do app</Text>
             </View>
-            <View style={styles.languageDisplay}>
-              <Text style={styles.languageValue}>{language}</Text>
-              <Ionicons name="chevron-forward" size={20} color={COLORS.textTertiary} />
-            </View>
+            <Text style={styles.languageValue}>{language}</Text>
           </TouchableOpacity>
           <View style={styles.fieldDivider} />
-          <View style={styles.fieldContainer}>
-            <View style={styles.fieldHeader}>
-              <Ionicons name="location" size={24} color={COLORS.textPrimary} />
-              <View style={{ marginLeft: SPACING.md, flex: 1 }}>
-                <Text style={styles.settingTitle}>localização</Text>
-                <Text style={styles.settingSubtitle}>{location}</Text>
-              </View>
+          <View style={styles.settingItem}>
+            <Ionicons name="location" size={20} color={COLORS.textPrimary} style={styles.settingIcon} />
+            <View style={styles.settingContent}>
+              <Text style={styles.settingTitle}>localizacao</Text>
+              <Text style={styles.settingSubtitle}>{location}</Text>
             </View>
-            <TouchableOpacity onPress={() => console.log('Edit location')}>
-              <Text style={styles.editLink}>editar</Text>
-            </TouchableOpacity>
+            <Text style={styles.editLink}>editar</Text>
           </View>
         </View>
 
-        {renderDivider()}
-
-        {/* Data Section */}
-        {renderSectionTitle('dados')}
+        <Text style={styles.sectionTitle}>Dados</Text>
         {renderSettingItem({
           icon: 'download',
           title: 'baixar meus dados',
-          subtitle: 'solicitar cópia dos seus dados',
+          subtitle: 'solicitar copia dos seus dados',
           onPress: handleDownloadData,
         })}
         {renderSettingItem({
           icon: 'trash',
           title: 'excluir conta',
           subtitle: 'apagar permanentemente sua conta',
-          onPress: handleDeleteAccount,
+          onPress: () => setShowDeleteModal(true),
           iconColor: COLORS.error,
         })}
 
-        {renderDivider()}
-
-        {/* About Section */}
-        {renderSectionTitle('sobre')}
+        <Text style={styles.sectionTitle}>Sobre</Text>
         {renderSettingItem({
           icon: 'information-circle',
           title: 'sobre o apega desapega',
-          subtitle: 'conheça nossa história',
+          subtitle: 'conheca nossa historia',
           onPress: () => console.log('About'),
         })}
         {renderSettingItem({
@@ -459,125 +268,55 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
         })}
         {renderSettingItem({
           icon: 'shield-checkmark',
-          title: 'política de privacidade',
+          title: 'politica de privacidade',
           subtitle: 'como tratamos seus dados',
           onPress: () => console.log('Privacy'),
         })}
 
-        <Text style={styles.version}>versão 1.0.0</Text>
-
+        <Text style={styles.version}>versao 1.0.0</Text>
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Change Password Modal */}
-      <Modal
-        visible={showPasswordModal}
-        onClose={() => setShowPasswordModal(false)}
-        type="bottom"
-        title="alterar senha"
-      >
+      <Modal visible={showPasswordModal} onClose={() => setShowPasswordModal(false)} type="bottom" title="alterar senha">
         <View style={styles.modalContent}>
-          <Input
-            label="senha atual"
-            placeholder="digite sua senha atual"
-            secureTextEntry
-            required
-          />
-          <Input
-            label="nova senha"
-            placeholder="digite a nova senha"
-            secureTextEntry
-            helperText="mínimo 8 caracteres"
-            required
-          />
-          <Input
-            label="confirmar nova senha"
-            placeholder="digite novamente a nova senha"
-            secureTextEntry
-            required
-          />
+          <Input label="senha atual" placeholder="digite sua senha atual" secureTextEntry required />
+          <Input label="nova senha" placeholder="digite a nova senha" secureTextEntry helperText="minimo 8 caracteres" required />
+          <Input label="confirmar nova senha" placeholder="digite novamente" secureTextEntry required />
           <View style={styles.modalActions}>
-            <Button
-              label="cancelar"
-              variant="secondary"
-              onPress={() => setShowPasswordModal(false)}
-              fullWidth
-            />
-            <Button
-              label="salvar"
-              variant="primary"
-              onPress={handleSavePassword}
-              fullWidth
-            />
+            <Button label="cancelar" variant="secondary" onPress={() => setShowPasswordModal(false)} fullWidth />
+            <Button label="salvar" variant="primary" onPress={handleSavePassword} fullWidth />
           </View>
         </View>
       </Modal>
 
-      {/* Language Selection Modal */}
-      <Modal
-        visible={showLanguageModal}
-        onClose={() => setShowLanguageModal(false)}
-        type="bottom"
-        title="selecionar idioma"
-      >
+      <Modal visible={showLanguageModal} onClose={() => setShowLanguageModal(false)} type="bottom" title="selecionar idioma">
         <View style={styles.modalContent}>
-          {['português', 'english', 'español'].map((lang) => (
+          {['portugues', 'english', 'espanol'].map((lang) => (
             <TouchableOpacity
               key={lang}
-              style={[
-                styles.languageOption,
-                language === lang && styles.languageOptionActive,
-              ]}
+              style={[styles.languageOption, language === lang && styles.languageOptionActive]}
               onPress={() => handleSelectLanguage(lang)}
               activeOpacity={0.7}
             >
-              <Text
-                style={[
-                  styles.languageOptionText,
-                  language === lang && styles.languageOptionTextActive,
-                ]}
-              >
-                {lang}
-              </Text>
-              {language === lang && (
-                <Ionicons name="checkmark" size={24} color={COLORS.primary} />
-              )}
+              <Text style={[styles.languageOptionText, language === lang && styles.languageOptionTextActive]}>{lang}</Text>
+              {language === lang && <Ionicons name="checkmark" size={20} color={COLORS.primary} />}
             </TouchableOpacity>
           ))}
         </View>
       </Modal>
 
-      {/* Delete Account Confirmation Modal */}
-      <Modal
-        visible={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        type="center"
-        title="excluir conta"
-        showCloseButton={false}
-      >
+      <Modal visible={showDeleteModal} onClose={() => setShowDeleteModal(false)} type="center" title="excluir conta" showCloseButton={false}>
         <View style={styles.deleteModalContent}>
           <View style={styles.warningIcon}>
-            <Ionicons name="warning" size={48} color={COLORS.error} />
+            <Ionicons name="warning" size={36} color={COLORS.error} />
           </View>
           <Text style={styles.deleteTitle}>tem certeza?</Text>
           <Text style={styles.deleteMessage}>
-            esta ação é permanente e não pode ser desfeita. todos os seus dados,
-            produtos, vendas e mensagens serão excluídos.
+            esta acao e permanente. seus dados e anuncios serao excluidos.
           </Text>
           <View style={styles.deleteActions}>
-            <Button
-              label="cancelar"
-              variant="secondary"
-              onPress={() => setShowDeleteModal(false)}
-              fullWidth
-            />
-            <Button
-              label="excluir conta"
-              variant="primary"
-              onPress={confirmDeleteAccount}
-              fullWidth
-              style={{ backgroundColor: COLORS.error }}
-            />
+            <Button label="cancelar" variant="secondary" onPress={() => setShowDeleteModal(false)} fullWidth />
+            <Button label="excluir conta" variant="primary" onPress={confirmDeleteAccount} fullWidth style={{ backgroundColor: COLORS.error }} />
           </View>
         </View>
       </Modal>
@@ -592,6 +331,9 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingBottom: SPACING.xl,
+  },
+  contentDesktop: {
+    maxWidth: 860,
     alignSelf: 'center',
     width: '100%',
   },
@@ -601,36 +343,27 @@ const styles = StyleSheet.create({
     color: COLORS.textTertiary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    paddingHorizontal: SPACING.lg,
-    marginBottom: SPACING.md,
-    marginTop: SPACING.md,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: COLORS.borderLight,
-    marginVertical: SPACING.lg,
-    marginHorizontal: SPACING.lg,
+    paddingHorizontal: SPACING.md,
+    marginTop: SPACING.lg,
+    marginBottom: SPACING.sm,
   },
   card: {
-    backgroundColor: COLORS.white,
-    marginHorizontal: SPACING.lg,
-    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.surface,
+    marginHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
     ...SHADOWS.xs,
   },
   fieldContainer: {
     paddingVertical: SPACING.sm,
   },
-  fieldHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.sm,
-  },
   fieldLabel: {
     fontSize: TYPOGRAPHY.sizes.sm,
     fontWeight: TYPOGRAPHY.weights.semibold,
     color: COLORS.textSecondary,
-    marginLeft: SPACING.sm,
+    marginBottom: SPACING.sm,
   },
   fieldDisplay: {
     flexDirection: 'row',
@@ -662,12 +395,14 @@ const styles = StyleSheet.create({
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
-    marginHorizontal: SPACING.lg,
+    backgroundColor: COLORS.surface,
+    marginHorizontal: SPACING.md,
     marginBottom: SPACING.sm,
     padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    minHeight: 64,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    minHeight: 60,
     ...SHADOWS.xs,
   },
   settingIcon: {
@@ -686,11 +421,6 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.sizes.xs,
     color: COLORS.textSecondary,
   },
-  languageDisplay: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.xs,
-  },
   languageValue: {
     fontSize: TYPOGRAPHY.sizes.sm,
     color: COLORS.textSecondary,
@@ -700,7 +430,7 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.sizes.xs,
     color: COLORS.textTertiary,
     textAlign: 'center',
-    marginTop: SPACING.xl,
+    marginTop: SPACING.lg,
   },
   modalContent: {
     padding: SPACING.lg,
@@ -720,7 +450,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
   },
   languageOptionActive: {
-    backgroundColor: COLORS.primaryLight,
+    backgroundColor: COLORS.primaryExtraLight,
   },
   languageOptionText: {
     fontSize: TYPOGRAPHY.sizes.base,
@@ -736,16 +466,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   warningIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     backgroundColor: COLORS.errorLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.md,
   },
   deleteTitle: {
-    fontSize: TYPOGRAPHY.sizes['2xl'],
+    fontSize: TYPOGRAPHY.sizes.xl,
     fontWeight: TYPOGRAPHY.weights.bold,
     color: COLORS.textPrimary,
     marginBottom: SPACING.sm,
@@ -755,7 +485,7 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
-    marginBottom: SPACING.xl,
+    marginBottom: SPACING.lg,
   },
   deleteActions: {
     width: '100%',
