@@ -170,26 +170,22 @@ export const uploadSingleImage = async (
 
 // Obter contagem de produtos por categoria
 export const getCategoryCounts = async (): Promise<{ [key: string]: number }> => {
-  const categories = ['Vestidos', 'Bolsas', 'Calçados', 'Blusas', 'Acessórios', 'Jaquetas', 'Saias', 'Casacos'];
-  const counts: { [key: string]: number } = {};
-
   try {
-    // Buscar total geral primeiro
-    const totalResponse = await getProducts({ limit: 1 });
-    const total = totalResponse.pagination?.total || 0;
+    // Buscar todos os produtos para contar por categoria
+    const response = await getProducts({ limit: 500 });
+    const products = response.products || [];
 
-    // Distribuir proporcionalmente (simplificação - idealmente teria endpoint específico)
-    categories.forEach((cat, index) => {
-      // Proporção aproximada baseada no total
-      const proportion = [0.2, 0.12, 0.18, 0.22, 0.1, 0.08, 0.05, 0.05][index];
-      counts[cat] = Math.max(1, Math.floor(total * proportion));
+    // Contar produtos por categoria
+    const counts: { [key: string]: number } = {};
+    products.forEach(product => {
+      const category = product.category || 'Outros';
+      counts[category] = (counts[category] || 0) + 1;
     });
 
     return counts;
   } catch (error) {
-    // Retorna zeros se falhar
-    categories.forEach(cat => counts[cat] = 0);
-    return counts;
+    // Retorna objeto vazio se falhar
+    return {};
   }
 };
 
