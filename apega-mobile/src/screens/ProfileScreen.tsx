@@ -190,21 +190,21 @@ const styles = StyleSheet.create({
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
 
   // Premium
-  premiumBanner: { marginHorizontal: 16, marginTop: -12, borderRadius: 16, overflow: 'hidden', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8 },
+  premiumBanner: { marginHorizontal: 16, marginTop: -12, borderRadius: 16, overflow: 'hidden', elevation: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' } as any,
   premiumGrad: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, gap: 12 },
   premiumText: { flex: 1 },
   premiumTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
   premiumSub: { fontSize: 12, color: 'rgba(255,255,255,0.9)' },
 
   // Balance
-  balanceCard: { marginHorizontal: 16, marginTop: 16, backgroundColor: '#fff', borderRadius: 16, padding: 16, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4 },
+  balanceCard: { marginHorizontal: 16, marginTop: 16, backgroundColor: '#fff', borderRadius: 16, padding: 16, elevation: 2, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' } as any,
   balanceHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   balanceLabel: { fontSize: 14, color: '#737373' },
   withdrawBtn: { fontSize: 14, fontWeight: '600', color: '#5D8A7D' },
   balanceValue: { fontSize: 28, fontWeight: '700', color: '#1A1A1A' },
 
   // Menu
-  menuCard: { marginHorizontal: 16, marginTop: 16, backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4 },
+  menuCard: { marginHorizontal: 16, marginTop: 16, backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', elevation: 2, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' } as any,
   menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#F5F5F5' },
   menuItemLast: { borderBottomWidth: 0 },
   menuIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F5F5F5', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
