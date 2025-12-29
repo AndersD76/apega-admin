@@ -107,6 +107,8 @@ function StatCard({ title, value, icon, loading }: StatCardProps) {
 
 interface OrderWithDetails extends Order {
   product_images?: string[]
+  product_brand?: string
+  product_size?: string
   street?: string
   number?: string
   complement?: string
@@ -118,7 +120,9 @@ interface OrderWithDetails extends Order {
   product_description?: string
   product_condition?: string
   buyer_phone?: string
+  buyer_email?: string
   seller_phone?: string
+  seller_email?: string
   buyer_avatar?: string
   seller_avatar?: string
 }

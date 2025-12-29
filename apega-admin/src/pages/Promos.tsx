@@ -12,7 +12,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Gift, Star, Crown, Users, TrendingUp, CheckCircle2 } from 'lucide-react'
-import { useAuth } from '@/contexts/AuthContext'
 
 interface PromoStats {
   totalSlots: number
@@ -53,7 +52,7 @@ interface OfficialStore {
 }
 
 export default function Promos() {
-  const { token } = useAuth()
+  const token = localStorage.getItem('admin_token')
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState<PromoStats | null>(null)
   const [promoUsers, setPromoUsers] = useState<PromoUser[]>([])

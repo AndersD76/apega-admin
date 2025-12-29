@@ -194,7 +194,7 @@ export interface AdminNotification {
 export const adminLogin = async (email: string, password: string): Promise<{ success: boolean; token?: string; user?: any; message?: string }> => {
   try {
     const response = await api.post('/auth/admin-login', { email, password })
-    return response
+    return response as any
   } catch (error: any) {
     return { success: false, message: error.message || 'Erro ao fazer login' }
   }
@@ -203,7 +203,7 @@ export const adminLogin = async (email: string, password: string): Promise<{ suc
 export const checkAdminAuth = async (): Promise<{ success: boolean; user?: any }> => {
   try {
     const response = await api.get('/auth/admin-check')
-    return response
+    return response as any
   } catch (error) {
     return { success: false }
   }
