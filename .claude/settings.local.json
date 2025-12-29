@@ -81,7 +81,20 @@
       "Bash(RAILWAY_TOKEN=63c04a30-b2b6-4f55-8c33-f86f21a1c7ef railway status:*)",
       "Bash(npx tailwindcss:*)",
       "Bash(npm ls:*)",
-      "Bash(npx create-expo-app@latest apega-mobile --template blank-typescript)"
+      "Bash(npx create-expo-app@latest apega-mobile --template blank-typescript)",
+      "Bash(tasklist:*)",
+      "Bash(cmd //c \"taskkill /F /PID 26092\")",
+      "Bash(cmd /c \"taskkill /F /PID 62848\")",
+      "Bash(cmd //c \"taskkill /F /PID 28876\")",
+      "Bash(cmd /c \"taskkill /F /PID 65380\")",
+      "Bash(cmd /c \"taskkill /F /PID 27776\")",
+      "Bash(cmd /c \"set RAILWAY_TOKEN=63c04a30-b2b6-4f55-8c33-f86f21a1c7ef && cd /d e:\\\\APPS EM DESENVOLVIMENTO\\\\App Brechó\\\\apega-backend && railway whoami\")",
+      "Bash(export RAILWAY_TOKEN=63c04a30-b2b6-4f55-8c33-f86f21a1c7ef)",
+      "Bash(RAILWAY_TOKEN=63c04a30-b2b6-4f55-8c33-f86f21a1c7ef railway link:*)",
+      "Bash(RAILWAY_TOKEN=63c04a30-b2b6-4f55-8c33-f86f21a1c7ef railway list:*)",
+      "Bash(RAILWAY_TOKEN=63c04a30-b2b6-4f55-8c33-f86f21a1c7ef railway environment:*)",
+      "Bash(RAILWAY_TOKEN=63c04a30-b2b6-4f55-8c33-f86f21a1c7ef railway version:*)",
+      "Bash(RAILWAY_TOKEN=63c04a30-b2b6-4f55-8c33-f86f21a1c7ef railway:*)"
     ],
     "deny": [],
     "ask": []

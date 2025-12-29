@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 // URLs do Backend
-const PRODUCTION_URL = 'https://apega-backend-production.up.railway.app/api';
+const PRODUCTION_URL = 'https://apega-desapega-production.up.railway.app/api';
 const DEVELOPMENT_URL = Platform.select({
   web: 'http://localhost:3001/api',
   android: 'http://10.0.2.2:3001/api', // Android Emulator
