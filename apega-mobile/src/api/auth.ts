@@ -62,6 +62,12 @@ export const authService = {
 
   async getMe(): Promise<{ success: boolean; user: User }> {
     const response = await api.get('/auth/me');
+
+    // Save updated user to AsyncStorage to persist changes like avatar_url
+    if (response.data.success && response.data.user) {
+      await AsyncStorage.setItem('@user', JSON.stringify(response.data.user));
+    }
+
     return response.data;
   },
 

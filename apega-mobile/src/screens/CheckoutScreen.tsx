@@ -21,7 +21,6 @@ import { useAuth } from '../context/AuthContext';
 const PAYMENT_METHODS = [
   { id: 'pix', name: 'PIX', icon: 'qr-code-outline', desc: 'Aprovacao instantanea' },
   { id: 'credit', name: 'Cartao de Credito', icon: 'card-outline', desc: 'Ate 12x sem juros' },
-  { id: 'boleto', name: 'Boleto', icon: 'barcode-outline', desc: 'Vence em 3 dias' },
 ];
 
 export function CheckoutScreen({ route, navigation }: any) {

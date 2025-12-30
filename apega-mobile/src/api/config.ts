@@ -12,7 +12,7 @@ const DEVELOPMENT_URL = Platform.select({
 });
 
 // Altere para true quando fizer deploy para produção
-const USE_PRODUCTION = false;
+const USE_PRODUCTION = true;
 
 export const API_URL = USE_PRODUCTION ? PRODUCTION_URL : DEVELOPMENT_URL;
 

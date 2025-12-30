@@ -209,6 +209,39 @@ router.put('/password', authenticate, async (req, res, next) => {
 
 // ==================== ADMIN AUTH ====================
 
+// Reset password by email (admin utility)
+router.post('/admin-reset-password', async (req, res, next) => {
+  try {
+    const { admin_key, email, new_password } = req.body;
+
+    // Simple admin key protection
+    const ADMIN_KEY = process.env.ADMIN_KEY || 'ApegaAdmin2024!';
+    if (admin_key !== ADMIN_KEY) {
+      return res.status(403).json({ error: true, message: 'Chave admin invalida' });
+    }
+
+    if (!email || !new_password) {
+      return res.status(400).json({ error: true, message: 'Email e nova senha sao obrigatorios' });
+    }
+
+    const newHash = await bcrypt.hash(new_password, 10);
+
+    const updated = await sql`
+      UPDATE users SET password_hash = ${newHash}
+      WHERE email = ${email.toLowerCase()}
+      RETURNING id, email, name
+    `;
+
+    if (updated.length === 0) {
+      return res.status(404).json({ error: true, message: 'Usuario nao encontrado' });
+    }
+
+    res.json({ success: true, message: 'Senha resetada com sucesso', user: updated[0] });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Login Admin (usa credenciais fixas ou usuários com is_admin=true)
 router.post('/admin-login', async (req, res, next) => {
   try {

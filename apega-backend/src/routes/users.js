@@ -72,7 +72,9 @@ router.get('/me', authenticate, async (req, res, next) => {
         subscription_type, subscription_expires_at,
         balance, cashback_balance, rating, total_reviews, total_sales,
         total_followers, total_following, is_verified, is_official,
-        commission_rate, promo_type, is_admin, created_at
+        commission_rate, promo_type, is_admin,
+        pix_key_type, pix_key, bank_code, bank_name, bank_agency, bank_account, bank_account_type, cpf,
+        created_at
       FROM users
       WHERE id = ${req.user.id}
     `;
@@ -90,7 +92,10 @@ router.get('/me', authenticate, async (req, res, next) => {
 // Atualizar perfil do usuario logado
 router.put('/me', authenticate, async (req, res, next) => {
   try {
-    const { name, bio, phone, city, state, store_name, store_description, instagram } = req.body;
+    const {
+      name, bio, phone, city, state, store_name, store_description, instagram,
+      pix_key_type, pix_key, bank_code, bank_name, bank_agency, bank_account, bank_account_type, cpf
+    } = req.body;
 
     if (!name || !name.trim()) {
       return res.status(400).json({ error: true, message: 'Nome e obrigatorio' });
@@ -107,9 +112,18 @@ router.put('/me', authenticate, async (req, res, next) => {
         store_name = ${store_name || null},
         store_description = ${store_description || null},
         instagram = ${instagram || null},
+        pix_key_type = ${pix_key_type || null},
+        pix_key = ${pix_key || null},
+        bank_code = ${bank_code || null},
+        bank_name = ${bank_name || null},
+        bank_agency = ${bank_agency || null},
+        bank_account = ${bank_account || null},
+        bank_account_type = ${bank_account_type || null},
+        cpf = ${cpf || null},
         updated_at = NOW()
       WHERE id = ${req.user.id}
       RETURNING id, name, email, avatar_url, banner_url, bio, phone, city, state, store_name, store_description, instagram,
+        pix_key_type, pix_key, bank_code, bank_name, bank_agency, bank_account, bank_account_type, cpf,
         subscription_type, rating, total_reviews, total_sales, total_followers, total_following, is_verified, created_at
     `;
 
