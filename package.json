@@ -1,10 +1,11 @@
 {
-  "name": "apega-desapega",
+  "name": "apega-admin-deploy",
   "version": "1.0.0",
-  "description": "Apega Desapega - App de Brechó",
+  "description": "Apega Admin Panel",
   "scripts": {
-    "start": "cd apega-backend && npm install && node src/server.js",
-    "postinstall": "cd apega-backend && npm install"
+    "start": "cd apega-admin && node server.js",
+    "build": "cd apega-admin && npm install && npm run build",
+    "postinstall": "cd apega-admin && npm install"
   },
   "engines": {
     "node": ">=18.0.0"
