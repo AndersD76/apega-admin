@@ -18,7 +18,6 @@ import Simulator from '@/pages/Simulator'
 import Communications from '@/pages/Communications'
 import Reports from '@/pages/Reports'
 import Settings from '@/pages/Settings'
-import Promos from '@/pages/Promos'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
@@ -51,7 +50,6 @@ function AppRoutes() {
         }
       >
         <Route index element={<Dashboard />} />
-        <Route path="promocoes" element={<Promos />} />
         <Route path="usuarios" element={<Users />} />
         <Route path="produtos" element={<Products />} />
         <Route path="pedidos" element={<Orders />} />

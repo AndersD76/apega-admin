@@ -18,8 +18,6 @@ import {
   AlertTriangle,
   LogOut,
   Heart,
-  Gift,
-  Star,
 } from 'lucide-react'
 
 interface NavItem {
@@ -34,11 +32,6 @@ const mainNavItems: NavItem[] = [
     title: 'Dashboard',
     href: '/',
     icon: <LayoutDashboard className="h-5 w-5" />,
-  },
-  {
-    title: 'Promocoes',
-    href: '/promocoes',
-    icon: <Gift className="h-5 w-5" />,
   },
   {
     title: 'Usuarios',
