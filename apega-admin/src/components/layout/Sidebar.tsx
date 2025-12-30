@@ -34,7 +34,7 @@ const mainNavItems: NavItem[] = [
     icon: <LayoutDashboard className="h-5 w-5" />,
   },
   {
-    title: 'Usuarios',
+    title: 'Usuários',
     href: '/usuarios',
     icon: <Users className="h-5 w-5" />,
   },
@@ -71,14 +71,14 @@ const secondaryNavItems: NavItem[] = [
     href: '/analytics',
     icon: <BarChart3 className="h-5 w-5" />,
   },
+]
+
+const managementNavItems: NavItem[] = [
   {
     title: 'Simulador',
     href: '/simulador',
     icon: <Calculator className="h-5 w-5" />,
   },
-]
-
-const managementNavItems: NavItem[] = [
   {
     title: 'Comunicações',
     href: '/comunicacoes',

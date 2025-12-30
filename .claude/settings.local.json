@@ -96,7 +96,10 @@
       "Bash(RAILWAY_TOKEN=63c04a30-b2b6-4f55-8c33-f86f21a1c7ef railway version:*)",
       "Bash(RAILWAY_TOKEN=63c04a30-b2b6-4f55-8c33-f86f21a1c7ef railway:*)",
       "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhZG1pbiIsImlzQWRtaW4iOnRydWUsImlhdCI6MTc2NzA0Njk1MCwiZXhwIjoxNzY3MTMzMzUwfQ.QWcJ-fR1iEaZr6KZu3QiWyvzrIQVgMXBY1TkFnJ6GqA\")",
-      "Bash(git remote set-url:*)"
+      "Bash(git remote set-url:*)",
+      "Bash(git revert:*)",
+      "Bash(git ls-remote:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
