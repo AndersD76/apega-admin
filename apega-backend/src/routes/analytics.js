@@ -1013,59 +1013,34 @@ router.get('/admin/reports', async (req, res, next) => {
     const { page = 1, limit = 20, status = 'pending' } = req.query;
     const offset = (page - 1) * limit;
 
+    // Query simplificada - apenas colunas básicas
     const hasStatusFilter = status !== 'all';
     const reports = hasStatusFilter ? await sql`
       SELECT
-        r.id,
-        r.reporter_id,
-        r.product_id,
-        r.reason,
-        r.description,
-        r.status,
-        r.resolution_notes,
-        r.resolved_at,
-        r.created_at,
-        reporter.name as reporter_name,
-        reporter.email as reporter_email,
-        p.title as product_title,
-        seller.name as reported_name,
-        seller.email as reported_email
+        r.*,
+        u.name as reporter_name,
+        u.email as reporter_email
       FROM reports r
-      JOIN users reporter ON r.reporter_id = reporter.id
-      LEFT JOIN products p ON r.product_id = p.id
-      LEFT JOIN users seller ON p.seller_id = seller.id
+      LEFT JOIN users u ON r.reporter_id = u.id
       WHERE r.status = ${status}
       ORDER BY r.created_at DESC
       LIMIT ${parseInt(limit)}
       OFFSET ${offset}
     ` : await sql`
       SELECT
-        r.id,
-        r.reporter_id,
-        r.product_id,
-        r.reason,
-        r.description,
-        r.status,
-        r.resolution_notes,
-        r.resolved_at,
-        r.created_at,
-        reporter.name as reporter_name,
-        reporter.email as reporter_email,
-        p.title as product_title,
-        seller.name as reported_name,
-        seller.email as reported_email
+        r.*,
+        u.name as reporter_name,
+        u.email as reporter_email
       FROM reports r
-      JOIN users reporter ON r.reporter_id = reporter.id
-      LEFT JOIN products p ON r.product_id = p.id
-      LEFT JOIN users seller ON p.seller_id = seller.id
+      LEFT JOIN users u ON r.reporter_id = u.id
       ORDER BY r.created_at DESC
       LIMIT ${parseInt(limit)}
       OFFSET ${offset}
     `;
 
     const total = hasStatusFilter
-      ? await sql`SELECT COUNT(*) as count FROM reports r WHERE r.status = ${status}`
-      : await sql`SELECT COUNT(*) as count FROM reports r`;
+      ? await sql`SELECT COUNT(*) as count FROM reports WHERE status = ${status}`
+      : await sql`SELECT COUNT(*) as count FROM reports`;
 
     const stats = await sql`
       SELECT
