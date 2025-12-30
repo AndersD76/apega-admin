@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Apega Desapega</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+      min-height: 100vh;
+      color: #fff;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 30px;
+    }
+    .logo {
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .logo span {
+      color: #D4AF37;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: rgba(255,255,255,0.7);
+    }
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #D4AF37, #B8860B);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+    .login-form {
+      max-width: 400px;
+      margin: 100px auto;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      padding: 40px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .login-form h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #D4AF37;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: rgba(255,255,255,0.7);
+      font-size: 14px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+      font-size: 16px;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #D4AF37;
+    }
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #D4AF37, #B8860B);
+      color: #1a1a2e;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
+    }
+    .error-msg {
+      background: rgba(255, 59, 48, 0.2);
+      border: 1px solid rgba(255, 59, 48, 0.5);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+      color: #ff6b6b;
+    }
+    .dashboard {
+      display: none;
+    }
+    .dashboard.active {
+      display: block;
+    }
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 10px;
+    }
+    .tab {
+      padding: 10px 20px;
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      font-size: 15px;
+      border-radius: 8px 8px 0 0;
+      transition: all 0.2s;
+    }
+    .tab:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.05);
+    }
+    .tab.active {
+      color: #D4AF37;
+      background: rgba(212, 175, 55, 0.1);
+      border-bottom: 2px solid #D4AF37;
+    }
+    .section {
+      display: none;
+    }
+    .section.active {
+      display: block;
+    }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    .card-value {
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .card-subtitle {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+    }
+    .promo-card {
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(184, 134, 11, 0.1));
+      border-color: rgba(212, 175, 55, 0.3);
+    }
+    .promo-card .card-icon {
+      background: linear-gradient(135deg, #D4AF37, #B8860B);
+      color: #1a1a2e;
+    }
+    .slots-bar {
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 16px;
+    }
+    .slots-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #D4AF37, #B8860B);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+    .slots-legend {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+    }
+    .table-container {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      overflow: hidden;
+    }
+    .table-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .table-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 16px 24px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    th {
+      color: rgba(255,255,255,0.6);
+      font-weight: 500;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    tr:hover {
+      background: rgba(255,255,255,0.02);
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .badge-gold {
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(184, 134, 11, 0.2));
+      color: #D4AF37;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+    }
+    .badge-green {
+      background: rgba(46, 204, 113, 0.2);
+      color: #2ecc71;
+    }
+    .badge-blue {
+      background: rgba(52, 152, 219, 0.2);
+      color: #3498db;
+    }
+    .badge-purple {
+      background: rgba(155, 89, 182, 0.2);
+      color: #9b59b6;
+    }
+    .user-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .user-avatar-small {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .user-name {
+      font-weight: 500;
+    }
+    .user-email {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+    }
+    .official-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+      color: #fff;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 60px;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: #D4AF37;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .stats-row {
+      display: flex;
+      gap: 30px;
+      margin-top: 10px;
+    }
+    .stat-item {
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #D4AF37;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 4px;
+    }
+    .logout-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.7);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .logout-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Login Form -->
+    <div id="loginSection" class="login-form">
+      <h2>Admin Login</h2>
+      <div id="loginError" class="error-msg" style="display: none;"></div>
+      <form id="loginForm">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="email" placeholder="admin@apega.com" required>
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" id="password" placeholder="Sua senha" required>
+        </div>
+        <button type="submit" class="btn">Entrar</button>
+      </form>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="dashboard">
+      <header>
+        <div class="logo">apega<span>desapega</span> Admin</div>
+        <div class="user-info">
+          <span id="userName">Admin</span>
+          <div class="user-avatar" id="userInitials">A</div>
+          <button class="logout-btn" onclick="logout()">Sair</button>
+        </div>
+      </header>
+
+      <div class="tabs">
+        <button class="tab active" onclick="showSection('promo')">Promocoes</button>
+        <button class="tab" onclick="showSection('dashboard')">Dashboard</button>
+        <button class="tab" onclick="showSection('users')">Usuarios</button>
+        <button class="tab" onclick="showSection('orders')">Pedidos</button>
+      </div>
+
+      <!-- Promo Section -->
+      <div id="promoSection" class="section active">
+        <div class="cards-grid">
+          <div class="card promo-card">
+            <div class="card-header">
+              <div class="card-title">Total de Vagas</div>
+              <div class="card-icon">🎯</div>
+            </div>
+            <div class="card-value" id="totalSlots">50</div>
+            <div class="card-subtitle">Vagas de lancamento</div>
+          </div>
+          <div class="card promo-card">
+            <div class="card-header">
+              <div class="card-title">Vagas Ocupadas</div>
+              <div class="card-icon">👥</div>
+            </div>
+            <div class="card-value" id="usedSlots">0</div>
+            <div class="card-subtitle">Vendedoras cadastradas</div>
+          </div>
+          <div class="card promo-card">
+            <div class="card-header">
+              <div class="card-title">Vagas Disponiveis</div>
+              <div class="card-icon">✨</div>
+            </div>
+            <div class="card-value" id="availableSlots">50</div>
+            <div class="card-subtitle">Ainda restam</div>
+          </div>
+          <div class="card promo-card">
+            <div class="card-header">
+              <div class="card-title">Preenchimento</div>
+              <div class="card-icon">📊</div>
+            </div>
+            <div class="card-value" id="percentUsed">0%</div>
+            <div class="card-subtitle">Das vagas ocupadas</div>
+          </div>
+        </div>
+
+        <div class="cards-grid">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Premium Gratis (5 vagas)</div>
+            </div>
+            <div class="stats-row">
+              <div class="stat-item">
+                <div class="stat-value" id="premiumUsed">0</div>
+                <div class="stat-label">Ocupadas</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value" id="premiumAvailable">5</div>
+                <div class="stat-label">Disponiveis</div>
+              </div>
+            </div>
+            <div class="slots-bar">
+              <div class="slots-bar-fill" id="premiumBar" style="width: 0%"></div>
+            </div>
+            <div class="slots-legend">
+              <span>Premium gratis + 5% comissao</span>
+              <span id="premiumPercent">0%</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Taxa Reduzida (45 vagas)</div>
+            </div>
+            <div class="stats-row">
+              <div class="stat-item">
+                <div class="stat-value" id="reducedUsed">0</div>
+                <div class="stat-label">Ocupadas</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value" id="reducedAvailable">45</div>
+                <div class="stat-label">Disponiveis</div>
+              </div>
+            </div>
+            <div class="slots-bar">
+              <div class="slots-bar-fill" id="reducedBar" style="width: 0%"></div>
+            </div>
+            <div class="slots-legend">
+              <span>Comissao de apenas 5%</span>
+              <span id="reducedPercent">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <div class="table-header">
+            <div class="table-title">Lojas Oficiais & Promocionais</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Tipo</th>
+                <th>Plano</th>
+                <th>Comissao</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody id="promoUsersTable">
+              <tr>
+                <td colspan="5" class="loading">
+                  <div class="spinner"></div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Dashboard Section -->
+      <div id="dashboardSection" class="section">
+        <div class="cards-grid">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Total Usuarios</div>
+            </div>
+            <div class="card-value" id="totalUsers">-</div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Produtos Ativos</div>
+            </div>
+            <div class="card-value" id="activeProducts">-</div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Pedidos Este Mes</div>
+            </div>
+            <div class="card-value" id="ordersThisMonth">-</div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Receita Este Mes</div>
+            </div>
+            <div class="card-value" id="revenueThisMonth">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users Section -->
+      <div id="usersSection" class="section">
+        <div class="table-container">
+          <div class="table-header">
+            <div class="table-title">Usuarios</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Plano</th>
+                <th>Produtos</th>
+                <th>Vendas</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="usersTable">
+              <tr>
+                <td colspan="5" class="loading">
+                  <div class="spinner"></div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Orders Section -->
+      <div id="ordersSection" class="section">
+        <div class="table-container">
+          <div class="table-header">
+            <div class="table-title">Pedidos Recentes</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th>Comprador</th>
+                <th>Vendedor</th>
+                <th>Valor</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTable">
+              <tr>
+                <td colspan="5" class="loading">
+                  <div class="spinner"></div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Em produção, aponta para o backend; local usa /api
+    const API_URL = window.location.hostname.includes('railway.app')
+      ? 'https://apega-desapega-production.up.railway.app/api'
+      : '/api';
+    let authToken = localStorage.getItem('adminToken');
+
+    // Check if already logged in
+    if (authToken) {
+      checkAuth();
+    }
+
+    async function checkAuth() {
+      try {
+        const res = await fetch(`${API_URL}/users/me`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.is_admin) {
+            showDashboard(data);
+          } else {
+            localStorage.removeItem('adminToken');
+            authToken = null;
+          }
+        } else {
+          localStorage.removeItem('adminToken');
+          authToken = null;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const errorEl = document.getElementById('loginError');
+
+      try {
+        const res = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (data.token && data.user?.is_admin) {
+          authToken = data.token;
+          localStorage.setItem('adminToken', authToken);
+          showDashboard(data.user);
+        } else if (data.token && !data.user?.is_admin) {
+          errorEl.textContent = 'Acesso negado. Apenas administradores.';
+          errorEl.style.display = 'block';
+        } else {
+          errorEl.textContent = data.message || 'Credenciais invalidas';
+          errorEl.style.display = 'block';
+        }
+      } catch (e) {
+        errorEl.textContent = 'Erro de conexao';
+        errorEl.style.display = 'block';
+      }
+    });
+
+    function showDashboard(user) {
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('dashboard').classList.add('active');
+      document.getElementById('userName').textContent = user.name || 'Admin';
+      document.getElementById('userInitials').textContent = (user.name || 'A')[0].toUpperCase();
+      loadPromoData();
+    }
+
+    function logout() {
+      localStorage.removeItem('adminToken');
+      authToken = null;
+      location.reload();
+    }
+
+    function showSection(section) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+
+      event.target.classList.add('active');
+      document.getElementById(section + 'Section').classList.add('active');
+
+      if (section === 'promo') loadPromoData();
+      if (section === 'dashboard') loadDashboardData();
+      if (section === 'users') loadUsersData();
+      if (section === 'orders') loadOrdersData();
+    }
+
+    async function loadPromoData() {
+      try {
+        const res = await fetch(`${API_URL}/promo/admin`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const data = await res.json();
+
+        // Update stats
+        document.getElementById('totalSlots').textContent = data.stats.totalSlots;
+        document.getElementById('usedSlots').textContent = data.stats.usedSlots;
+        document.getElementById('availableSlots').textContent = data.stats.availableSlots;
+        document.getElementById('percentUsed').textContent = data.stats.percentUsed + '%';
+
+        // Premium slots
+        document.getElementById('premiumUsed').textContent = data.stats.premiumSlots.used;
+        document.getElementById('premiumAvailable').textContent = data.stats.premiumSlots.available;
+        const premiumPercent = data.stats.premiumSlots.total > 0
+          ? Math.round((data.stats.premiumSlots.used / data.stats.premiumSlots.total) * 100)
+          : 0;
+        document.getElementById('premiumBar').style.width = premiumPercent + '%';
+        document.getElementById('premiumPercent').textContent = premiumPercent + '%';
+
+        // Reduced rate slots
+        document.getElementById('reducedUsed').textContent = data.stats.reducedRateSlots.used;
+        document.getElementById('reducedAvailable').textContent = data.stats.reducedRateSlots.available;
+        const reducedPercent = data.stats.reducedRateSlots.total > 0
+          ? Math.round((data.stats.reducedRateSlots.used / data.stats.reducedRateSlots.total) * 100)
+          : 0;
+        document.getElementById('reducedBar').style.width = reducedPercent + '%';
+        document.getElementById('reducedPercent').textContent = reducedPercent + '%';
+
+        // Users table
+        const tbody = document.getElementById('promoUsersTable');
+        const allUsers = [...(data.officialStores || []), ...(data.promoUsers || [])];
+
+        if (allUsers.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5);">Nenhum usuario promocional ainda</td></tr>';
+        } else {
+          tbody.innerHTML = allUsers.map(user => `
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar-small">${(user.user_name || user.name || 'U')[0].toUpperCase()}</div>
+                  <div>
+                    <div class="user-name">${user.user_name || user.name || 'Usuario'}</div>
+                    <div class="user-email">${user.user_email || user.email || ''}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                ${user.is_official ? '<span class="official-badge">✓ Loja Oficial</span>' :
+                  user.promo_name === 'premium_launch' ? '<span class="badge badge-gold">Premium Gratis</span>' :
+                  '<span class="badge badge-blue">Taxa Reduzida</span>'}
+              </td>
+              <td><span class="badge badge-purple">${user.subscription_type || 'free'}</span></td>
+              <td>${user.commission_rate || 10}%</td>
+              <td>${new Date(user.created_at || user.claimed_at).toLocaleDateString('pt-BR')}</td>
+            </tr>
+          `).join('');
+        }
+      } catch (e) {
+        console.error('Erro ao carregar dados de promo:', e);
+      }
+    }
+
+    async function loadDashboardData() {
+      try {
+        const res = await fetch(`${API_URL}/analytics/admin/dashboard`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const data = await res.json();
+
+        document.getElementById('totalUsers').textContent = data.data.users.total;
+        document.getElementById('activeProducts').textContent = data.data.products.active;
+        document.getElementById('ordersThisMonth').textContent = data.data.orders.thisMonth;
+        document.getElementById('revenueThisMonth').textContent = 'R$ ' + data.data.revenue.thisMonth.toFixed(2);
+      } catch (e) {
+        console.error('Erro ao carregar dashboard:', e);
+      }
+    }
+
+    async function loadUsersData() {
+      try {
+        const res = await fetch(`${API_URL}/analytics/admin/users`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const data = await res.json();
+
+        const tbody = document.getElementById('usersTable');
+        tbody.innerHTML = data.users.map(user => `
+          <tr>
+            <td>
+              <div class="user-cell">
+                <div class="user-avatar-small">${(user.name || 'U')[0].toUpperCase()}</div>
+                <div>
+                  <div class="user-name">${user.name || 'Usuario'}</div>
+                  <div class="user-email">${user.email || ''}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge ${user.subscription_type === 'premium' ? 'badge-gold' : 'badge-blue'}">${user.subscription_type || 'free'}</span></td>
+            <td>${user.products_count || 0}</td>
+            <td>${user.sales_count || 0}</td>
+            <td>${user.is_active ? '<span class="badge badge-green">Ativo</span>' : '<span class="badge" style="background: rgba(255,59,48,0.2); color: #ff6b6b;">Bloqueado</span>'}</td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error('Erro ao carregar usuarios:', e);
+      }
+    }
+
+    async function loadOrdersData() {
+      try {
+        const res = await fetch(`${API_URL}/analytics/admin/orders`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const data = await res.json();
+
+        const tbody = document.getElementById('ordersTable');
+        const statusColors = {
+          pending_payment: 'badge-blue',
+          paid: 'badge-green',
+          shipped: 'badge-purple',
+          delivered: 'badge-gold',
+          cancelled: ''
+        };
+
+        tbody.innerHTML = data.orders.map(order => `
+          <tr>
+            <td>${order.product_title || 'Produto'}</td>
+            <td>${order.buyer_name || '-'}</td>
+            <td>${order.seller_name || '-'}</td>
+            <td>R$ ${parseFloat(order.total_amount || 0).toFixed(2)}</td>
+            <td><span class="badge ${statusColors[order.status] || ''}">${order.status}</span></td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error('Erro ao carregar pedidos:', e);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -34,7 +34,7 @@ dist/
 build/
 .next/
 out/
-apega-backend/public/
+# apega-backend/public/ - included for web app deployment
 
 # Prisma
 prisma/migrations/
