@@ -41,6 +41,15 @@ export interface UpdateProfileData {
   store_name?: string;
   store_description?: string;
   instagram?: string;
+  // Dados bancarios
+  pix_key_type?: 'cpf' | 'cnpj' | 'email' | 'phone' | 'random';
+  pix_key?: string;
+  bank_code?: string;
+  bank_name?: string;
+  bank_agency?: string;
+  bank_account?: string;
+  bank_account_type?: 'corrente' | 'poupanca';
+  cpf?: string;
 }
 
 export const usersService = {

@@ -22,6 +22,15 @@ export interface User {
   total_following?: number;
   balance?: number;
   is_verified?: boolean;
+  // Dados bancarios
+  cpf?: string;
+  pix_key_type?: 'cpf' | 'cnpj' | 'email' | 'phone' | 'random';
+  pix_key?: string;
+  bank_code?: string;
+  bank_name?: string;
+  bank_agency?: string;
+  bank_account?: string;
+  bank_account_type?: 'corrente' | 'poupanca';
 }
 
 export interface LoginResponse {
