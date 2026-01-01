@@ -124,7 +124,7 @@ export function Header({ onMenuClick, isMobileMenuOpen }: HeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src="/avatar.jpg" alt="Admin" />
+                  <AvatarImage src={user?.avatar_url || ''} alt="Admin" />
                   <AvatarFallback className="bg-primary text-primary-foreground">
                     AD
                   </AvatarFallback>
