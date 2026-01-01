@@ -129,10 +129,12 @@ router.get('/me', authenticate, async (req, res, next) => {
   try {
     const users = await sql`
       SELECT
-        id, email, name, phone, avatar_url, banner_url, bio, city, state,
+        id, email, name, phone, avatar_url, banner_url, bio, city, state, instagram,
         store_name, store_description, subscription_type, subscription_expires_at,
         rating, total_reviews, total_sales, total_followers, total_following,
-        balance, cashback_balance, is_verified, is_official, commission_rate, promo_type, created_at
+        balance, cashback_balance, is_verified, is_official, commission_rate, promo_type,
+        pix_key_type, pix_key, bank_code, bank_name, bank_agency, bank_account, bank_account_type, cpf,
+        created_at
       FROM users
       WHERE id = ${req.user.id}
     `;
