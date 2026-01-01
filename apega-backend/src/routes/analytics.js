@@ -325,62 +325,67 @@ router.get('/admin/sales-by-category', async (req, res, next) => {
   }
 });
 
-// Carrinhos abandonados
+// Carrinhos abandonados (baseado em cart_items)
 router.get('/admin/abandoned-carts', async (req, res, next) => {
   try {
     const { status = 'all', page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
 
-    // Primeiro, marcar carrinhos como abandonados se última atividade > 1 hora
-    await sql`
-      UPDATE carts
-      SET status = 'abandoned', abandoned_at = NOW()
-      WHERE status = 'active'
-        AND last_activity_at < NOW() - INTERVAL '1 hour'
+    // Buscar carrinhos agrupados por usuário
+    // Considera "abandonado" se criado há mais de 1 hora e não foi convertido em pedido
+    let carts = await sql`
+      SELECT
+        ci.user_id as id,
+        ci.user_id,
+        u.name as user_name,
+        u.email as user_email,
+        u.phone as user_phone,
+        COUNT(ci.id) as items_count,
+        COALESCE(SUM(p.price), 0) as total_value,
+        MAX(ci.created_at) as last_activity_at,
+        MIN(ci.created_at) as created_at,
+        CASE
+          WHEN MAX(ci.created_at) < NOW() - INTERVAL '24 hours' THEN 'abandoned'
+          WHEN MAX(ci.created_at) < NOW() - INTERVAL '1 hour' THEN 'expiring'
+          ELSE 'active'
+        END as status
+      FROM cart_items ci
+      JOIN users u ON ci.user_id = u.id
+      JOIN products p ON ci.product_id = p.id
+      WHERE p.status = 'active'
+      GROUP BY ci.user_id, u.name, u.email, u.phone
+      HAVING ${status === 'all' ? sql`true` :
+              status === 'abandoned' ? sql`MAX(ci.created_at) < NOW() - INTERVAL '24 hours'` :
+              status === 'expiring' ? sql`MAX(ci.created_at) < NOW() - INTERVAL '1 hour' AND MAX(ci.created_at) >= NOW() - INTERVAL '24 hours'` :
+              sql`MAX(ci.created_at) >= NOW() - INTERVAL '1 hour'`}
+      ORDER BY last_activity_at DESC
+      LIMIT ${parseInt(limit)}
+      OFFSET ${offset}
     `;
 
-    let carts;
-    if (status !== 'all') {
-      carts = await sql`
-        SELECT
-          c.*,
-          u.name as user_name,
-          u.email as user_email
-        FROM carts c
-        JOIN users u ON c.user_id = u.id
-        WHERE c.status = ${status}
-        ORDER BY c.last_activity_at DESC
-        LIMIT ${parseInt(limit)}
-        OFFSET ${offset}
-      `;
-    } else {
-      carts = await sql`
-        SELECT
-          c.*,
-          u.name as user_name,
-          u.email as user_email
-        FROM carts c
-        JOIN users u ON c.user_id = u.id
-        ORDER BY c.last_activity_at DESC
-        LIMIT ${parseInt(limit)}
-        OFFSET ${offset}
-      `;
-    }
-
     // Stats
-    const stats = await sql`
+    const statsResult = await sql`
       SELECT
-        COUNT(*) FILTER (WHERE status = 'abandoned') as abandoned,
-        COUNT(*) FILTER (WHERE status = 'recovered') as recovered,
-        COUNT(*) FILTER (WHERE status = 'active' AND last_activity_at < NOW() - INTERVAL '1 hour') as expiring,
-        COALESCE(SUM(total_value) FILTER (WHERE status = 'abandoned'), 0) as lost_revenue
-      FROM carts
+        COUNT(*) FILTER (WHERE last_activity < NOW() - INTERVAL '24 hours') as abandoned,
+        0 as recovered,
+        COUNT(*) FILTER (WHERE last_activity < NOW() - INTERVAL '1 hour' AND last_activity >= NOW() - INTERVAL '24 hours') as expiring,
+        COALESCE(SUM(total) FILTER (WHERE last_activity < NOW() - INTERVAL '24 hours'), 0) as lost_revenue
+      FROM (
+        SELECT
+          ci.user_id,
+          MAX(ci.created_at) as last_activity,
+          SUM(p.price) as total
+        FROM cart_items ci
+        JOIN products p ON ci.product_id = p.id
+        WHERE p.status = 'active'
+        GROUP BY ci.user_id
+      ) cart_summary
     `;
 
     res.json({
       success: true,
       carts,
-      stats: stats[0]
+      stats: statsResult[0] || { abandoned: 0, recovered: 0, expiring: 0, lost_revenue: 0 }
     });
   } catch (error) {
     next(error);
