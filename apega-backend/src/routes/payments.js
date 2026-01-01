@@ -119,6 +119,93 @@ router.patch('/:id/default', authenticate, async (req, res, next) => {
   }
 });
 
+// Buscar saldo e transações do usuário logado
+router.get('/my-wallet', authenticate, async (req, res, next) => {
+  try {
+    // Buscar saldo do usuário
+    const userResult = await sql`SELECT balance FROM users WHERE id = ${req.user.id}`;
+    const balance = parseFloat(userResult[0]?.balance || 0);
+
+    // Buscar transações do usuário
+    const transactions = await sql`
+      SELECT
+        t.*,
+        o.order_number
+      FROM transactions t
+      LEFT JOIN orders o ON t.order_id = o.id
+      WHERE t.user_id = ${req.user.id}
+      ORDER BY t.created_at DESC
+      LIMIT 50
+    `;
+
+    // Buscar saldo pendente (vendas ainda não liberadas)
+    const pendingResult = await sql`
+      SELECT COALESCE(SUM(seller_receives), 0) as pending
+      FROM orders
+      WHERE seller_id = ${req.user.id}
+        AND status = 'delivered'
+        AND delivered_at > NOW() - INTERVAL '7 days'
+    `;
+    const pendingBalance = parseFloat(pendingResult[0]?.pending || 0);
+
+    res.json({
+      success: true,
+      balance,
+      pending_balance: pendingBalance,
+      transactions
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Solicitar saque
+router.post('/withdraw', authenticate, async (req, res, next) => {
+  try {
+    const { amount } = req.body;
+
+    // Buscar saldo do usuário
+    const userResult = await sql`SELECT balance, pix_key, pix_key_type, bank_code, bank_agency, bank_account FROM users WHERE id = ${req.user.id}`;
+    const user = userResult[0];
+    const balance = parseFloat(user?.balance || 0);
+
+    // Validações
+    if (!amount || amount < 20) {
+      return res.status(400).json({ error: true, message: 'Valor mínimo para saque é R$ 20,00' });
+    }
+
+    if (amount > balance) {
+      return res.status(400).json({ error: true, message: 'Saldo insuficiente' });
+    }
+
+    // Verificar se tem dados bancários
+    if (!user.pix_key && !user.bank_account) {
+      return res.status(400).json({ error: true, message: 'Configure seus dados bancários antes de solicitar saque' });
+    }
+
+    // Criar transação de saque pendente
+    const transaction = await sql`
+      INSERT INTO transactions (user_id, type, amount, status, description)
+      VALUES (${req.user.id}, 'withdrawal', ${amount}, 'pending', 'Solicitação de saque')
+      RETURNING *
+    `;
+
+    // Debitar do saldo do usuário
+    await sql`
+      UPDATE users SET balance = balance - ${amount}
+      WHERE id = ${req.user.id}
+    `;
+
+    res.json({
+      success: true,
+      message: 'Solicitação de saque enviada! Você receberá em até 3 dias úteis.',
+      transaction: transaction[0]
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Listar transacoes (admin)
 router.get('/transactions', requireAdmin, async (req, res, next) => {
   try {
