@@ -16,6 +16,10 @@ import { Image } from 'expo-image';
 import { useAuth } from '../context/AuthContext';
 import { usersService, SellerProfile, SellerProduct } from '../api/users';
 import { formatPrice } from '../utils/format';
+import { colors } from '../theme';
+import { SellerBadges } from '../components/SellerBadges';
+import { SELLER_BADGES } from '../constants/badges';
+import { ProfileSkeleton } from '../components/ProfileSkeleton';
 
 const PLACEHOLDER_AVATAR = 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200';
 
@@ -122,9 +126,7 @@ export function SellerProfileScreen({ route, navigation }: any) {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.loadingContainer, { paddingTop: insets.top }]}>
-        <ActivityIndicator size="large" color="#5D8A7D" />
-      </View>
+      <ProfileSkeleton showProducts={true} productCount={4} />
     );
   }
 
@@ -152,16 +154,19 @@ export function SellerProfileScreen({ route, navigation }: any) {
   const isOwnProfile = user?.id === sellerId;
   const memberSince = new Date(seller.created_at).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
+  // Badges conquistados pelo vendedor (mockados por enquanto - sera integrado com API)
+  const earnedBadges = (seller as any)?.badges || ['fast_shipper', 'quick_responder', 'eco_friendly'];
+
   return (
     <View style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#5D8A7D']} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={[colors.primary]} />
         }
       >
         {/* Header */}
-        <LinearGradient colors={['#5D8A7D', '#4A7266']} style={[styles.header, { paddingTop: insets.top + 16 }]}>
+        <LinearGradient colors={[colors.primary, colors.primaryDark]} style={[styles.header, { paddingTop: insets.top + 16 }]}>
           <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </Pressable>
@@ -236,7 +241,7 @@ export function SellerProfileScreen({ route, navigation }: any) {
               <Ionicons
                 name={isFollowing ? 'checkmark' : 'person-add-outline'}
                 size={18}
-                color={isFollowing ? '#5D8A7D' : '#fff'}
+                color={isFollowing ? colors.primary : '#fff'}
               />
               <Text style={[styles.followBtnText, isFollowing && styles.followBtnTextActive]}>
                 {isFollowing ? 'Seguindo' : 'Seguir'}
@@ -244,7 +249,7 @@ export function SellerProfileScreen({ route, navigation }: any) {
             </Pressable>
 
             <Pressable style={styles.messageBtn} onPress={handleMessage}>
-              <Ionicons name="chatbubble-outline" size={18} color="#5D8A7D" />
+              <Ionicons name="chatbubble-outline" size={18} color={colors.primary} />
               <Text style={styles.messageBtnText}>Mensagem</Text>
             </Pressable>
           </View>
@@ -256,14 +261,36 @@ export function SellerProfileScreen({ route, navigation }: any) {
           <Text style={styles.memberSinceText}>Membro desde {memberSince}</Text>
         </View>
 
+        {/* Largometro - Badges Section */}
+        <View style={styles.largometroSection}>
+          <View style={styles.largometroHeader}>
+            <View style={styles.largometroTitleRow}>
+              <Ionicons name="ribbon-outline" size={20} color={colors.primary} />
+              <Text style={styles.largometroTitle}>Largometro</Text>
+            </View>
+            <Text style={styles.largometroBadgeCount}>
+              {earnedBadges.length}/{SELLER_BADGES.length} conquistados
+            </Text>
+          </View>
+          <View style={styles.largometroBadgesContainer}>
+            <SellerBadges
+              badges={earnedBadges}
+              size="md"
+              showLabels
+              showAllBadges
+              earnedBadges={earnedBadges}
+            />
+          </View>
+        </View>
+
         {/* Products */}
         <View style={styles.productsSection}>
-          <Text style={styles.sectionTitle}>Anúncios ({products.length})</Text>
+          <Text style={styles.sectionTitle}>Peças largadas ({products.length})</Text>
 
           {products.length === 0 ? (
             <View style={styles.emptyProducts}>
               <Ionicons name="shirt-outline" size={48} color="#D4D4D4" />
-              <Text style={styles.emptyText}>Nenhum anúncio ativo</Text>
+              <Text style={styles.emptyText}>Nenhuma peça largada ainda</Text>
             </View>
           ) : (
             <View style={styles.productsGrid}>
@@ -337,16 +364,24 @@ const styles = StyleSheet.create({
 
   // Actions
   actionsRow: { flexDirection: 'row', gap: 12, padding: 16, backgroundColor: '#fff' },
-  followBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 44, borderRadius: 22, backgroundColor: '#5D8A7D' },
-  followBtnActive: { backgroundColor: '#E8F0ED', borderWidth: 1, borderColor: '#5D8A7D' },
+  followBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 44, borderRadius: 22, backgroundColor: colors.primary },
+  followBtnActive: { backgroundColor: colors.primaryMuted, borderWidth: 1, borderColor: colors.primary },
   followBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
-  followBtnTextActive: { color: '#5D8A7D' },
-  messageBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 44, borderRadius: 22, borderWidth: 1.5, borderColor: '#5D8A7D', backgroundColor: '#fff' },
-  messageBtnText: { fontSize: 14, fontWeight: '600', color: '#5D8A7D' },
+  followBtnTextActive: { color: colors.primary },
+  messageBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 44, borderRadius: 22, borderWidth: 1.5, borderColor: colors.primary, backgroundColor: '#fff' },
+  messageBtnText: { fontSize: 14, fontWeight: '600', color: colors.primary },
 
   // Member Since
   memberSince: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#F0F0F0' },
   memberSinceText: { fontSize: 13, color: '#A3A3A3' },
+
+  // Largometro
+  largometroSection: { backgroundColor: '#fff', marginTop: 8, padding: 16 },
+  largometroHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
+  largometroTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  largometroTitle: { fontSize: 18, fontWeight: '600', color: '#1A1A1A' },
+  largometroBadgeCount: { fontSize: 13, color: '#737373' },
+  largometroBadgesContainer: { paddingVertical: 8 },
 
   // Products
   productsSection: { padding: 16 },
@@ -357,7 +392,7 @@ const styles = StyleSheet.create({
   productCard: { backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden' },
   productImage: { width: '100%' },
   productInfo: { padding: 10 },
-  productBrand: { fontSize: 10, fontWeight: '700', color: '#5D8A7D', textTransform: 'uppercase' },
+  productBrand: { fontSize: 10, fontWeight: '700', color: colors.primary, textTransform: 'uppercase' },
   productTitle: { fontSize: 13, fontWeight: '500', color: '#1A1A1A', marginTop: 2 },
   productPrice: { fontSize: 16, fontWeight: '700', color: '#1A1A1A', marginTop: 4 },
   productTags: { flexDirection: 'row', gap: 6, marginTop: 6 },
@@ -371,7 +406,7 @@ const styles = StyleSheet.create({
   errorContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
   errorTitle: { fontSize: 18, fontWeight: '600', color: '#525252', marginTop: 16, textAlign: 'center' },
   errorSubtitle: { fontSize: 14, color: '#A3A3A3', marginTop: 8, textAlign: 'center' },
-  errorBtn: { marginTop: 24, paddingHorizontal: 32, paddingVertical: 12, backgroundColor: '#5D8A7D', borderRadius: 24 },
+  errorBtn: { marginTop: 24, paddingHorizontal: 32, paddingVertical: 12, backgroundColor: colors.primary, borderRadius: 24 },
   errorBtnText: { fontSize: 15, fontWeight: '600', color: '#fff' },
 });
 

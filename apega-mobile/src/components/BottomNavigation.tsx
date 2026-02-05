@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, shadows } from '../theme';
+import { MICROCOPY } from '../constants';
 
 type TabName = 'Home' | 'Search' | 'Sell' | 'Favorites' | 'Profile';
 
@@ -19,11 +20,11 @@ interface BottomNavigationProps {
 }
 
 const tabs: { key: TabName; icon: keyof typeof Ionicons.glyphMap; iconFilled: keyof typeof Ionicons.glyphMap; label: string }[] = [
-  { key: 'Home', icon: 'home-outline', iconFilled: 'home', label: 'Início' },
-  { key: 'Search', icon: 'search-outline', iconFilled: 'search', label: 'Buscar' },
-  { key: 'Sell', icon: 'add', iconFilled: 'add', label: 'Vender' },
-  { key: 'Favorites', icon: 'heart-outline', iconFilled: 'heart', label: 'Favoritos' },
-  { key: 'Profile', icon: 'person-outline', iconFilled: 'person', label: 'Perfil' },
+  { key: 'Home', icon: 'home-outline', iconFilled: 'home', label: MICROCOPY.nav.home },
+  { key: 'Search', icon: 'search-outline', iconFilled: 'search', label: MICROCOPY.nav.search },
+  { key: 'Sell', icon: 'add', iconFilled: 'add', label: MICROCOPY.nav.sell },
+  { key: 'Favorites', icon: 'heart-outline', iconFilled: 'heart', label: MICROCOPY.nav.favorites },
+  { key: 'Profile', icon: 'person-outline', iconFilled: 'person', label: MICROCOPY.nav.profile },
 ];
 
 export function BottomNavigation({ currentTab, onTabPress }: BottomNavigationProps) {
@@ -31,7 +32,7 @@ export function BottomNavigation({ currentTab, onTabPress }: BottomNavigationPro
 
   return (
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
-      {/* Blur effect background */}
+      {/* Background with subtle blur effect */}
       <View style={styles.blur} />
 
       <View style={styles.content}>
@@ -47,11 +48,12 @@ export function BottomNavigation({ currentTab, onTabPress }: BottomNavigationPro
                 onPress={() => onTabPress(tab.key)}
               >
                 <LinearGradient
-                  colors={[colors.brand, colors.brandLight]}
+                  colors={[colors.primary, colors.primaryLight]}
                   style={styles.sellButton}
                 >
                   <Ionicons name="add" size={28} color={colors.white} />
                 </LinearGradient>
+                <Text style={styles.sellLabel}>{tab.label}</Text>
               </Pressable>
             );
           }
@@ -66,7 +68,7 @@ export function BottomNavigation({ currentTab, onTabPress }: BottomNavigationPro
                 <Ionicons
                   name={isActive ? tab.iconFilled : tab.icon}
                   size={22}
-                  color={isActive ? colors.brand : colors.gray400}
+                  color={isActive ? colors.primary : colors.textMuted}
                 />
               </View>
               <Text style={[styles.label, isActive && styles.labelActive]}>
@@ -90,9 +92,9 @@ const styles = StyleSheet.create({
   },
   blur: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    backgroundColor: 'rgba(254, 252, 249, 0.95)', // colors.surface with opacity
     borderTopWidth: 1,
-    borderTopColor: colors.gray100,
+    borderTopColor: colors.border,
     ...Platform.select({
       ios: {
         backdropFilter: 'blur(20px)',
@@ -118,16 +120,16 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
   },
   iconContainerActive: {
-    backgroundColor: colors.brandMuted,
+    backgroundColor: colors.primaryMuted,
   },
   label: {
     marginTop: 2,
     fontSize: 10,
     fontWeight: '500',
-    color: colors.gray400,
+    color: colors.textMuted,
   },
   labelActive: {
-    color: colors.brand,
+    color: colors.primary,
     fontWeight: '600',
   },
   sellButtonContainer: {
@@ -141,7 +143,13 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadows.brand(0.4),
+    ...shadows.primary(0.4),
+  },
+  sellLabel: {
+    marginTop: 4,
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.primary,
   },
 });
 

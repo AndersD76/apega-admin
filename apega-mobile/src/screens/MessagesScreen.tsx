@@ -13,6 +13,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { messagesService, Conversation } from '../api';
+import { colors } from '../theme';
+import { ChatListSkeleton } from '../components/ChatListSkeleton';
 
 export function MessagesScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -79,8 +81,8 @@ export function MessagesScreen({ navigation }: any) {
         {item.other_user_avatar ? (
           <Image source={{ uri: item.other_user_avatar }} style={styles.avatar} contentFit="cover" />
         ) : (
-          <View style={[styles.avatar, { backgroundColor: '#E8F0ED', alignItems: 'center', justifyContent: 'center' }]}>
-            <Ionicons name="person" size={24} color="#5D8A7D" />
+          <View style={[styles.avatar, { backgroundColor: colors.primaryMuted, alignItems: 'center', justifyContent: 'center' }]}>
+            <Ionicons name="person" size={24} color={colors.primary} />
           </View>
         )}
       </View>
@@ -149,28 +151,32 @@ export function MessagesScreen({ navigation }: any) {
       </View>
 
       {/* Conversations List */}
-      <FlatList
-        data={filteredConversations}
-        renderItem={renderConversation}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#5D8A7D" />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIcon}>
-              <Ionicons name="chatbubbles-outline" size={48} color="#A3A3A3" />
+      {loading ? (
+        <ChatListSkeleton count={5} />
+      ) : (
+        <FlatList
+          data={filteredConversations}
+          renderItem={renderConversation}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIcon}>
+                <Ionicons name="chatbubbles-outline" size={48} color="#A3A3A3" />
+              </View>
+              <Text style={styles.emptyTitle}>Nenhuma conversa</Text>
+              <Text style={styles.emptyText}>
+                Suas conversas com vendedores e compradores aparecerão aqui
+              </Text>
             </View>
-            <Text style={styles.emptyTitle}>Nenhuma conversa</Text>
-            <Text style={styles.emptyText}>
-              Suas conversas com vendedores e compradores aparecerão aqui
-            </Text>
-          </View>
-        }
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
+          }
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+        />
+      )}
     </View>
   );
 }
@@ -201,14 +207,14 @@ const styles = StyleSheet.create({
   conversationHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   userName: { fontSize: 15, fontWeight: '600', color: '#1A1A1A' },
   timestamp: { fontSize: 12, color: '#A3A3A3' },
-  timestampUnread: { color: '#5D8A7D', fontWeight: '500' },
+  timestampUnread: { color: colors.primary, fontWeight: '500' },
   productPreview: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   productThumb: { width: 20, height: 20, borderRadius: 4 },
   productName: { fontSize: 12, color: '#737373', flex: 1 },
   messageRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
   lastMessage: { flex: 1, fontSize: 14, color: '#737373' },
   lastMessageUnread: { color: '#1A1A1A', fontWeight: '500' },
-  unreadBadge: { minWidth: 20, height: 20, borderRadius: 10, backgroundColor: '#5D8A7D', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
+  unreadBadge: { minWidth: 20, height: 20, borderRadius: 10, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
   unreadText: { fontSize: 11, fontWeight: '700', color: '#fff' },
 
   // Empty

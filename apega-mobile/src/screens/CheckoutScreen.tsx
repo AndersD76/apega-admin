@@ -17,6 +17,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { formatPrice } from '../utils/format';
 import { addressesService, shippingService, Address, ShippingOption } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { colors } from '../theme';
 
 const PAYMENT_METHODS = [
   { id: 'pix', name: 'PIX', icon: 'qr-code-outline', desc: 'Aprovacao instantanea' },
@@ -203,12 +204,12 @@ export function CheckoutScreen({ route, navigation }: any) {
           </View>
           {loadingAddress ? (
             <View style={styles.loadingBox}>
-              <ActivityIndicator size="small" color="#5D8A7D" />
+              <ActivityIndicator size="small" color={colors.primary} />
               <Text style={styles.loadingText}>Carregando endereco...</Text>
             </View>
           ) : address ? (
             <View style={styles.addressCard}>
-              <Ionicons name="location" size={20} color="#5D8A7D" />
+              <Ionicons name="location" size={20} color={colors.primary} />
               <View style={styles.addressInfo}>
                 <Text style={styles.addressStreet}>{address.street}, {address.number}</Text>
                 <Text style={styles.addressCity}>
@@ -219,7 +220,7 @@ export function CheckoutScreen({ route, navigation }: any) {
             </View>
           ) : (
             <Pressable style={styles.addAddressBtn} onPress={handleChangeAddress}>
-              <Ionicons name="add-circle-outline" size={24} color="#5D8A7D" />
+              <Ionicons name="add-circle-outline" size={24} color={colors.primary} />
               <Text style={styles.addAddressText}>Adicionar endereco de entrega</Text>
             </Pressable>
           )}
@@ -231,7 +232,7 @@ export function CheckoutScreen({ route, navigation }: any) {
             <Text style={styles.sectionTitle}>Opcoes de Frete</Text>
             {loadingShipping ? (
               <View style={styles.loadingBox}>
-                <ActivityIndicator size="small" color="#5D8A7D" />
+                <ActivityIndicator size="small" color={colors.primary} />
                 <Text style={styles.loadingText}>Calculando frete...</Text>
               </View>
             ) : shippingOptions.length > 0 ? (
@@ -257,7 +258,7 @@ export function CheckoutScreen({ route, navigation }: any) {
               ))
             ) : selectedShipping ? (
               <View style={styles.shippingOption}>
-                <Ionicons name="cube-outline" size={20} color="#5D8A7D" />
+                <Ionicons name="cube-outline" size={20} color={colors.primary} />
                 <View style={styles.shippingInfo}>
                   <Text style={styles.shippingName}>{selectedShipping.name}</Text>
                   <Text style={styles.shippingTime}>{selectedShipping.delivery_range?.min}-{selectedShipping.delivery_range?.max} dias uteis</Text>
@@ -280,7 +281,7 @@ export function CheckoutScreen({ route, navigation }: any) {
               <View style={styles.paymentRadio}>
                 {paymentMethod === method.id && <View style={styles.paymentRadioInner} />}
               </View>
-              <Ionicons name={method.icon as any} size={24} color={paymentMethod === method.id ? '#5D8A7D' : '#525252'} />
+              <Ionicons name={method.icon as any} size={24} color={paymentMethod === method.id ? colors.primary : '#525252'} />
               <View style={styles.paymentInfo}>
                 <Text style={[styles.paymentName, paymentMethod === method.id && styles.paymentNameActive]}>
                   {method.name}
@@ -361,7 +362,7 @@ export function CheckoutScreen({ route, navigation }: any) {
         {paymentMethod === 'pix' && (
           <View style={styles.section}>
             <View style={styles.pixInfo}>
-              <Ionicons name="flash" size={24} color="#5D8A7D" />
+              <Ionicons name="flash" size={24} color={colors.primary} />
               <Text style={styles.pixText}>
                 Ao confirmar, você receberá um QR Code para pagamento instantâneo
               </Text>
@@ -379,7 +380,7 @@ export function CheckoutScreen({ route, navigation }: any) {
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Frete</Text>
             {loadingShipping ? (
-              <ActivityIndicator size="small" color="#5D8A7D" />
+              <ActivityIndicator size="small" color={colors.primary} />
             ) : (
               <Text style={styles.priceValue}>R$ {formatPrice(shipping)}</Text>
             )}
@@ -398,7 +399,7 @@ export function CheckoutScreen({ route, navigation }: any) {
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
         <Pressable onPress={handleConfirmPayment} disabled={loading || !canConfirm}>
           <LinearGradient
-            colors={canConfirm ? ['#5D8A7D', '#4A7266'] : ['#A3A3A3', '#8A8A8A']}
+            colors={canConfirm ? [colors.primary, colors.primaryDark] : ['#A3A3A3', '#8A8A8A']}
             style={styles.confirmBtn}
           >
             {loading ? (
@@ -435,14 +436,14 @@ const styles = StyleSheet.create({
   section: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginTop: 16 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionTitle: { fontSize: 16, fontWeight: '600', color: '#1A1A1A', marginBottom: 12 },
-  changeLink: { fontSize: 14, fontWeight: '500', color: '#5D8A7D' },
+  changeLink: { fontSize: 14, fontWeight: '500', color: colors.primary },
 
   // Order Item
   orderItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
   orderItemImg: { width: 60, height: 60, borderRadius: 8 },
   orderItemInfo: { flex: 1, marginLeft: 12 },
   orderItemTitle: { fontSize: 14, fontWeight: '500', color: '#1A1A1A' },
-  orderItemPrice: { fontSize: 15, fontWeight: '600', color: '#5D8A7D', marginTop: 4 },
+  orderItemPrice: { fontSize: 15, fontWeight: '600', color: colors.primary, marginTop: 4 },
 
   // Address
   addressCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: '#F5F5F5', borderRadius: 12, padding: 12 },
@@ -451,28 +452,28 @@ const styles = StyleSheet.create({
   addressCity: { fontSize: 13, color: '#737373', marginTop: 2 },
   addressZip: { fontSize: 12, color: '#A3A3A3', marginTop: 2 },
   addAddressBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#F5F5F5', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#E8E8E8', borderStyle: 'dashed' },
-  addAddressText: { fontSize: 14, fontWeight: '500', color: '#5D8A7D' },
+  addAddressText: { fontSize: 14, fontWeight: '500', color: colors.primary },
   loadingBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, padding: 16, backgroundColor: '#F5F5F5', borderRadius: 12 },
   loadingText: { fontSize: 14, color: '#737373' },
 
   // Shipping
   shippingOption: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 12, backgroundColor: '#F5F5F5', marginBottom: 8 },
-  shippingOptionActive: { backgroundColor: '#E8F0ED', borderWidth: 1, borderColor: '#5D8A7D' },
+  shippingOptionActive: { backgroundColor: colors.primaryMuted, borderWidth: 1, borderColor: colors.primary },
   shippingRadio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#D4D4D4', alignItems: 'center', justifyContent: 'center' },
-  shippingRadioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#5D8A7D' },
+  shippingRadioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.primary },
   shippingInfo: { flex: 1 },
   shippingName: { fontSize: 14, fontWeight: '600', color: '#1A1A1A' },
   shippingTime: { fontSize: 12, color: '#737373', marginTop: 2 },
-  shippingPrice: { fontSize: 15, fontWeight: '700', color: '#5D8A7D' },
+  shippingPrice: { fontSize: 15, fontWeight: '700', color: colors.primary },
 
   // Payment
   paymentOption: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 12, backgroundColor: '#F5F5F5', marginBottom: 8 },
-  paymentOptionActive: { backgroundColor: '#E8F0ED', borderWidth: 1, borderColor: '#5D8A7D' },
+  paymentOptionActive: { backgroundColor: colors.primaryMuted, borderWidth: 1, borderColor: colors.primary },
   paymentRadio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#D4D4D4', alignItems: 'center', justifyContent: 'center' },
-  paymentRadioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#5D8A7D' },
+  paymentRadioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.primary },
   paymentInfo: { flex: 1 },
   paymentName: { fontSize: 15, fontWeight: '600', color: '#1A1A1A' },
-  paymentNameActive: { color: '#5D8A7D' },
+  paymentNameActive: { color: colors.primary },
   paymentDesc: { fontSize: 12, color: '#737373', marginTop: 2 },
 
   // Card Form
@@ -485,8 +486,8 @@ const styles = StyleSheet.create({
   selectText: { fontSize: 15, color: '#1A1A1A' },
 
   // PIX
-  pixInfo: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#E8F0ED', borderRadius: 12, padding: 14 },
-  pixText: { flex: 1, fontSize: 13, color: '#5D8A7D', lineHeight: 18 },
+  pixInfo: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.primaryMuted, borderRadius: 12, padding: 14 },
+  pixText: { flex: 1, fontSize: 13, color: colors.primary, lineHeight: 18 },
 
   // Price
   priceRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },

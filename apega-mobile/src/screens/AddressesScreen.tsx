@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { addressesService } from '../api';
+import { colors } from '../theme';
 
 export function AddressesScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -180,7 +181,7 @@ export function AddressesScreen({ navigation }: any) {
         </Pressable>
         <Text style={styles.headerTitle}>Endereços</Text>
         <Pressable style={styles.addBtn} onPress={handleAddAddress}>
-          <Ionicons name="add" size={24} color="#5D8A7D" />
+          <Ionicons name="add" size={24} color={colors.primary} />
         </Pressable>
       </View>
 
@@ -193,7 +194,7 @@ export function AddressesScreen({ navigation }: any) {
             <Text style={styles.emptyTitle}>Nenhum endereço</Text>
             <Text style={styles.emptyText}>Adicione um endereço de entrega</Text>
             <Pressable onPress={handleAddAddress}>
-              <LinearGradient colors={['#5D8A7D', '#4A7266']} style={styles.addFirstBtn}>
+              <LinearGradient colors={[colors.primary, colors.primaryDark]} style={styles.addFirstBtn}>
                 <Ionicons name="add" size={20} color="#fff" />
                 <Text style={styles.addFirstBtnText}>Adicionar endereço</Text>
               </LinearGradient>
@@ -204,7 +205,7 @@ export function AddressesScreen({ navigation }: any) {
             <View key={address.id} style={styles.addressCard}>
               <View style={styles.addressHeader}>
                 <View style={styles.addressName}>
-                  <Ionicons name={address.name === 'Casa' ? 'home-outline' : 'business-outline'} size={18} color="#5D8A7D" />
+                  <Ionicons name={address.name === 'Casa' ? 'home-outline' : 'business-outline'} size={18} color={colors.primary} />
                   <Text style={styles.addressNameText}>{address.name}</Text>
                   {address.isDefault && (
                     <View style={styles.defaultBadge}>
@@ -228,7 +229,7 @@ export function AddressesScreen({ navigation }: any) {
               <View style={styles.addressActions}>
                 {!address.isDefault && (
                   <Pressable style={styles.setDefaultBtn} onPress={() => handleSetDefault(address.id)}>
-                    <Ionicons name="checkmark-circle-outline" size={16} color="#5D8A7D" />
+                    <Ionicons name="checkmark-circle-outline" size={16} color={colors.primary} />
                     <Text style={styles.setDefaultText}>Definir como padrão</Text>
                   </Pressable>
                 )}
@@ -297,7 +298,7 @@ export function AddressesScreen({ navigation }: any) {
                   maxLength={9}
                 />
                 <Pressable style={styles.searchZipBtn} onPress={handleSearchZipcode}>
-                  <Ionicons name="search" size={20} color="#5D8A7D" />
+                  <Ionicons name="search" size={20} color={colors.primary} />
                 </Pressable>
               </View>
             </View>
@@ -389,7 +390,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#FAFAFA' },
   backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 18, fontWeight: '600', color: '#1A1A1A' },
-  addBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#E8F0ED', alignItems: 'center', justifyContent: 'center' },
+  addBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primaryMuted, alignItems: 'center', justifyContent: 'center' },
 
   // Empty State
   emptyState: { alignItems: 'center', paddingVertical: 60 },
@@ -404,21 +405,21 @@ const styles = StyleSheet.create({
   addressHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   addressName: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   addressNameText: { fontSize: 15, fontWeight: '600', color: '#1A1A1A' },
-  defaultBadge: { backgroundColor: '#E8F0ED', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
-  defaultText: { fontSize: 11, fontWeight: '600', color: '#5D8A7D' },
+  defaultBadge: { backgroundColor: colors.primaryMuted, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
+  defaultText: { fontSize: 11, fontWeight: '600', color: colors.primary },
   recipientName: { fontSize: 14, fontWeight: '500', color: '#1A1A1A', marginBottom: 4 },
   addressLine: { fontSize: 14, color: '#737373', marginBottom: 2 },
   addressZip: { fontSize: 13, color: '#A3A3A3', marginTop: 4 },
   addressActions: { flexDirection: 'row', alignItems: 'center', marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F5F5F5' },
   setDefaultBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
-  setDefaultText: { fontSize: 13, color: '#5D8A7D', fontWeight: '500' },
+  setDefaultText: { fontSize: 13, color: colors.primary, fontWeight: '500' },
   deleteBtn: { padding: 8 },
 
   // Modal
   modalContainer: { flex: 1, backgroundColor: '#fff' },
   modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#F5F5F5' },
   modalTitle: { fontSize: 18, fontWeight: '600', color: '#1A1A1A' },
-  saveBtn: { fontSize: 16, fontWeight: '600', color: '#5D8A7D' },
+  saveBtn: { fontSize: 16, fontWeight: '600', color: colors.primary },
   modalContent: { padding: 16 },
 
   // Form
@@ -427,7 +428,7 @@ const styles = StyleSheet.create({
   label: { fontSize: 14, fontWeight: '500', color: '#525252', marginBottom: 6 },
   input: { backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1A1A1A' },
   zipcodeRow: { flexDirection: 'row', gap: 10 },
-  searchZipBtn: { width: 50, backgroundColor: '#E8F0ED', borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  searchZipBtn: { width: 50, backgroundColor: colors.primaryMuted, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
 });
 
 export default AddressesScreen;

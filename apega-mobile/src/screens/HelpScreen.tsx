@@ -9,11 +9,12 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '../theme';
 
 const FAQ_ITEMS = [
   {
     question: 'Como vender uma peça?',
-    answer: 'Clique no botão "Desapegar" na barra inferior, tire fotos da peça, preencha as informações e publique seu anúncio.',
+    answer: 'Clique no botão "Largar" na barra inferior, tire fotos da peça, preencha as informações e publique seu anúncio.',
   },
   {
     question: 'Como funciona o pagamento?',
@@ -39,7 +40,7 @@ const FAQ_ITEMS = [
 
 const HELP_OPTIONS = [
   { icon: 'chatbubbles-outline', title: 'Chat de Suporte', subtitle: 'Fale com nossa equipe', action: 'chat' },
-  { icon: 'mail-outline', title: 'E-mail', subtitle: 'suporte@desapega.com.br', action: 'email' },
+  { icon: 'mail-outline', title: 'E-mail', subtitle: 'suporte@largo.com.br', action: 'email' },
   { icon: 'logo-whatsapp', title: 'WhatsApp', subtitle: '(11) 99999-9999', action: 'whatsapp' },
   { icon: 'document-text-outline', title: 'Termos de Uso', subtitle: 'Leia nossos termos', action: 'terms' },
   { icon: 'shield-checkmark-outline', title: 'Política de Privacidade', subtitle: 'Sua segurança importa', action: 'privacy' },
@@ -52,7 +53,7 @@ export function HelpScreen({ navigation }: any) {
   const handleAction = (action: string) => {
     switch (action) {
       case 'email':
-        Linking.openURL('mailto:suporte@desapega.com.br');
+        Linking.openURL('mailto:suporte@largo.com.br');
         break;
       case 'whatsapp':
         Linking.openURL('https://wa.me/5511999999999');
@@ -113,7 +114,7 @@ export function HelpScreen({ navigation }: any) {
                 onPress={() => handleAction(item.action)}
               >
                 <View style={styles.optionIcon}>
-                  <Ionicons name={item.icon as any} size={22} color="#5D8A7D" />
+                  <Ionicons name={item.icon as any} size={22} color={colors.primary} />
                 </View>
                 <View style={styles.optionContent}>
                   <Text style={styles.optionTitle}>{item.title}</Text>
@@ -127,9 +128,9 @@ export function HelpScreen({ navigation }: any) {
 
         {/* App Info */}
         <View style={styles.appInfo}>
-          <Text style={styles.appName}>Desapega</Text>
+          <Text style={styles.appName}>Largô</Text>
           <Text style={styles.appVersion}>Versão 1.0.0</Text>
-          <Text style={styles.appCopyright}>© 2024 Desapega. Todos os direitos reservados.</Text>
+          <Text style={styles.appCopyright}>© 2024 Largô. Todos os direitos reservados.</Text>
         </View>
       </ScrollView>
     </View>
@@ -158,14 +159,14 @@ const styles = StyleSheet.create({
   optionsCard: { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden' },
   optionItem: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#F5F5F5' },
   optionItemLast: { borderBottomWidth: 0 },
-  optionIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#E8F0ED', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  optionIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primaryMuted, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   optionContent: { flex: 1 },
   optionTitle: { fontSize: 15, fontWeight: '500', color: '#1A1A1A' },
   optionSubtitle: { fontSize: 12, color: '#A3A3A3', marginTop: 2 },
 
   // App Info
   appInfo: { alignItems: 'center', paddingVertical: 32, marginBottom: 80 },
-  appName: { fontSize: 20, fontWeight: '700', color: '#5D8A7D' },
+  appName: { fontSize: 20, fontWeight: '700', color: colors.primary },
   appVersion: { fontSize: 13, color: '#A3A3A3', marginTop: 4 },
   appCopyright: { fontSize: 11, color: '#A3A3A3', marginTop: 8 },
 });

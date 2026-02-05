@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '../theme';
 
 const POLICIES: Record<string, { title: string; icon: string; sections: { title: string; content: string }[] }> = {
   terms: {
@@ -16,7 +17,7 @@ const POLICIES: Record<string, { title: string; icon: string; sections: { title:
     sections: [
       {
         title: '1. Aceitação dos Termos',
-        content: 'Ao acessar e usar o aplicativo Apega Desapega, você concorda com estes termos de uso. Se você não concordar com algum termo, não utilize nossos serviços.',
+        content: 'Ao acessar e usar o aplicativo Largô, você concorda com estes termos de uso. Se você não concordar com algum termo, não utilize nossos serviços.',
       },
       {
         title: '2. Cadastro e Conta',
@@ -24,7 +25,7 @@ const POLICIES: Record<string, { title: string; icon: string; sections: { title:
       },
       {
         title: '3. Uso da Plataforma',
-        content: 'O Apega Desapega é uma plataforma de marketplace para compra e venda de itens usados e seminovos. É proibido anunciar produtos falsificados, ilegais, roubados ou que violem direitos de terceiros.',
+        content: 'O Largô é uma plataforma de marketplace para compra e venda de itens usados e seminovos. É proibido anunciar produtos falsificados, ilegais, roubados ou que violem direitos de terceiros.',
       },
       {
         title: '4. Responsabilidades',
@@ -36,7 +37,7 @@ const POLICIES: Record<string, { title: string; icon: string; sections: { title:
       },
       {
         title: '6. Propriedade Intelectual',
-        content: 'Todo o conteúdo do aplicativo, incluindo marca, logo e design, são propriedade do Apega Desapega e protegidos por leis de propriedade intelectual.',
+        content: 'Todo o conteúdo do aplicativo, incluindo marca, logo e design, são propriedade do Largô e protegidos por leis de propriedade intelectual.',
       },
     ],
   },
@@ -177,7 +178,7 @@ export function PoliciesScreen({ route, navigation }: any) {
       >
         {/* Icon */}
         <View style={styles.iconContainer}>
-          <Ionicons name={policy.icon as any} size={40} color="#5D8A7D" />
+          <Ionicons name={policy.icon as any} size={40} color={colors.primary} />
         </View>
 
         {/* Last Updated */}
@@ -193,9 +194,9 @@ export function PoliciesScreen({ route, navigation }: any) {
 
         {/* Contact */}
         <View style={styles.contactBox}>
-          <Ionicons name="mail-outline" size={20} color="#5D8A7D" />
+          <Ionicons name="mail-outline" size={20} color={colors.primary} />
           <Text style={styles.contactText}>
-            Dúvidas? Entre em contato: suporte@apegadesapega.com.br
+            Dúvidas? Entre em contato: suporte@largo.com.br
           </Text>
         </View>
 
@@ -216,7 +217,7 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 18, fontWeight: '600', color: '#1A1A1A' },
 
   // Icon
-  iconContainer: { alignItems: 'center', marginVertical: 20, width: 80, height: 80, borderRadius: 40, backgroundColor: '#E8F0ED', alignSelf: 'center', justifyContent: 'center' },
+  iconContainer: { alignItems: 'center', marginVertical: 20, width: 80, height: 80, borderRadius: 40, backgroundColor: colors.primaryMuted, alignSelf: 'center', justifyContent: 'center' },
 
   // Updated
   lastUpdated: { fontSize: 12, color: '#A3A3A3', textAlign: 'center', marginBottom: 24 },
@@ -227,8 +228,8 @@ const styles = StyleSheet.create({
   sectionContent: { fontSize: 14, color: '#525252', lineHeight: 22 },
 
   // Contact
-  contactBox: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#E8F0ED', borderRadius: 12, padding: 16, marginTop: 12 },
-  contactText: { flex: 1, fontSize: 13, color: '#5D8A7D' },
+  contactBox: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.primaryMuted, borderRadius: 12, padding: 16, marginTop: 12 },
+  contactText: { flex: 1, fontSize: 13, color: colors.primary },
 });
 
 export default PoliciesScreen;

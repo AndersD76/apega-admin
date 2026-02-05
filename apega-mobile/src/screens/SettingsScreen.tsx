@@ -12,6 +12,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { colors, getColors } from '../theme';
 
 const SETTINGS_SECTIONS = [
   {
@@ -48,9 +50,31 @@ const SETTINGS_SECTIONS = [
   },
 ];
 
+// Dark mode toggle component
+function DarkModeToggle({ themeColors }: { themeColors: any }) {
+  const { isDark, toggleTheme } = useTheme();
+
+  return (
+    <View style={[styles.settingItem, { backgroundColor: themeColors.surface, borderBottomColor: isDark ? themeColors.border : '#F5F5F5' }]}>
+      <View style={[styles.settingIcon, { backgroundColor: isDark ? themeColors.primaryMuted : '#F5F5F5' }]}>
+        <Ionicons name={isDark ? 'moon' : 'sunny'} size={20} color={themeColors.primary} />
+      </View>
+      <Text style={[styles.settingTitle, { color: themeColors.text }]}>Modo escuro</Text>
+      <Switch
+        value={isDark}
+        onValueChange={toggleTheme}
+        trackColor={{ false: '#E8E8E8', true: themeColors.primaryMuted }}
+        thumbColor={isDark ? themeColors.primary : '#fff'}
+      />
+    </View>
+  );
+}
+
 export function SettingsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { logout } = useAuth();
+  const { isDark } = useTheme();
+  const themeColors = getColors(isDark);
   const [settings, setSettings] = useState({
     pushEnabled: true,
     emailEnabled: true,
@@ -65,8 +89,8 @@ export function SettingsScreen({ navigation }: any) {
     switch (action) {
       case 'contact':
         Alert.alert('Fale Conosco', 'Como prefere entrar em contato?', [
-          { text: 'E-mail', onPress: () => Linking.openURL('mailto:suporte@apegadesapega.com.br') },
-          { text: 'WhatsApp', onPress: () => Linking.openURL('https://wa.me/5511999999999?text=Olá! Preciso de ajuda com o app Apega Desapega.') },
+          { text: 'E-mail', onPress: () => Linking.openURL('mailto:suporte@largo.com.br') },
+          { text: 'WhatsApp', onPress: () => Linking.openURL('https://wa.me/5511999999999?text=Olá! Preciso de ajuda com o app Largô.') },
           { text: 'Cancelar', style: 'cancel' },
         ]);
         break;
@@ -102,16 +126,16 @@ export function SettingsScreen({ navigation }: any) {
   const renderItem = (item: any) => {
     if (item.type === 'toggle') {
       return (
-        <View key={item.id} style={styles.settingItem}>
-          <View style={styles.settingIcon}>
-            <Ionicons name={item.icon} size={20} color="#525252" />
+        <View key={item.id} style={[styles.settingItem, { backgroundColor: themeColors.surface, borderBottomColor: isDark ? themeColors.border : '#F5F5F5' }]}>
+          <View style={[styles.settingIcon, { backgroundColor: isDark ? themeColors.primaryMuted : '#F5F5F5' }]}>
+            <Ionicons name={item.icon} size={20} color={isDark ? themeColors.textSecondary : '#525252'} />
           </View>
-          <Text style={styles.settingTitle}>{item.title}</Text>
+          <Text style={[styles.settingTitle, { color: themeColors.text }]}>{item.title}</Text>
           <Switch
             value={settings[item.key as keyof typeof settings]}
             onValueChange={() => handleToggle(item.key)}
-            trackColor={{ false: '#E8E8E8', true: '#A3D4C7' }}
-            thumbColor={settings[item.key as keyof typeof settings] ? '#5D8A7D' : '#fff'}
+            trackColor={{ false: isDark ? themeColors.border : '#E8E8E8', true: themeColors.primaryMuted }}
+            thumbColor={settings[item.key as keyof typeof settings] ? themeColors.primary : '#fff'}
           />
         </View>
       );
@@ -128,38 +152,46 @@ export function SettingsScreen({ navigation }: any) {
     return (
       <Pressable
         key={item.id}
-        style={styles.settingItem}
+        style={[styles.settingItem, { backgroundColor: themeColors.surface, borderBottomColor: isDark ? themeColors.border : '#F5F5F5' }]}
         onPress={handlePress}
       >
-        <View style={styles.settingIcon}>
-          <Ionicons name={item.icon} size={20} color="#525252" />
+        <View style={[styles.settingIcon, { backgroundColor: isDark ? themeColors.primaryMuted : '#F5F5F5' }]}>
+          <Ionicons name={item.icon} size={20} color={isDark ? themeColors.textSecondary : '#525252'} />
         </View>
-        <Text style={styles.settingTitle}>{item.title}</Text>
+        <Text style={[styles.settingTitle, { color: themeColors.text }]}>{item.title}</Text>
         {item.value ? (
-          <Text style={styles.settingValue}>{item.value}</Text>
+          <Text style={[styles.settingValue, { color: themeColors.textMuted }]}>{item.value}</Text>
         ) : (
-          <Ionicons name="chevron-forward" size={20} color="#A3A3A3" />
+          <Ionicons name="chevron-forward" size={20} color={themeColors.textMuted} />
         )}
       </Pressable>
     );
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: isDark ? themeColors.background : '#FAFAFA' }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
+      <View style={[styles.header, { backgroundColor: isDark ? themeColors.background : '#FAFAFA' }]}>
+        <Pressable style={[styles.backBtn, { backgroundColor: themeColors.surface }]} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color={themeColors.text} />
         </Pressable>
-        <Text style={styles.headerTitle}>Configurações</Text>
+        <Text style={[styles.headerTitle, { color: themeColors.text }]}>Configuracoes</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* Aparencia Section - Dark Mode Toggle */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: themeColors.textMuted }]}>Aparencia</Text>
+          <View style={[styles.sectionContent, { backgroundColor: themeColors.surface }]}>
+            <DarkModeToggle themeColors={themeColors} />
+          </View>
+        </View>
+
         {SETTINGS_SECTIONS.map((section) => (
           <View key={section.title} style={styles.section}>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
-            <View style={styles.sectionContent}>
+            <Text style={[styles.sectionTitle, { color: themeColors.textMuted }]}>{section.title}</Text>
+            <View style={[styles.sectionContent, { backgroundColor: themeColors.surface }]}>
               {section.items.map(renderItem)}
             </View>
           </View>
@@ -167,20 +199,20 @@ export function SettingsScreen({ navigation }: any) {
 
         {/* App Info */}
         <View style={styles.appInfo}>
-          <Text style={styles.appName}>Apega Desapega</Text>
-          <Text style={styles.appVersion}>Versão 1.0.0</Text>
+          <Text style={[styles.appName, { color: themeColors.primary }]}>Largo</Text>
+          <Text style={[styles.appVersion, { color: themeColors.textMuted }]}>Versao 1.0.0</Text>
         </View>
 
         {/* Danger Zone */}
         <View style={styles.dangerZone}>
-          <Pressable style={styles.logoutBtn} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={20} color="#EF4444" />
-            <Text style={styles.logoutText}>Sair da conta</Text>
+          <Pressable style={[styles.logoutBtn, { backgroundColor: isDark ? '#3D2626' : '#FEE2E2' }]} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={20} color={isDark ? '#E66B6B' : '#EF4444'} />
+            <Text style={[styles.logoutText, { color: isDark ? '#E66B6B' : '#EF4444' }]}>Sair da conta</Text>
           </Pressable>
 
           <Pressable style={styles.deleteBtn} onPress={handleDeleteAccount}>
-            <Ionicons name="trash-outline" size={20} color="#EF4444" />
-            <Text style={styles.deleteText}>Excluir conta</Text>
+            <Ionicons name="trash-outline" size={20} color={isDark ? '#E66B6B' : '#EF4444'} />
+            <Text style={[styles.deleteText, { color: isDark ? '#E66B6B' : '#EF4444' }]}>Excluir conta</Text>
           </Pressable>
         </View>
 
@@ -212,7 +244,7 @@ const styles = StyleSheet.create({
 
   // App Info
   appInfo: { alignItems: 'center', marginTop: 32 },
-  appName: { fontSize: 16, fontWeight: '600', color: '#5D8A7D' },
+  appName: { fontSize: 16, fontWeight: '600', color: colors.primary },
   appVersion: { fontSize: 13, color: '#A3A3A3', marginTop: 4 },
 
   // Danger Zone

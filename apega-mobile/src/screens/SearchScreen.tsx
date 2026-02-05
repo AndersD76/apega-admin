@@ -8,6 +8,7 @@ import {
   Pressable,
   useWindowDimensions,
   Modal,
+  Switch,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -15,6 +16,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { productsService } from '../api';
 import { formatPrice } from '../utils/format';
+import { colors } from '../theme';
+import { ProductListSkeleton } from '../components/ProductListSkeleton';
+
+// Garimpeiro mode color
+const GARIMPEIRO_COLOR = '#D4A574';
 
 const CATEGORIES = [
   { id: 'all', name: 'Todos', icon: 'grid-outline' },
@@ -41,7 +47,7 @@ const SORT_OPTIONS = [
 ];
 
 export function SearchScreen({ navigation, route }: any) {
-  const { categoryId, categoryName, collection, showOffers } = route.params || {};
+  const { categoryId, categoryName, collection, showOffers, garimpeiro } = route.params || {};
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,6 +56,7 @@ export function SearchScreen({ navigation, route }: any) {
   const [selectedSort, setSelectedSort] = useState('recent');
   const [selectedCollection, setSelectedCollection] = useState(collection || '');
   const [onlyOffers, setOnlyOffers] = useState(showOffers || false);
+  const [garimpeiroMode, setGarimpeiroMode] = useState(garimpeiro || false);
   const [showFilters, setShowFilters] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +81,8 @@ export function SearchScreen({ navigation, route }: any) {
       setSelectedCategory(categoryId || 'all');
       setSelectedCollection(collection || '');
       setOnlyOffers(showOffers || false);
-    }, [categoryId, collection, showOffers])
+      setGarimpeiroMode(garimpeiro || false);
+    }, [categoryId, collection, showOffers, garimpeiro])
   );
 
   const numColumns = width > 600 ? 3 : 2;
@@ -87,6 +95,8 @@ export function SearchScreen({ navigation, route }: any) {
       if (searchQuery) params.search = searchQuery;
       if (selectedCategory !== 'all') params.category = selectedCategory;
       if (selectedCondition !== 'all') params.condition = selectedCondition;
+      // Garimpeiro mode - only last 2 hours
+      if (garimpeiroMode) params.created_after = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
 
       const res = await productsService.getProducts(params);
       setProducts(res.products || []);
@@ -96,11 +106,11 @@ export function SearchScreen({ navigation, route }: any) {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, selectedCategory, selectedCondition, selectedSort]);
+  }, [searchQuery, selectedCategory, selectedCondition, selectedSort, garimpeiroMode]);
 
   useEffect(() => {
     fetchProducts();
-  }, [selectedCategory, selectedCondition, selectedCollection, onlyOffers, selectedSort, fetchProducts]);
+  }, [selectedCategory, selectedCondition, selectedCollection, onlyOffers, selectedSort, garimpeiroMode, fetchProducts]);
 
   const handleSearch = () => {
     fetchProducts();
@@ -112,6 +122,7 @@ export function SearchScreen({ navigation, route }: any) {
     setSelectedSort('recent');
     setSelectedCollection('');
     setOnlyOffers(false);
+    setGarimpeiroMode(false);
   };
 
   const activeFiltersCount =
@@ -119,7 +130,8 @@ export function SearchScreen({ navigation, route }: any) {
     (selectedCondition !== 'all' ? 1 : 0) +
     (selectedSort !== 'recent' ? 1 : 0) +
     (selectedCollection ? 1 : 0) +
-    (onlyOffers ? 1 : 0);
+    (onlyOffers ? 1 : 0) +
+    (garimpeiroMode ? 1 : 0);
 
   const imageHeight = productWidth * 1.2;
 
@@ -144,8 +156,14 @@ export function SearchScreen({ navigation, route }: any) {
             </Pressable>
           )}
         </View>
+        <Pressable
+          style={styles.discoveryBtn}
+          onPress={() => navigation.navigate('Discovery')}
+        >
+          <Ionicons name="play-circle" size={24} color="#fff" />
+        </Pressable>
         <Pressable style={styles.filterBtn} onPress={() => setShowFilters(true)}>
-          <Ionicons name="options-outline" size={22} color="#5D8A7D" />
+          <Ionicons name="options-outline" size={22} color={colors.primary} />
           {activeFiltersCount > 0 && (
             <View style={styles.filterBadge}>
               <Text style={styles.filterBadgeText}>{activeFiltersCount}</Text>
@@ -175,8 +193,15 @@ export function SearchScreen({ navigation, route }: any) {
       </ScrollView>
 
       {/* Active Filters Tags */}
-      {(onlyOffers || selectedCollection) && (
+      {(onlyOffers || selectedCollection || garimpeiroMode) && (
         <View style={styles.activeFiltersRow}>
+          {garimpeiroMode && (
+            <Pressable style={styles.garimpeiroFilterTag} onPress={() => setGarimpeiroMode(false)}>
+              <Ionicons name="time" size={14} color={GARIMPEIRO_COLOR} />
+              <Text style={styles.garimpeiroFilterText}>Garimpando</Text>
+              <Ionicons name="close-circle" size={16} color={GARIMPEIRO_COLOR} />
+            </Pressable>
+          )}
           {onlyOffers && (
             <Pressable style={styles.activeFilterTag} onPress={() => setOnlyOffers(false)}>
               <Ionicons name="pricetag" size={14} color="#FF6B6B" />
@@ -186,7 +211,7 @@ export function SearchScreen({ navigation, route }: any) {
           )}
           {selectedCollection && (
             <Pressable style={styles.activeFilterTag} onPress={() => setSelectedCollection('')}>
-              <Ionicons name="albums" size={14} color="#5D8A7D" />
+              <Ionicons name="albums" size={14} color={colors.primary} />
               <Text style={styles.activeFilterText}>{selectedCollection}</Text>
               <Ionicons name="close-circle" size={16} color="#A3A3A3" />
             </Pressable>
@@ -199,7 +224,7 @@ export function SearchScreen({ navigation, route }: any) {
         <Text style={styles.resultsCount}>{products.length} resultados</Text>
         <Pressable style={styles.sortBtn} onPress={() => setShowFilters(true)}>
           <Text style={styles.sortText}>{SORT_OPTIONS.find(s => s.id === selectedSort)?.name}</Text>
-          <Ionicons name="chevron-down" size={16} color="#5D8A7D" />
+          <Ionicons name="chevron-down" size={16} color={colors.primary} />
         </Pressable>
       </View>
 
@@ -208,11 +233,13 @@ export function SearchScreen({ navigation, route }: any) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.productsGrid}
       >
-        {products.length === 0 ? (
+        {loading ? (
+          <ProductListSkeleton count={6} />
+        ) : products.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="search-outline" size={64} color="#E8E8E8" />
-            <Text style={styles.emptyTitle}>Nenhum resultado</Text>
-            <Text style={styles.emptyText}>Tente buscar por outro termo ou remova os filtros</Text>
+            <Text style={styles.emptyTitle}>Ninguém largou isso ainda...</Text>
+            <Text style={styles.emptyText}>Tenta buscar por outro termo ou remove os filtros</Text>
           </View>
         ) : (
           <View style={styles.gridContainer}>
@@ -286,8 +313,30 @@ export function SearchScreen({ navigation, route }: any) {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Garimpeiro Mode */}
+              <View style={styles.garimpeiroSection}>
+                <View style={styles.garimpeiroHeader}>
+                  <Ionicons name="time" size={20} color={GARIMPEIRO_COLOR} />
+                  <Text style={styles.garimpeiroTitle}>MODO GARIMPEIRO</Text>
+                </View>
+                <View style={styles.garimpeiroContent}>
+                  <View style={styles.garimpeiroToggleRow}>
+                    <Text style={styles.garimpeiroToggleText}>So ultimas 2 horas</Text>
+                    <Switch
+                      value={garimpeiroMode}
+                      onValueChange={setGarimpeiroMode}
+                      trackColor={{ false: '#E8E8E8', true: GARIMPEIRO_COLOR }}
+                      thumbColor={garimpeiroMode ? '#fff' : '#f4f3f4'}
+                    />
+                  </View>
+                  <Text style={styles.garimpeiroHint}>
+                    Ative para ver apenas pecas recem-largadas!
+                  </Text>
+                </View>
+              </View>
+
               {/* Condition */}
-              <Text style={styles.filterLabel}>Condição</Text>
+              <Text style={styles.filterLabel}>Condicao</Text>
               <View style={styles.filterOptions}>
                 {CONDITIONS.map((cond) => (
                   <Pressable
@@ -341,28 +390,31 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, gap: 12 },
   searchBar: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 12, height: 44, gap: 8, borderWidth: 1, borderColor: '#E8E8E8' },
   searchInput: { flex: 1, fontSize: 15, color: '#1A1A1A' },
-  filterBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#E8F0ED', alignItems: 'center', justifyContent: 'center' },
-  filterBadge: { position: 'absolute', top: 6, right: 6, width: 16, height: 16, borderRadius: 8, backgroundColor: '#5D8A7D', alignItems: 'center', justifyContent: 'center' },
+  discoveryBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  filterBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: colors.primaryMuted, alignItems: 'center', justifyContent: 'center' },
+  filterBadge: { position: 'absolute', top: 6, right: 6, width: 16, height: 16, borderRadius: 8, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   filterBadgeText: { fontSize: 10, fontWeight: '700', color: '#fff' },
 
   // Categories
   categoriesWrap: { maxHeight: 50 },
   categoriesContent: { paddingHorizontal: 16, gap: 8 },
   categoryChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#fff', borderWidth: 1, borderColor: '#E8E8E8' },
-  categoryChipActive: { backgroundColor: '#5D8A7D', borderColor: '#5D8A7D' },
+  categoryChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   categoryChipText: { fontSize: 13, fontWeight: '500', color: '#525252' },
   categoryChipTextActive: { color: '#fff' },
 
   // Active Filters
-  activeFiltersRow: { flexDirection: 'row', paddingHorizontal: 16, paddingTop: 12, gap: 8 },
+  activeFiltersRow: { flexDirection: 'row', paddingHorizontal: 16, paddingTop: 12, gap: 8, flexWrap: 'wrap' },
   activeFilterTag: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: '#E8E8E8' },
   activeFilterText: { fontSize: 13, fontWeight: '500', color: '#525252' },
+  garimpeiroFilterTag: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: '#FDF6EE', borderWidth: 1, borderColor: '#D4A574' },
+  garimpeiroFilterText: { fontSize: 13, fontWeight: '600', color: '#D4A574' },
 
   // Results
   resultsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
   resultsCount: { fontSize: 14, color: '#737373' },
   sortBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  sortText: { fontSize: 14, fontWeight: '500', color: '#5D8A7D' },
+  sortText: { fontSize: 14, fontWeight: '500', color: colors.primary },
 
   // Products
   productsGrid: { paddingHorizontal: 16, paddingBottom: 100 },
@@ -376,7 +428,7 @@ const styles = StyleSheet.create({
   conditionTag: { position: 'absolute', bottom: 8, left: 8, backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
   conditionText: { fontSize: 10, fontWeight: '600', color: '#fff', textTransform: 'capitalize' },
   productInfo: { padding: 10 },
-  productBrand: { fontSize: 10, fontWeight: '700', color: '#5D8A7D', textTransform: 'uppercase' },
+  productBrand: { fontSize: 10, fontWeight: '700', color: colors.primary, textTransform: 'uppercase' },
   productName: { fontSize: 13, fontWeight: '500', color: '#1A1A1A', marginTop: 2 },
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   price: { fontSize: 15, fontWeight: '700', color: '#1A1A1A' },
@@ -397,14 +449,23 @@ const styles = StyleSheet.create({
   filterLabel: { fontSize: 15, fontWeight: '600', color: '#1A1A1A', marginTop: 16, marginBottom: 12 },
   filterOptions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   filterOption: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: '#F5F5F5' },
-  filterOptionActive: { backgroundColor: '#5D8A7D' },
+  filterOptionActive: { backgroundColor: colors.primary },
   filterOptionText: { fontSize: 14, fontWeight: '500', color: '#525252' },
   filterOptionTextActive: { color: '#fff' },
   modalActions: { flexDirection: 'row', gap: 12, marginTop: 24 },
   clearBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: '#E8E8E8', alignItems: 'center' },
   clearBtnText: { fontSize: 15, fontWeight: '600', color: '#737373' },
-  applyBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: '#5D8A7D', alignItems: 'center' },
+  applyBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center' },
   applyBtnText: { fontSize: 15, fontWeight: '600', color: '#fff' },
+
+  // Garimpeiro Mode
+  garimpeiroSection: { backgroundColor: '#FDF6EE', borderRadius: 16, padding: 16, marginBottom: 8, borderWidth: 1, borderColor: '#D4A574' },
+  garimpeiroHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  garimpeiroTitle: { fontSize: 14, fontWeight: '700', color: '#D4A574', letterSpacing: 0.5 },
+  garimpeiroContent: {},
+  garimpeiroToggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  garimpeiroToggleText: { fontSize: 15, fontWeight: '500', color: '#1A1A1A' },
+  garimpeiroHint: { fontSize: 13, color: '#8B7355', marginTop: 8, fontStyle: 'italic' },
 });
 
 export default SearchScreen;

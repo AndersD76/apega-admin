@@ -58,14 +58,14 @@ export function Button({
   ];
 
   const iconSize = size === 'sm' ? 16 : size === 'lg' ? 22 : 18;
-  const iconColor = variant === 'primary' || variant === 'danger' ? colors.white : colors.brand;
+  const iconColor = variant === 'primary' || variant === 'danger' ? colors.white : colors.primary;
 
   const content = (
     <>
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === 'primary' || variant === 'danger' ? colors.white : colors.brand}
+          color={variant === 'primary' || variant === 'danger' ? colors.white : colors.primary}
         />
       ) : (
         <>
@@ -102,7 +102,7 @@ export function Button({
         ]}
       >
         <LinearGradient
-          colors={[colors.brand, colors.brandLight]}
+          colors={[colors.primary, colors.primaryLight]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.gradient}
@@ -170,16 +170,16 @@ const styles = StyleSheet.create({
 
   // Variants
   button_primary: {
-    backgroundColor: colors.brand,
-    ...shadows.brand(0.2),
+    backgroundColor: colors.primary,
+    ...shadows.primary(0.2),
   },
   button_secondary: {
-    backgroundColor: colors.brandMuted,
+    backgroundColor: colors.primaryMuted,
   },
   button_outline: {
     backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: colors.brand,
+    borderColor: colors.primary,
   },
   button_ghost: {
     backgroundColor: 'transparent',
@@ -205,13 +205,13 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   text_secondary: {
-    color: colors.brand,
+    color: colors.primary,
   },
   text_outline: {
-    color: colors.brand,
+    color: colors.primary,
   },
   text_ghost: {
-    color: colors.brand,
+    color: colors.primary,
   },
   text_danger: {
     color: colors.white,

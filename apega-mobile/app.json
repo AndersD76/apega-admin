@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "apega-mobile",
-    "slug": "apega-mobile",
-    "version": "1.0.0",
+    "name": "Largô",
+    "slug": "largo-app",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -10,20 +10,21 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FFF8F0"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.apegadesapega.app"
+      "bundleIdentifier": "com.largo.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#FFF8F0"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.apegadesapega.app"
+      "package": "com.largo.app",
+      "versionCode": 3
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -35,7 +36,14 @@
           "androidAppId": "ca-app-pub-3584331403172895~4660470083",
           "iosAppId": "ca-app-pub-3584331403172895~4660470083"
         }
-      ]
-    ]
+      ],
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "fa8dc603-c7e0-497a-a800-688b9aed255b"
+      }
+    },
+    "owner": "andersd1976"
   }
 }

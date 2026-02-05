@@ -17,6 +17,8 @@ import { useAuth } from '../context/AuthContext';
 import { productsService, favoritesService, cartService } from '../api';
 import { formatPrice } from '../utils/format';
 import { AdBanner } from '../components';
+import { SellerBadges } from '../components/SellerBadges';
+import { colors } from '../theme';
 
 const PLACEHOLDER_IMAGE = 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=800';
 
@@ -70,7 +72,7 @@ export function ProductDetailScreen({ route, navigation }: any) {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Confira: ${product.title} por R$ ${formatPrice(product.price)} no Apega Desapega!`,
+        message: `Confira: ${product.title} por R$ ${formatPrice(product.price)} no Largô!`,
       });
     } catch (error) {}
   };
@@ -165,6 +167,9 @@ export function ProductDetailScreen({ route, navigation }: any) {
     sales: 0,
   };
 
+  // Badges do vendedor (mockados por enquanto - sera integrado com API)
+  const sellerBadges = product.seller?.badges || ['fast_shipper', 'quick_responder', 'good_photos'];
+
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -210,6 +215,32 @@ export function ProductDetailScreen({ route, navigation }: any) {
                   <Image source={{ uri: img }} style={styles.thumbnailImg} contentFit="cover" />
                 </Pressable>
               ))}
+              {/* Label Photo Thumbnail */}
+              {product.label_image_url && (
+                <Pressable
+                  style={styles.labelThumbnail}
+                  onPress={() => Alert.alert('Foto da Etiqueta', 'Esta e a foto da etiqueta original do produto.', [{ text: 'OK' }])}
+                >
+                  <Image source={{ uri: product.label_image_url }} style={styles.thumbnailImg} contentFit="cover" />
+                  <View style={styles.labelThumbnailBadge}>
+                    <Ionicons name="pricetag" size={10} color="#fff" />
+                  </View>
+                </Pressable>
+              )}
+            </View>
+          )}
+          {/* Label Photo when no other thumbnails */}
+          {images.length <= 1 && product.label_image_url && (
+            <View style={styles.thumbnails}>
+              <Pressable
+                style={styles.labelThumbnail}
+                onPress={() => Alert.alert('Foto da Etiqueta', 'Esta e a foto da etiqueta original do produto.', [{ text: 'OK' }])}
+              >
+                <Image source={{ uri: product.label_image_url }} style={styles.thumbnailImg} contentFit="cover" />
+                <View style={styles.labelThumbnailBadge}>
+                  <Ionicons name="pricetag" size={10} color="#fff" />
+                </View>
+              </Pressable>
             </View>
           )}
         </View>
@@ -217,7 +248,15 @@ export function ProductDetailScreen({ route, navigation }: any) {
         {/* Product Info */}
         <View style={styles.content}>
           {/* Brand & Title */}
-          <Text style={styles.brand}>{product.brand || 'Marca'}</Text>
+          <View style={styles.brandRow}>
+            <Text style={styles.brand}>{product.brand || 'Marca'}</Text>
+            {(product.has_label_photo || product.label_image_url) && (
+              <View style={styles.labelVerifiedBadge}>
+                <Ionicons name="checkmark-circle" size={14} color="#5B8C5A" />
+                <Text style={styles.labelVerifiedText}>Etiqueta verificada</Text>
+              </View>
+            )}
+          </View>
           <Text style={styles.title}>{product.title}</Text>
 
           {/* Price */}
@@ -301,6 +340,12 @@ export function ProductDetailScreen({ route, navigation }: any) {
                   <Text style={styles.sellerStatDivider}>•</Text>
                   <Text style={styles.sellerStatText}>{seller.sales || 0} vendas</Text>
                 </View>
+                {/* Seller Badges - Largometro */}
+                {sellerBadges.length > 0 && (
+                  <View style={styles.sellerBadgesRow}>
+                    <SellerBadges badges={sellerBadges} size="sm" maxBadges={3} />
+                  </View>
+                )}
               </View>
               <Ionicons name="chevron-forward" size={20} color="#A3A3A3" />
             </Pressable>
@@ -322,20 +367,20 @@ export function ProductDetailScreen({ route, navigation }: any) {
       {/* Bottom Actions */}
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
         <Pressable style={styles.chatBtn} onPress={handleMessage}>
-          <Ionicons name="chatbubble-outline" size={22} color="#5D8A7D" />
+          <Ionicons name="chatbubble-outline" size={22} color={colors.primary} />
         </Pressable>
         <Pressable
           style={[styles.cartBtn, addingToCart && styles.cartBtnDisabled]}
           onPress={handleAddToCart}
           disabled={addingToCart}
         >
-          <Ionicons name="cart-outline" size={22} color="#5D8A7D" />
+          <Ionicons name="cart-outline" size={22} color={colors.primary} />
           <Text style={styles.cartBtnText}>{addingToCart ? 'Adicionando...' : 'Adicionar'}</Text>
         </Pressable>
         <Pressable style={styles.buyBtn} onPress={handleBuy}>
-          <LinearGradient colors={['#5D8A7D', '#4A7266']} style={styles.buyBtnGrad}>
+          <LinearGradient colors={[colors.primary, colors.primaryDark]} style={styles.buyBtnGrad}>
             <Ionicons name="bag-outline" size={20} color="#fff" />
-            <Text style={styles.buyBtnText}>Comprar</Text>
+            <Text style={styles.buyBtnText}>Pegar</Text>
           </LinearGradient>
         </Pressable>
       </View>
@@ -359,12 +404,19 @@ const styles = StyleSheet.create({
   discountText: { fontSize: 14, fontWeight: '700', color: '#fff' },
   thumbnails: { position: 'absolute', bottom: 16, left: 16, flexDirection: 'row', gap: 8 },
   thumbnail: { width: 50, height: 50, borderRadius: 8, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent' },
-  thumbnailActive: { borderColor: '#5D8A7D' },
+  thumbnailActive: { borderColor: colors.primary },
   thumbnailImg: { width: '100%', height: '100%' },
+
+  // Label Thumbnail
+  labelThumbnail: { width: 50, height: 50, borderRadius: 8, overflow: 'hidden', borderWidth: 2, borderColor: '#5B8C5A', position: 'relative' },
+  labelThumbnailBadge: { position: 'absolute', bottom: 2, right: 2, width: 18, height: 18, borderRadius: 9, backgroundColor: '#5B8C5A', alignItems: 'center', justifyContent: 'center' },
 
   // Content
   content: { padding: 16 },
-  brand: { fontSize: 12, fontWeight: '700', color: '#5D8A7D', textTransform: 'uppercase', letterSpacing: 0.5 },
+  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  brand: { fontSize: 12, fontWeight: '700', color: colors.primary, textTransform: 'uppercase', letterSpacing: 0.5 },
+  labelVerifiedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#E8F5E8', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  labelVerifiedText: { fontSize: 11, fontWeight: '600', color: '#5B8C5A' },
   title: { fontSize: 22, fontWeight: '700', color: '#1A1A1A', marginTop: 4, lineHeight: 28 },
   priceSection: { flexDirection: 'row', alignItems: 'baseline', gap: 10, marginTop: 12 },
   price: { fontSize: 28, fontWeight: '800', color: '#1A1A1A' },
@@ -393,6 +445,7 @@ const styles = StyleSheet.create({
   sellerStat: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   sellerStatText: { fontSize: 12, color: '#525252' },
   sellerStatDivider: { fontSize: 12, color: '#A3A3A3' },
+  sellerBadgesRow: { marginTop: 8 },
 
   // Ad Section
   adSection: { marginTop: 24, alignItems: 'center' },
@@ -403,10 +456,10 @@ const styles = StyleSheet.create({
 
   // Bottom Bar
   bottomBar: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: 12, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#F5F5F5' },
-  chatBtn: { alignItems: 'center', justifyContent: 'center', width: 48, height: 48, borderRadius: 24, borderWidth: 1.5, borderColor: '#5D8A7D', backgroundColor: '#fff' },
-  chatBtnText: { fontSize: 14, fontWeight: '600', color: '#5D8A7D' },
-  cartBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 48, paddingHorizontal: 16, borderRadius: 24, borderWidth: 1.5, borderColor: '#5D8A7D', backgroundColor: '#fff' },
-  cartBtnText: { fontSize: 14, fontWeight: '600', color: '#5D8A7D' },
+  chatBtn: { alignItems: 'center', justifyContent: 'center', width: 48, height: 48, borderRadius: 24, borderWidth: 1.5, borderColor: colors.primary, backgroundColor: '#fff' },
+  chatBtnText: { fontSize: 14, fontWeight: '600', color: colors.primary },
+  cartBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 48, paddingHorizontal: 16, borderRadius: 24, borderWidth: 1.5, borderColor: colors.primary, backgroundColor: '#fff' },
+  cartBtnText: { fontSize: 14, fontWeight: '600', color: colors.primary },
   cartBtnDisabled: { opacity: 0.6 },
   buyBtn: { flex: 1, height: 48 },
   buyBtnGrad: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 24 },

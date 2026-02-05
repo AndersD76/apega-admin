@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +19,9 @@ import { messagesService } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { formatPrice } from '../utils/format';
+import { colors, radius, shadows } from '../theme';
+import { OfferModal } from '../components/OfferModal';
+import { OfferMessage, OfferData, OfferStatus } from '../components/OfferMessage';
 
 const PLACEHOLDER_AVATAR = 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=200';
 
@@ -44,6 +48,11 @@ export function ChatScreen({ route, navigation }: any) {
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [showOfferModal, setShowOfferModal] = useState(false);
+  const [offers, setOffers] = useState<Map<string, OfferData>>(new Map());
+
+  // Determine if user is the seller of the product
+  const isSeller = user?.id === sellerId;
 
   // Check if seller is online
   const isSellerOnline = sellerId ? onlineUsers.has(sellerId) : false;
@@ -209,10 +218,283 @@ export function ChatScreen({ route, navigation }: any) {
     }
   };
 
+  // Offer Functions
+  const handleSendOffer = async (offerValue: number) => {
+    const offerId = `offer_${Date.now()}`;
+    const timestamp = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+    // Create offer data
+    const offerData: OfferData = {
+      id: offerId,
+      amount: offerValue,
+      status: 'pending',
+      senderName: user?.name || 'Voce',
+      productTitle: product.title,
+      timestamp,
+    };
+
+    // Store offer
+    setOffers(prev => new Map(prev).set(offerId, offerData));
+
+    // Create offer message
+    const offerMessage = {
+      id: offerId,
+      text: `__OFFER__${JSON.stringify(offerData)}`,
+      isMe: true,
+      timestamp,
+      isOffer: true,
+      offerData,
+    };
+
+    setMessages(prev => [...prev, offerMessage]);
+
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+
+    // Send to server (you can implement this in your messages API)
+    try {
+      let currentConvId = conversationId;
+
+      if (!currentConvId && sellerId) {
+        const convResponse = await messagesService.getOrCreateConversation({
+          other_user_id: sellerId,
+          product_id: productId,
+        });
+
+        if (convResponse.success && convResponse.conversation) {
+          currentConvId = convResponse.conversation.id;
+          setConversationId(currentConvId);
+        }
+      }
+
+      if (currentConvId) {
+        // Send offer as special message format
+        await messagesService.sendMessage(
+          currentConvId,
+          `[OFERTA] R$ ${formatPrice(offerValue)} pelo produto ${product.title}`
+        );
+      }
+    } catch (error) {
+      console.error('Error sending offer:', error);
+    }
+  };
+
+  const handleAcceptOffer = (offerId: string) => {
+    setOffers(prev => {
+      const newOffers = new Map(prev);
+      const offer = newOffers.get(offerId);
+      if (offer) {
+        newOffers.set(offerId, { ...offer, status: 'accepted' });
+      }
+      return newOffers;
+    });
+
+    // Update message in list
+    setMessages(prev => prev.map(msg => {
+      if (msg.id === offerId && msg.offerData) {
+        return {
+          ...msg,
+          offerData: { ...msg.offerData, status: 'accepted' as OfferStatus },
+        };
+      }
+      return msg;
+    }));
+
+    // Send acceptance message
+    const acceptMessage = {
+      id: `accept_${Date.now()}`,
+      text: 'Oferta aceita! Agora voce pode finalizar a compra.',
+      isMe: true,
+      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    };
+    setMessages(prev => [...prev, acceptMessage]);
+
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
+  const handleRejectOffer = (offerId: string) => {
+    Alert.alert(
+      'Recusar oferta',
+      'Tem certeza que deseja recusar esta oferta?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Recusar',
+          style: 'destructive',
+          onPress: () => {
+            setOffers(prev => {
+              const newOffers = new Map(prev);
+              const offer = newOffers.get(offerId);
+              if (offer) {
+                newOffers.set(offerId, { ...offer, status: 'rejected' });
+              }
+              return newOffers;
+            });
+
+            // Update message in list
+            setMessages(prev => prev.map(msg => {
+              if (msg.id === offerId && msg.offerData) {
+                return {
+                  ...msg,
+                  offerData: { ...msg.offerData, status: 'rejected' as OfferStatus },
+                };
+              }
+              return msg;
+            }));
+
+            // Send rejection message
+            const rejectMessage = {
+              id: `reject_${Date.now()}`,
+              text: 'Infelizmente nao posso aceitar esse valor.',
+              isMe: true,
+              timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            };
+            setMessages(prev => [...prev, rejectMessage]);
+
+            setTimeout(() => {
+              scrollRef.current?.scrollToEnd({ animated: true });
+            }, 100);
+          },
+        },
+      ]
+    );
+  };
+
+  const handleCounterOffer = (offerId: string, newAmount: number) => {
+    setOffers(prev => {
+      const newOffers = new Map(prev);
+      const offer = newOffers.get(offerId);
+      if (offer) {
+        newOffers.set(offerId, { ...offer, status: 'countered', counterAmount: newAmount });
+      }
+      return newOffers;
+    });
+
+    // Update message in list
+    setMessages(prev => prev.map(msg => {
+      if (msg.id === offerId && msg.offerData) {
+        return {
+          ...msg,
+          offerData: {
+            ...msg.offerData,
+            status: 'countered' as OfferStatus,
+            counterAmount: newAmount
+          },
+        };
+      }
+      return msg;
+    }));
+
+    // Create new counter offer message
+    const counterMessage = {
+      id: `counter_${Date.now()}`,
+      text: `Contra-proposta: R$ ${formatPrice(newAmount)}. O que acha?`,
+      isMe: true,
+      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    };
+    setMessages(prev => [...prev, counterMessage]);
+
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
+  const handleGoToCheckout = (offerId: string, amount: number) => {
+    navigation.navigate('Checkout', {
+      productId,
+      negotiatedPrice: amount,
+      offerId,
+    });
+  };
+
+  const handleAskMeasures = async () => {
+    const measureText = 'Oi! Pode me passar as medidas da peca?';
+    setInputText(measureText);
+
+    // Auto send the message
+    setSending(true);
+
+    const tempMessage = {
+      id: String(Date.now()),
+      text: measureText,
+      isMe: true,
+      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    };
+    setMessages(prev => [...prev, tempMessage]);
+
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+
+    try {
+      let currentConvId = conversationId;
+
+      if (!currentConvId && sellerId) {
+        const convResponse = await messagesService.getOrCreateConversation({
+          other_user_id: sellerId,
+          product_id: productId,
+        });
+
+        if (convResponse.success && convResponse.conversation) {
+          currentConvId = convResponse.conversation.id;
+          setConversationId(currentConvId);
+        }
+      }
+
+      if (currentConvId) {
+        await messagesService.sendMessage(currentConvId, measureText);
+      }
+    } catch (error) {
+      console.error('Error sending measure request:', error);
+      setMessages(prev => prev.filter(m => m.id !== tempMessage.id));
+    } finally {
+      setSending(false);
+      setInputText('');
+    }
+  };
+
+  // Render message or offer
+  const renderMessage = (message: any) => {
+    if (message.isOffer && message.offerData) {
+      return (
+        <OfferMessage
+          key={message.id}
+          offer={message.offerData}
+          isMe={message.isMe}
+          isSeller={!message.isMe && isSeller}
+          onAccept={handleAcceptOffer}
+          onReject={handleRejectOffer}
+          onCounter={handleCounterOffer}
+          onGoToCheckout={handleGoToCheckout}
+        />
+      );
+    }
+
+    return (
+      <View
+        key={message.id}
+        style={[
+          styles.messageBubble,
+          message.isMe ? styles.myMessage : styles.theirMessage,
+        ]}
+      >
+        <Text style={[styles.messageText, message.isMe && styles.myMessageText]}>
+          {message.text}
+        </Text>
+        <Text style={[styles.messageTime, message.isMe && styles.myMessageTime]}>
+          {message.timestamp}
+        </Text>
+      </View>
+    );
+  };
+
   if (loading) {
     return (
       <View style={[styles.container, styles.loadingContainer, { paddingTop: insets.top }]}>
-        <ActivityIndicator size="large" color="#5D8A7D" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -284,7 +566,7 @@ export function ChatScreen({ route, navigation }: any) {
         {messages.length === 0 ? (
           <View style={styles.emptyMessages}>
             <View style={styles.emptyIconContainer}>
-              <Ionicons name="chatbubble-ellipses-outline" size={40} color="#5D8A7D" />
+              <Ionicons name="chatbubble-ellipses-outline" size={40} color={colors.primary} />
             </View>
             <Text style={styles.emptyText}>Inicie a conversa</Text>
             <Text style={styles.emptySubtext}>Envie uma mensagem para o vendedor</Text>
@@ -295,22 +577,7 @@ export function ChatScreen({ route, navigation }: any) {
               <Text style={styles.dateText}>Hoje</Text>
             </View>
 
-            {messages.map((message) => (
-              <View
-                key={message.id}
-                style={[
-                  styles.messageBubble,
-                  message.isMe ? styles.myMessage : styles.theirMessage,
-                ]}
-              >
-                <Text style={[styles.messageText, message.isMe && styles.myMessageText]}>
-                  {message.text}
-                </Text>
-                <Text style={[styles.messageTime, message.isMe && styles.myMessageTime]}>
-                  {message.timestamp}
-                </Text>
-              </View>
-            ))}
+            {messages.map((message) => renderMessage(message))}
 
             {isTyping && (
               <View style={[styles.messageBubble, styles.theirMessage, styles.typingBubble]}>
@@ -321,10 +588,38 @@ export function ChatScreen({ route, navigation }: any) {
         )}
       </ScrollView>
 
+      {/* Quick Actions Bar */}
+      {productId && !isSeller && (
+        <View style={styles.quickActionsBar}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.quickActionsContent}
+          >
+            <Pressable
+              style={styles.quickActionBtn}
+              onPress={() => setShowOfferModal(true)}
+            >
+              <Ionicons name="cash-outline" size={18} color={colors.primary} />
+              <Text style={styles.quickActionText}>Fazer oferta</Text>
+            </Pressable>
+
+            <Pressable
+              style={styles.quickActionBtn}
+              onPress={handleAskMeasures}
+              disabled={sending}
+            >
+              <Ionicons name="help-circle-outline" size={18} color={colors.primary} />
+              <Text style={styles.quickActionText}>Perguntar medidas</Text>
+            </Pressable>
+          </ScrollView>
+        </View>
+      )}
+
       {/* Input */}
       <View style={[styles.inputBar, { paddingBottom: insets.bottom + 12 }]}>
         <Pressable style={styles.attachBtn}>
-          <Ionicons name="add-circle-outline" size={24} color="#5D8A7D" />
+          <Ionicons name="add-circle-outline" size={24} color={colors.primary} />
         </Pressable>
 
         <View style={styles.inputWrap}>
@@ -347,6 +642,14 @@ export function ChatScreen({ route, navigation }: any) {
           <Ionicons name="send" size={20} color={inputText.trim() ? '#fff' : '#A3A3A3'} />
         </Pressable>
       </View>
+
+      {/* Offer Modal */}
+      <OfferModal
+        visible={showOfferModal}
+        onClose={() => setShowOfferModal(false)}
+        onSubmit={handleSendOffer}
+        product={product}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -421,14 +724,14 @@ const styles = StyleSheet.create({
   productThumb: { width: 48, height: 48, borderRadius: 10, borderWidth: 1, borderColor: '#E5E7EB' },
   productInfo: { flex: 1, marginLeft: 12 },
   productTitle: { fontSize: 14, fontWeight: '500', color: '#374151' },
-  productPrice: { fontSize: 15, fontWeight: '700', color: '#5D8A7D', marginTop: 3 },
+  productPrice: { fontSize: 15, fontWeight: '700', color: colors.primary, marginTop: 3 },
   viewBtn: {
     paddingHorizontal: 18,
     paddingVertical: 10,
     backgroundColor: '#E8F5F0',
     borderRadius: 10,
   },
-  viewBtnText: { fontSize: 14, fontWeight: '600', color: '#5D8A7D' },
+  viewBtnText: { fontSize: 14, fontWeight: '600', color: colors.primary },
 
   // Messages
   messagesContainer: { flex: 1, backgroundColor: '#F8F9FA' },
@@ -471,11 +774,11 @@ const styles = StyleSheet.create({
   },
   myMessage: {
     alignSelf: 'flex-end',
-    backgroundColor: '#5D8A7D',
+    backgroundColor: colors.primary,
     borderBottomRightRadius: 6,
     ...(Platform.OS === 'web'
       ? { boxShadow: '0 1px 2px rgba(93,138,125,0.2)' }
-      : { shadowColor: '#5D8A7D', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 2, elevation: 1 }
+      : { shadowColor: colors.primary, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 2, elevation: 1 }
     ),
   } as any,
   theirMessage: {
@@ -493,6 +796,34 @@ const styles = StyleSheet.create({
   // Typing indicator
   typingBubble: { paddingVertical: 10, paddingHorizontal: 18 },
   typingText: { fontSize: 24, color: '#9CA3AF', letterSpacing: 3 },
+
+  // Quick Actions Bar
+  quickActionsBar: {
+    backgroundColor: colors.white,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingVertical: 10,
+  },
+  quickActionsContent: {
+    paddingHorizontal: 12,
+    gap: 10,
+  },
+  quickActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primaryMuted,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    gap: 6,
+  },
+  quickActionText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.primary,
+  },
 
   // Input
   inputBar: {
@@ -531,10 +862,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   sendBtnActive: {
-    backgroundColor: '#5D8A7D',
+    backgroundColor: colors.primary,
     ...(Platform.OS === 'web'
       ? { boxShadow: '0 2px 6px rgba(93,138,125,0.3)' }
-      : { shadowColor: '#5D8A7D', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 }
+      : { shadowColor: colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 }
     ),
   } as any,
 });

@@ -20,59 +20,11 @@ import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../context/AuthContext';
 import { productsService, aiService, tagsService, Tag } from '../api';
 import { formatPrice } from '../utils/format';
+import { colors } from '../theme';
+import { CATEGORIES, CONDITIONS, getSizesForSubcategory, MICROCOPY } from '../constants';
 
 // Limits for free users
 const FREE_USER_PRODUCT_LIMIT = 20;
-
-// Categorias principais com subcategorias
-const MAIN_CATEGORIES = [
-  {
-    id: 'roupas',
-    name: 'Roupas',
-    icon: 'shirt-outline',
-    subcategories: [
-      { id: 'vestidos', name: 'Vestidos' },
-      { id: 'blusas', name: 'Blusas' },
-      { id: 'calcas', name: 'Calças' },
-      { id: 'saias', name: 'Saias' },
-      { id: 'shorts', name: 'Shorts' },
-      { id: 'conjuntos', name: 'Conjuntos' },
-    ],
-  },
-  {
-    id: 'bolsas',
-    name: 'Bolsas',
-    icon: 'bag-handle-outline',
-    subcategories: [
-      { id: 'bolsas', name: 'Bolsas' },
-    ],
-  },
-  {
-    id: 'calcados',
-    name: 'Calçados',
-    icon: 'footsteps-outline',
-    subcategories: [
-      { id: 'calcados', name: 'Calçados' },
-    ],
-  },
-  {
-    id: 'acessorios',
-    name: 'Acessórios',
-    icon: 'watch-outline',
-    subcategories: [
-      { id: 'acessorios', name: 'Acessórios' },
-    ],
-  },
-];
-
-const CONDITIONS: Array<{ id: 'novo' | 'seminovo' | 'usado' | 'vintage'; name: string; desc: string }> = [
-  { id: 'novo', name: 'Novo', desc: 'Com etiqueta ou nunca usado' },
-  { id: 'seminovo', name: 'Seminovo', desc: 'Usado poucas vezes, ótimo estado' },
-  { id: 'usado', name: 'Usado', desc: 'Sinais de uso, bom estado' },
-  { id: 'vintage', name: 'Vintage', desc: 'Peça antiga, estilo retrô' },
-];
-
-const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG', '34', '36', '38', '40', '42', '44'];
 
 export function SellScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -86,9 +38,10 @@ export function SellScreen({ navigation }: any) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [brand, setBrand] = useState('');
-  const [mainCategory, setMainCategory] = useState('');
-  const [category, setCategory] = useState('');
-  const [condition, setCondition] = useState<'novo' | 'seminovo' | 'usado' | 'vintage' | ''>('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState('');
+  const [selectedTypeId, setSelectedTypeId] = useState('');
+  const [condition, setCondition] = useState<string>('');
   const [size, setSize] = useState('');
   const [price, setPrice] = useState('');
   const [originalPrice, setOriginalPrice] = useState('');
@@ -102,6 +55,7 @@ export function SellScreen({ navigation }: any) {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [userProductCount, setUserProductCount] = useState(0);
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const [labelImage, setLabelImage] = useState<string | null>(null);
 
   // Check user's product count for free users
   useEffect(() => {
@@ -140,9 +94,14 @@ export function SellScreen({ navigation }: any) {
   const sellerPrice = parseFloat(price) || 0;
   const finalPrice = Math.ceil(sellerPrice * (1 + commissionRate) * 100) / 100;
 
-  // Obter subcategorias da categoria principal selecionada
-  const currentMainCategory = MAIN_CATEGORIES.find(c => c.id === mainCategory);
-  const subcategories = currentMainCategory?.subcategories || [];
+  // Obter categoria, subcategorias e tipos selecionados
+  const currentCategory = CATEGORIES.find(c => c.id === selectedCategoryId);
+  const subcategories = currentCategory?.subcategories || [];
+  const currentSubcategory = subcategories.find(s => s.id === selectedSubcategoryId);
+  const types = currentSubcategory?.types || [];
+
+  // Tamanhos dinâmicos baseados na subcategoria
+  const availableSizes = selectedSubcategoryId ? getSizesForSubcategory(selectedSubcategoryId) : [];
 
   const analyzeImageWithAI = async (imageUri: string) => {
     setAiAnalyzing(true);
@@ -155,11 +114,11 @@ export function SellScreen({ navigation }: any) {
         if (response.success && response.analysis) {
           const { analysis, suggestedCategory } = response;
 
-          // Mapear condição da API para o formato do app
-          const conditionMap: Record<string, 'novo' | 'seminovo' | 'usado' | 'vintage'> = {
-            'novo_com_etiqueta': 'novo',
+          // Mapear condição da API para o novo formato
+          const conditionMap: Record<string, string> = {
+            'novo_com_etiqueta': 'novo_etiqueta',
             'seminovo': 'seminovo',
-            'bom_estado': 'seminovo',
+            'bom_estado': 'bom_estado',
             'usado': 'usado',
             'muito_usado': 'usado',
           };
@@ -170,25 +129,23 @@ export function SellScreen({ navigation }: any) {
           setCondition(conditionMap[analysis.condicao] || 'seminovo');
           setSize(analysis.tamanho || '');
 
-          // Definir categoria principal e subcategoria baseado na sugestão
-          const roupasCategories = ['vestidos', 'blusas', 'calcas', 'saias', 'shorts', 'conjuntos'];
-          if (roupasCategories.includes(suggestedCategory)) {
-            setMainCategory('roupas');
-            setCategory(suggestedCategory);
-          } else if (suggestedCategory === 'bolsas') {
-            setMainCategory('bolsas');
-            setCategory('bolsas');
-          } else if (suggestedCategory === 'calcados') {
-            setMainCategory('calcados');
-            setCategory('calcados');
-          } else if (suggestedCategory === 'acessorios') {
-            setMainCategory('acessorios');
-            setCategory('acessorios');
-          } else {
-            // Fallback para roupas/blusas
-            setMainCategory('roupas');
-            setCategory('blusas');
-          }
+          // Definir categoria baseado na sugestão (mapear para nova estrutura)
+          const categoryMappings: Record<string, { cat: string; subcat: string; type?: string }> = {
+            'vestidos': { cat: 'feminino', subcat: 'fem-roupas', type: 'vestidos' },
+            'blusas': { cat: 'feminino', subcat: 'fem-roupas', type: 'blusas-tops' },
+            'calcas': { cat: 'feminino', subcat: 'fem-roupas', type: 'calcas-shorts' },
+            'saias': { cat: 'feminino', subcat: 'fem-roupas', type: 'saias' },
+            'shorts': { cat: 'feminino', subcat: 'fem-roupas', type: 'calcas-shorts' },
+            'conjuntos': { cat: 'feminino', subcat: 'fem-roupas', type: 'conjuntos' },
+            'bolsas': { cat: 'acessorios', subcat: 'bolsas-mochilas' },
+            'calcados': { cat: 'feminino', subcat: 'fem-calcados' },
+            'acessorios': { cat: 'acessorios', subcat: 'bijuterias-joias' },
+          };
+
+          const mapping = categoryMappings[suggestedCategory] || { cat: 'feminino', subcat: 'fem-roupas', type: 'blusas-tops' };
+          setSelectedCategoryId(mapping.cat);
+          setSelectedSubcategoryId(mapping.subcat);
+          if (mapping.type) setSelectedTypeId(mapping.type);
 
           // Sugerir preço se disponível
           // A IA sugere o preço de venda (final), precisamos calcular quanto o vendedor recebe
@@ -233,16 +190,18 @@ export function SellScreen({ navigation }: any) {
 
     const mockAnalysis = {
       title: 'Peça de vestuário',
-      mainCategory: 'roupas',
-      category: 'blusas',
+      categoryId: 'feminino',
+      subcategoryId: 'fem-roupas',
+      typeId: 'blusas-tops',
       brand: '',
-      condition: 'seminovo' as const,
+      condition: 'seminovo',
       description: 'Peça em ótimo estado, bem conservada. Ideal para uso casual.',
     };
 
     setTitle(mockAnalysis.title);
-    setMainCategory(mockAnalysis.mainCategory);
-    setCategory(mockAnalysis.category);
+    setSelectedCategoryId(mockAnalysis.categoryId);
+    setSelectedSubcategoryId(mockAnalysis.subcategoryId);
+    setSelectedTypeId(mockAnalysis.typeId);
     setBrand(mockAnalysis.brand);
     setCondition(mockAnalysis.condition);
     setDescription(mockAnalysis.description);
@@ -384,8 +343,9 @@ export function SellScreen({ navigation }: any) {
     setTitle('');
     setDescription('');
     setBrand('');
-    setMainCategory('');
-    setCategory('');
+    setSelectedCategoryId('');
+    setSelectedSubcategoryId('');
+    setSelectedTypeId('');
     setCondition('');
     setSize('');
     setPrice('');
@@ -394,6 +354,30 @@ export function SellScreen({ navigation }: any) {
     setUploadedImageUrls({});
     setSelectedImageIndex(null);
     setShowAiOptions(false);
+    setLabelImage(null);
+  };
+
+  const handleAddLabelImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permissao necessaria', 'Precisamos de acesso a galeria para adicionar fotos.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setLabelImage(result.assets[0].uri);
+    }
+  };
+
+  const handleRemoveLabelImage = () => {
+    setLabelImage(null);
   };
 
   const handlePublish = async () => {
@@ -403,7 +387,9 @@ export function SellScreen({ navigation }: any) {
       return;
     }
 
-    if (!title || !category || !condition || !price) {
+    // Validação - precisa ter categoria e subcategoria pelo menos
+    const hasValidCategory = selectedCategoryId && selectedSubcategoryId;
+    if (!title || !hasValidCategory || !condition || !price) {
       Alert.alert('Campos obrigatórios', 'Preencha título, categoria, condição e preço');
       return;
     }
@@ -415,16 +401,30 @@ export function SellScreen({ navigation }: any) {
 
     setLoading(true);
     try {
+      // Montar categoria para API (formato: categoria/subcategoria/tipo)
+      const categoryPath = selectedTypeId
+        ? `${selectedCategoryId}/${selectedSubcategoryId}/${selectedTypeId}`
+        : `${selectedCategoryId}/${selectedSubcategoryId}`;
+
+      // Mapear condition para formato da API
+      const conditionApiMap: Record<string, string> = {
+        'novo_etiqueta': 'novo',
+        'seminovo': 'seminovo',
+        'bom_estado': 'usado',
+        'usado': 'usado',
+      };
+
       // 1. Criar o produto primeiro
       const result = await productsService.createProduct({
         title,
         description,
         brand,
-        category: category,
-        condition: condition as 'novo' | 'seminovo' | 'usado' | 'vintage',
+        category: categoryPath,
+        condition: conditionApiMap[condition] || 'seminovo',
         size,
         price: parseFloat(price),
         original_price: originalPrice ? parseFloat(originalPrice) : undefined,
+        has_label_photo: !!labelImage,
       } as any);
 
       const productId = result.product.id;
@@ -459,6 +459,33 @@ export function SellScreen({ navigation }: any) {
         await productsService.uploadProductImages(productId, formData);
       }
 
+      // 2.5. Upload da foto da etiqueta (se houver)
+      if (labelImage) {
+        const labelFormData = new FormData();
+
+        if (isWeb && labelImage.startsWith('blob:')) {
+          const blobResponse = await fetch(labelImage);
+          const blob = await blobResponse.blob();
+          const file = new File([blob], 'label.jpg', { type: blob.type || 'image/jpeg' });
+          labelFormData.append('images', file);
+          labelFormData.append('is_label', 'true');
+        } else {
+          const filename = labelImage.split('/').pop() || 'label.jpg';
+          const match = /\.(\w+)$/.exec(filename);
+          const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+          // @ts-ignore
+          labelFormData.append('images', {
+            uri: labelImage,
+            name: filename,
+            type,
+          });
+          labelFormData.append('is_label', 'true');
+        }
+
+        await productsService.uploadProductImages(productId, labelFormData);
+      }
+
       // 3. Salvar tags selecionadas
       if (selectedTags.length > 0) {
         await tagsService.setProductTags(productId, selectedTags);
@@ -467,9 +494,19 @@ export function SellScreen({ navigation }: any) {
       // 4. Zerar o formulário
       resetForm();
 
-      Alert.alert('Sucesso!', 'Seu produto foi publicado com sucesso!', [
-        { text: 'OK', onPress: () => navigation.navigate('Home') },
-      ]);
+      Alert.alert(
+        'Sucesso!',
+        'Seu produto foi publicado com sucesso!',
+        [
+          { text: 'Ver na Home', onPress: () => navigation.navigate('Home') },
+          {
+            text: 'Adicionar a um Look',
+            onPress: () => navigation.navigate('CreateLook', { productId }),
+            style: 'default',
+          },
+        ],
+        { cancelable: false }
+      );
     } catch (error: any) {
       console.error('Erro ao publicar:', error);
       Alert.alert('Erro', error?.response?.data?.message || 'Não foi possível publicar o produto. Tente novamente.');
@@ -483,9 +520,9 @@ export function SellScreen({ navigation }: any) {
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.guestContainer}>
           <View style={styles.guestIcon}>
-            <Ionicons name="camera-outline" size={48} color="#5D8A7D" />
+            <Ionicons name="camera-outline" size={48} color={colors.primary} />
           </View>
-          <Text style={styles.guestTitle}>Venda suas peças</Text>
+          <Text style={styles.guestTitle}>Largue suas peças</Text>
           <Text style={styles.guestSubtitle}>
             Faça login para começar a vender e ganhar dinheiro com peças que não usa mais
           </Text>
@@ -514,7 +551,7 @@ export function SellScreen({ navigation }: any) {
               <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
             </Pressable>
             <View style={styles.headerText}>
-              <Text style={styles.headerTitle}>Vender</Text>
+              <Text style={styles.headerTitle}>Largar</Text>
               <Text style={styles.headerSubtitle}>Cadastre seu produto</Text>
             </View>
             <View style={{ width: 40 }} />
@@ -544,7 +581,7 @@ export function SellScreen({ navigation }: any) {
           </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photosScroll}>
             <Pressable style={styles.addPhotoBtn} onPress={handleAddImage}>
-              <Ionicons name="camera" size={28} color="#5D8A7D" />
+              <Ionicons name="camera" size={28} color={colors.primary} />
               <Text style={styles.addPhotoText}>Adicionar</Text>
             </Pressable>
             {images.map((img, index) => (
@@ -576,6 +613,40 @@ export function SellScreen({ navigation }: any) {
               </Pressable>
             ))}
           </ScrollView>
+        </View>
+
+        {/* Label Photo */}
+        <View style={styles.section}>
+          <View style={styles.labelHeader}>
+            <Text style={styles.sectionTitle}>Foto da etiqueta (opcional)</Text>
+            {labelImage && (
+              <View style={styles.labelVerifiedBadge}>
+                <Text style={styles.labelVerifiedText}>Etiqueta verificada</Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.sectionHint}>
+            Fotos da etiqueta aumentam a confianca dos compradores!
+          </Text>
+          <View style={styles.labelPhotoWrap}>
+            {labelImage ? (
+              <View style={styles.labelPhotoItem}>
+                <Image source={{ uri: labelImage }} style={styles.labelPhotoImg} contentFit="cover" />
+                <Pressable style={styles.removeLabelPhotoBtn} onPress={handleRemoveLabelImage}>
+                  <Ionicons name="close" size={18} color="#fff" />
+                </Pressable>
+                <View style={styles.labelBadge}>
+                  <Ionicons name="pricetag" size={12} color="#fff" />
+                  <Text style={styles.labelBadgeText}>Etiqueta</Text>
+                </View>
+              </View>
+            ) : (
+              <Pressable style={styles.addLabelPhotoBtn} onPress={handleAddLabelImage}>
+                <Ionicons name="pricetag-outline" size={28} color={colors.success} />
+                <Text style={styles.addLabelPhotoText}>Adicionar etiqueta</Text>
+              </Pressable>
+            )}
+          </View>
         </View>
 
         {/* Title */}
@@ -623,26 +694,27 @@ export function SellScreen({ navigation }: any) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Categoria *</Text>
           <View style={styles.optionsGrid}>
-            {MAIN_CATEGORIES.map((cat) => (
+            {CATEGORIES.map((cat) => (
               <Pressable
                 key={cat.id}
-                style={[styles.optionCard, mainCategory === cat.id && styles.optionCardActive]}
+                style={[
+                  styles.optionCard,
+                  selectedCategoryId === cat.id && styles.optionCardActive,
+                  selectedCategoryId === cat.id && { backgroundColor: cat.color, borderColor: cat.color },
+                ]}
                 onPress={() => {
-                  setMainCategory(cat.id);
-                  // Se categoria tem apenas 1 subcategoria, seleciona automaticamente
-                  if (cat.subcategories.length === 1) {
-                    setCategory(cat.subcategories[0].id);
-                  } else {
-                    setCategory('');
-                  }
+                  setSelectedCategoryId(cat.id);
+                  setSelectedSubcategoryId('');
+                  setSelectedTypeId('');
+                  setSize(''); // Reset size when category changes
                 }}
               >
                 <Ionicons
                   name={cat.icon as any}
                   size={24}
-                  color={mainCategory === cat.id ? '#fff' : '#525252'}
+                  color={selectedCategoryId === cat.id ? '#fff' : cat.color}
                 />
-                <Text style={[styles.optionText, mainCategory === cat.id && styles.optionTextActive]}>
+                <Text style={[styles.optionText, selectedCategoryId === cat.id && styles.optionTextActive]}>
                   {cat.name}
                 </Text>
               </Pressable>
@@ -650,19 +722,43 @@ export function SellScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* Subcategories - Mostra quando categoria principal tem mais de 1 subcategoria */}
-        {mainCategory && subcategories.length > 1 && (
+        {/* Subcategories */}
+        {selectedCategoryId && subcategories.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Tipo de {currentMainCategory?.name} *</Text>
+            <Text style={styles.sectionTitle}>Subcategoria *</Text>
             <View style={styles.subcategoriesGrid}>
               {subcategories.map((sub) => (
                 <Pressable
                   key={sub.id}
-                  style={[styles.subcategoryChip, category === sub.id && styles.subcategoryChipActive]}
-                  onPress={() => setCategory(sub.id)}
+                  style={[styles.subcategoryChip, selectedSubcategoryId === sub.id && styles.subcategoryChipActive]}
+                  onPress={() => {
+                    setSelectedSubcategoryId(sub.id);
+                    setSelectedTypeId('');
+                    setSize(''); // Reset size when subcategory changes
+                  }}
                 >
-                  <Text style={[styles.subcategoryText, category === sub.id && styles.subcategoryTextActive]}>
+                  <Text style={[styles.subcategoryText, selectedSubcategoryId === sub.id && styles.subcategoryTextActive]}>
                     {sub.name}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Types - Only show if subcategory has types */}
+        {selectedSubcategoryId && types.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Tipo</Text>
+            <View style={styles.subcategoriesGrid}>
+              {types.map((type) => (
+                <Pressable
+                  key={type.id}
+                  style={[styles.subcategoryChip, selectedTypeId === type.id && styles.subcategoryChipActive]}
+                  onPress={() => setSelectedTypeId(type.id)}
+                >
+                  <Text style={[styles.subcategoryText, selectedTypeId === type.id && styles.subcategoryTextActive]}>
+                    {type.name}
                   </Text>
                 </Pressable>
               ))}
@@ -683,34 +779,37 @@ export function SellScreen({ navigation }: any) {
                 <View style={styles.conditionRadio}>
                   {condition === cond.id && <View style={styles.conditionRadioInner} />}
                 </View>
+                <Text style={styles.conditionEmoji}>{cond.emoji}</Text>
                 <View style={styles.conditionContent}>
                   <Text style={[styles.conditionName, condition === cond.id && styles.conditionNameActive]}>
                     {cond.name}
                   </Text>
-                  <Text style={styles.conditionDesc}>{cond.desc}</Text>
+                  <Text style={styles.conditionDesc}>{cond.description}</Text>
                 </View>
               </Pressable>
             ))}
           </View>
         </View>
 
-        {/* Size */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Tamanho</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.sizesRow}>
-              {SIZES.map((s) => (
-                <Pressable
-                  key={s}
-                  style={[styles.sizeChip, size === s && styles.sizeChipActive]}
-                  onPress={() => setSize(s)}
-                >
-                  <Text style={[styles.sizeText, size === s && styles.sizeTextActive]}>{s}</Text>
-                </Pressable>
-              ))}
-            </View>
-          </ScrollView>
-        </View>
+        {/* Size - Only show if subcategory is selected and has sizes */}
+        {selectedSubcategoryId && availableSizes.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Tamanho</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={styles.sizesRow}>
+                {availableSizes.map((s) => (
+                  <Pressable
+                    key={s}
+                    style={[styles.sizeChip, size === s && styles.sizeChipActive]}
+                    onPress={() => setSize(s)}
+                  >
+                    <Text style={[styles.sizeText, size === s && styles.sizeTextActive]}>{s}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        )}
 
         {/* Tags */}
         {Object.keys(availableTags).length > 0 && (
@@ -850,7 +949,7 @@ export function SellScreen({ navigation }: any) {
           )}
 
           <View style={styles.feeInfo}>
-            <Ionicons name="information-circle-outline" size={16} color="#5D8A7D" />
+            <Ionicons name="information-circle-outline" size={16} color={colors.primary} />
             <Text style={styles.feeText}>
               {isPremiumUser
                 ? 'Taxa de 10% sobre vendas (você é Premium!)'
@@ -862,12 +961,12 @@ export function SellScreen({ navigation }: any) {
         {/* Publish Button */}
         <Pressable onPress={handlePublish} disabled={loading}>
           <LinearGradient
-            colors={['#5D8A7D', '#4A7266']}
+            colors={[colors.primary, colors.primaryDark]}
             style={styles.publishBtn}
           >
             <Ionicons name="rocket-outline" size={20} color="#fff" />
             <Text style={styles.publishBtnText}>
-              {loading ? 'Publicando...' : 'Publicar anúncio'}
+              {loading ? 'Largando...' : 'Largar!'}
             </Text>
           </LinearGradient>
         </Pressable>
@@ -880,7 +979,7 @@ export function SellScreen({ navigation }: any) {
         <View style={styles.aiOverlay}>
           <View style={styles.aiCard}>
             <View style={styles.aiIconWrap}>
-              <ActivityIndicator size="large" color="#5D8A7D" />
+              <ActivityIndicator size="large" color={colors.primary} />
             </View>
             <Text style={styles.aiTitle}>Analisando imagem...</Text>
             <Text style={styles.aiSubtitle}>
@@ -899,8 +998,8 @@ export function SellScreen({ navigation }: any) {
             <Text style={styles.aiOptionsSubtitle}>Escolha uma opcao para melhorar sua foto</Text>
 
             <Pressable style={styles.aiOptionBtn} onPress={handleRemoveBackground}>
-              <View style={[styles.aiOptionIcon, { backgroundColor: '#E8F0ED' }]}>
-                <Ionicons name="cut-outline" size={24} color="#5D8A7D" />
+              <View style={[styles.aiOptionIcon, { backgroundColor: colors.primaryMuted }]}>
+                <Ionicons name="cut-outline" size={24} color={colors.primary} />
               </View>
               <View style={styles.aiOptionInfo}>
                 <Text style={styles.aiOptionName}>Remover Fundo</Text>
@@ -932,7 +1031,7 @@ export function SellScreen({ navigation }: any) {
         <View style={styles.aiOverlay}>
           <View style={styles.aiCard}>
             <View style={styles.aiIconWrap}>
-              <ActivityIndicator size="large" color="#5D8A7D" />
+              <ActivityIndicator size="large" color={colors.primary} />
             </View>
             <Text style={styles.aiTitle}>
               {aiProcessing?.type === 'background' ? 'Removendo fundo...' : 'Melhorando imagem...'}
@@ -977,15 +1076,15 @@ export function SellScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAFAFA' },
+  container: { flex: 1, backgroundColor: colors.background },
   scrollContent: { paddingHorizontal: 16 },
 
   // Guest
   guestContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
-  guestIcon: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#E8F0ED', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+  guestIcon: { width: 100, height: 100, borderRadius: 50, backgroundColor: colors.primaryMuted, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
   guestTitle: { fontSize: 22, fontWeight: '700', color: '#1A1A1A', marginBottom: 8, textAlign: 'center' },
   guestSubtitle: { fontSize: 15, color: '#737373', textAlign: 'center', marginBottom: 32, lineHeight: 22 },
-  loginBtn: { backgroundColor: '#5D8A7D', paddingHorizontal: 48, paddingVertical: 14, borderRadius: 28 },
+  loginBtn: { backgroundColor: colors.primary, paddingHorizontal: 48, paddingVertical: 14, borderRadius: 28 },
   loginBtnText: { fontSize: 16, fontWeight: '600', color: '#fff' },
 
   // Header
@@ -1003,12 +1102,12 @@ const styles = StyleSheet.create({
 
   // Photos
   photosScroll: { flexDirection: 'row' },
-  addPhotoBtn: { width: 100, height: 100, borderRadius: 12, borderWidth: 2, borderStyle: 'dashed', borderColor: '#5D8A7D', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  addPhotoText: { fontSize: 12, fontWeight: '500', color: '#5D8A7D', marginTop: 4 },
+  addPhotoBtn: { width: 100, height: 100, borderRadius: 12, borderWidth: 2, borderStyle: 'dashed', borderColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  addPhotoText: { fontSize: 12, fontWeight: '500', color: colors.primary, marginTop: 4 },
   photoItem: { width: 100, height: 100, borderRadius: 12, marginRight: 12, position: 'relative' },
   photoImg: { width: '100%', height: '100%', borderRadius: 12 },
   removePhotoBtn: { position: 'absolute', top: -8, right: -8, width: 28, height: 28, borderRadius: 14, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', elevation: 4, ...(Platform.OS === 'web' ? { boxShadow: '0 2px 4px rgba(0,0,0,0.2)' } : { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3 }) } as any,
-  coverBadge: { position: 'absolute', bottom: 6, left: 6, backgroundColor: '#5D8A7D', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
+  coverBadge: { position: 'absolute', bottom: 6, left: 6, backgroundColor: colors.primary, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
   coverBadgeText: { fontSize: 10, fontWeight: '600', color: '#fff' },
 
   // Input
@@ -1019,32 +1118,33 @@ const styles = StyleSheet.create({
   // Options Grid
   optionsGrid: { flexDirection: 'row', gap: 8 },
   optionCard: { flex: 1, aspectRatio: 1, backgroundColor: '#fff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E8E8E8' },
-  optionCardActive: { backgroundColor: '#5D8A7D', borderColor: '#5D8A7D' },
+  optionCardActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   optionText: { fontSize: 11, fontWeight: '500', color: '#525252', marginTop: 4, textAlign: 'center' },
   optionTextActive: { color: '#fff' },
 
   // Subcategories
   subcategoriesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   subcategoryChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: '#fff', borderWidth: 1, borderColor: '#E8E8E8' },
-  subcategoryChipActive: { backgroundColor: '#5D8A7D', borderColor: '#5D8A7D' },
+  subcategoryChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   subcategoryText: { fontSize: 14, fontWeight: '500', color: '#525252' },
   subcategoryTextActive: { color: '#fff' },
 
   // Condition
   conditionList: { gap: 10 },
   conditionItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#E8E8E8' },
-  conditionItemActive: { borderColor: '#5D8A7D', backgroundColor: '#E8F0ED' },
-  conditionRadio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#D4D4D4', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  conditionRadioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#5D8A7D' },
+  conditionItemActive: { borderColor: colors.primary, backgroundColor: colors.primaryMuted },
+  conditionRadio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#D4D4D4', alignItems: 'center', justifyContent: 'center', marginRight: 8 },
+  conditionRadioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.primary },
+  conditionEmoji: { fontSize: 20, marginRight: 10 },
   conditionContent: { flex: 1 },
   conditionName: { fontSize: 15, fontWeight: '600', color: '#1A1A1A' },
-  conditionNameActive: { color: '#5D8A7D' },
+  conditionNameActive: { color: colors.primary },
   conditionDesc: { fontSize: 12, color: '#737373', marginTop: 2 },
 
   // Sizes
   sizesRow: { flexDirection: 'row', gap: 8 },
   sizeChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, backgroundColor: '#fff', borderWidth: 1, borderColor: '#E8E8E8' },
-  sizeChipActive: { backgroundColor: '#5D8A7D', borderColor: '#5D8A7D' },
+  sizeChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   sizeText: { fontSize: 14, fontWeight: '500', color: '#525252' },
   sizeTextActive: { color: '#fff' },
 
@@ -1053,9 +1153,9 @@ const styles = StyleSheet.create({
   tagGroupTitle: { fontSize: 13, fontWeight: '600', color: '#525252', marginBottom: 8 },
   tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tagChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: '#E8E8E8' },
-  tagChipActive: { backgroundColor: '#E8F0ED', borderColor: '#5D8A7D' },
+  tagChipActive: { backgroundColor: colors.primaryMuted, borderColor: colors.primary },
   tagText: { fontSize: 13, fontWeight: '500', color: '#737373' },
-  tagTextActive: { color: '#5D8A7D', fontWeight: '600' },
+  tagTextActive: { color: colors.primary, fontWeight: '600' },
 
   // Price
   priceRow: { flexDirection: 'row', gap: 12 },
@@ -1064,8 +1164,8 @@ const styles = StyleSheet.create({
   priceInputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 12, borderWidth: 1, borderColor: '#E8E8E8' },
   currency: { fontSize: 16, fontWeight: '600', color: '#737373', marginRight: 4 },
   priceInput: { flex: 1, fontSize: 18, fontWeight: '600', color: '#1A1A1A', paddingVertical: 12 },
-  feeInfo: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, backgroundColor: '#E8F0ED', padding: 12, borderRadius: 8 },
-  feeText: { fontSize: 13, color: '#5D8A7D', fontWeight: '500' },
+  feeInfo: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, backgroundColor: colors.primaryMuted, padding: 12, borderRadius: 8 },
+  feeText: { fontSize: 13, color: colors.primary, fontWeight: '500' },
 
   // Final Price Box
   finalPriceBox: { marginTop: 16, backgroundColor: '#FFF7ED', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#FB923C' },
@@ -1082,7 +1182,7 @@ const styles = StyleSheet.create({
   // AI Modal
   aiOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: 32 },
   aiCard: { backgroundColor: '#fff', borderRadius: 20, padding: 32, alignItems: 'center', width: '100%', maxWidth: 300 },
-  aiIconWrap: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#E8F0ED', alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+  aiIconWrap: { width: 80, height: 80, borderRadius: 40, backgroundColor: colors.primaryMuted, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
   aiTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A1A', marginBottom: 8, textAlign: 'center' },
   aiSubtitle: { fontSize: 14, color: '#737373', textAlign: 'center', lineHeight: 20 },
 
@@ -1119,6 +1219,19 @@ const styles = StyleSheet.create({
   slotsWarning: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#FEF3C7', padding: 12, borderRadius: 12, marginTop: 16 },
   slotsWarningText: { flex: 1, fontSize: 13, color: '#92400E' },
   slotsWarningLink: { fontSize: 13, fontWeight: '600', color: '#F59E0B' },
+
+  // Label Photo
+  labelHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  labelVerifiedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#E8F5E8', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  labelVerifiedText: { fontSize: 12, fontWeight: '600', color: '#5B8C5A' },
+  labelPhotoWrap: { flexDirection: 'row' },
+  addLabelPhotoBtn: { width: 100, height: 100, borderRadius: 12, borderWidth: 2, borderStyle: 'dashed', borderColor: '#5B8C5A', alignItems: 'center', justifyContent: 'center', backgroundColor: '#E8F5E8' },
+  addLabelPhotoText: { fontSize: 10, fontWeight: '500', color: '#5B8C5A', marginTop: 4, textAlign: 'center' },
+  labelPhotoItem: { width: 100, height: 100, borderRadius: 12, position: 'relative' },
+  labelPhotoImg: { width: '100%', height: '100%', borderRadius: 12 },
+  removeLabelPhotoBtn: { position: 'absolute', top: -8, right: -8, width: 28, height: 28, borderRadius: 14, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', elevation: 4 },
+  labelBadge: { position: 'absolute', bottom: 6, left: 6, backgroundColor: '#5B8C5A', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  labelBadgeText: { fontSize: 10, fontWeight: '600', color: '#fff' },
 });
 
 export default SellScreen;

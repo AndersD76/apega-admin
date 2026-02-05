@@ -19,6 +19,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { productsService } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { formatPrice } from '../utils/format';
+import { colors } from '../theme';
 
 const MAIN_CATEGORIES = [
   {
@@ -255,7 +256,7 @@ export function EditProductScreen({ route, navigation }: any) {
         await productsService.uploadProductImages(product.id, formData);
       }
 
-      showAlert('✓ Salvo!', 'Seu anúncio foi atualizado com sucesso.', () => {
+      showAlert('✓ Pronto!', 'Sua peça foi atualizada com sucesso.', () => {
         navigation.navigate('MyProducts');
       });
     } catch (error: any) {
@@ -296,7 +297,7 @@ export function EditProductScreen({ route, navigation }: any) {
           <Text style={styles.sectionHint}>Adicione até 10 fotos. A primeira será a capa.</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photosScroll}>
             <Pressable style={styles.addPhotoBtn} onPress={handleAddImage}>
-              <Ionicons name="camera" size={28} color="#5D8A7D" />
+              <Ionicons name="camera" size={28} color={colors.primary} />
               <Text style={styles.addPhotoText}>Adicionar</Text>
             </Pressable>
             {images.map((img, index) => (
@@ -502,7 +503,7 @@ export function EditProductScreen({ route, navigation }: any) {
           )}
 
           <View style={styles.feeInfo}>
-            <Ionicons name="information-circle-outline" size={16} color="#5D8A7D" />
+            <Ionicons name="information-circle-outline" size={16} color={colors.primary} />
             <Text style={styles.feeText}>
               {isPremiumUser
                 ? 'Taxa de 10% sobre vendas (você é Premium!)'
@@ -514,7 +515,7 @@ export function EditProductScreen({ route, navigation }: any) {
         {/* Save Button */}
         <Pressable onPress={handleSave} disabled={loading}>
           <LinearGradient
-            colors={['#5D8A7D', '#4A7266']}
+            colors={[colors.primary, colors.primaryDark]}
             style={styles.saveBtn}
           >
             {loading ? (
@@ -553,12 +554,12 @@ const styles = StyleSheet.create({
 
   // Photos
   photosScroll: { flexDirection: 'row' },
-  addPhotoBtn: { width: 100, height: 100, borderRadius: 12, borderWidth: 2, borderStyle: 'dashed', borderColor: '#5D8A7D', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  addPhotoText: { fontSize: 12, fontWeight: '500', color: '#5D8A7D', marginTop: 4 },
+  addPhotoBtn: { width: 100, height: 100, borderRadius: 12, borderWidth: 2, borderStyle: 'dashed', borderColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  addPhotoText: { fontSize: 12, fontWeight: '500', color: colors.primary, marginTop: 4 },
   photoItem: { width: 100, height: 100, borderRadius: 12, marginRight: 12, position: 'relative' },
   photoImg: { width: '100%', height: '100%', borderRadius: 12 },
   removePhotoBtn: { position: 'absolute', top: -8, right: -8, width: 28, height: 28, borderRadius: 14, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', elevation: 4, ...(Platform.OS === 'web' ? { boxShadow: '0 2px 4px rgba(0,0,0,0.2)' } : { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3 }) } as any,
-  coverBadge: { position: 'absolute', bottom: 6, left: 6, backgroundColor: '#5D8A7D', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
+  coverBadge: { position: 'absolute', bottom: 6, left: 6, backgroundColor: colors.primary, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
   coverBadgeText: { fontSize: 10, fontWeight: '600', color: '#fff' },
 
   // Input
@@ -569,32 +570,32 @@ const styles = StyleSheet.create({
   // Options Grid
   optionsGrid: { flexDirection: 'row', gap: 8 },
   optionCard: { flex: 1, aspectRatio: 1, backgroundColor: '#fff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E8E8E8' },
-  optionCardActive: { backgroundColor: '#5D8A7D', borderColor: '#5D8A7D' },
+  optionCardActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   optionText: { fontSize: 11, fontWeight: '500', color: '#525252', marginTop: 4, textAlign: 'center' },
   optionTextActive: { color: '#fff' },
 
   // Subcategories
   subcategoriesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   subcategoryChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: '#fff', borderWidth: 1, borderColor: '#E8E8E8' },
-  subcategoryChipActive: { backgroundColor: '#5D8A7D', borderColor: '#5D8A7D' },
+  subcategoryChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   subcategoryText: { fontSize: 14, fontWeight: '500', color: '#525252' },
   subcategoryTextActive: { color: '#fff' },
 
   // Condition
   conditionList: { gap: 10 },
   conditionItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#E8E8E8' },
-  conditionItemActive: { borderColor: '#5D8A7D', backgroundColor: '#E8F0ED' },
+  conditionItemActive: { borderColor: colors.primary, backgroundColor: colors.primaryMuted },
   conditionRadio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#D4D4D4', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  conditionRadioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#5D8A7D' },
+  conditionRadioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.primary },
   conditionContent: { flex: 1 },
   conditionName: { fontSize: 15, fontWeight: '600', color: '#1A1A1A' },
-  conditionNameActive: { color: '#5D8A7D' },
+  conditionNameActive: { color: colors.primary },
   conditionDesc: { fontSize: 12, color: '#737373', marginTop: 2 },
 
   // Sizes
   sizesRow: { flexDirection: 'row', gap: 8 },
   sizeChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, backgroundColor: '#fff', borderWidth: 1, borderColor: '#E8E8E8' },
-  sizeChipActive: { backgroundColor: '#5D8A7D', borderColor: '#5D8A7D' },
+  sizeChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   sizeText: { fontSize: 14, fontWeight: '500', color: '#525252' },
   sizeTextActive: { color: '#fff' },
 
@@ -605,8 +606,8 @@ const styles = StyleSheet.create({
   priceInputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 12, borderWidth: 1, borderColor: '#E8E8E8' },
   currency: { fontSize: 16, fontWeight: '600', color: '#737373', marginRight: 4 },
   priceInput: { flex: 1, fontSize: 18, fontWeight: '600', color: '#1A1A1A', paddingVertical: 12 },
-  feeInfo: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, backgroundColor: '#E8F0ED', padding: 12, borderRadius: 8 },
-  feeText: { fontSize: 13, color: '#5D8A7D', fontWeight: '500' },
+  feeInfo: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, backgroundColor: colors.primaryMuted, padding: 12, borderRadius: 8 },
+  feeText: { fontSize: 13, color: colors.primary, fontWeight: '500' },
 
   // Final Price Box
   finalPriceBox: { marginTop: 16, backgroundColor: '#FFF7ED', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#FB923C' },

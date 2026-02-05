@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 
-// IDs de PRODUÇÃO - Apega Desapega
+// IDs de PRODUÇÃO - Largô
 const AD_UNIT_IDS = {
   android: 'ca-app-pub-3584331403172895/7609410512',
   ios: 'ca-app-pub-3584331403172895/7609410512',

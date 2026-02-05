@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
 import { formatPrice } from '../utils/format';
 import api from '../api/config';
+import { colors } from '../theme';
 
 interface Transaction {
   id: string;
@@ -136,7 +137,7 @@ export function WalletScreen({ navigation }: any) {
           <View style={{ width: 40 }} />
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#5D8A7D" />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       </View>
     );
@@ -155,10 +156,10 @@ export function WalletScreen({ navigation }: any) {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#5D8A7D" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
       >
         {/* Balance Card */}
-        <LinearGradient colors={['#5D8A7D', '#7BA396']} style={styles.balanceCard}>
+        <LinearGradient colors={[colors.primary, colors.primaryLight]} style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>Saldo disponível</Text>
           <Text style={styles.balanceValue}>R$ {formatPrice(balance)}</Text>
           {pendingBalance > 0 && (
@@ -170,10 +171,10 @@ export function WalletScreen({ navigation }: any) {
             disabled={withdrawing}
           >
             {withdrawing ? (
-              <ActivityIndicator size="small" color="#5D8A7D" />
+              <ActivityIndicator size="small" color={colors.primary} />
             ) : (
               <>
-                <Ionicons name="wallet-outline" size={18} color="#5D8A7D" />
+                <Ionicons name="wallet-outline" size={18} color={colors.primary} />
                 <Text style={styles.withdrawBtnText}>Solicitar Saque</Text>
               </>
             )}
@@ -183,12 +184,12 @@ export function WalletScreen({ navigation }: any) {
         {/* Info Cards */}
         <View style={styles.infoCards}>
           <View style={styles.infoCard}>
-            <Ionicons name="time-outline" size={24} color="#5D8A7D" />
+            <Ionicons name="time-outline" size={24} color={colors.primary} />
             <Text style={styles.infoTitle}>Prazo de liberação</Text>
             <Text style={styles.infoText}>O saldo é liberado 7 dias após a entrega confirmada</Text>
           </View>
           <View style={styles.infoCard}>
-            <Ionicons name="cash-outline" size={24} color="#5D8A7D" />
+            <Ionicons name="cash-outline" size={24} color={colors.primary} />
             <Text style={styles.infoTitle}>Valor mínimo</Text>
             <Text style={styles.infoText}>O valor mínimo para saque é de R$ 20,00</Text>
           </View>
@@ -254,7 +255,7 @@ const styles = StyleSheet.create({
   pendingLabel: { fontSize: 13, color: 'rgba(255,255,255,0.7)', marginBottom: 16 },
   withdrawBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fff', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 24, minWidth: 160, justifyContent: 'center' },
   withdrawBtnDisabled: { opacity: 0.7 },
-  withdrawBtnText: { fontSize: 15, fontWeight: '600', color: '#5D8A7D' },
+  withdrawBtnText: { fontSize: 15, fontWeight: '600', color: colors.primary },
 
   // Info Cards
   infoCards: { flexDirection: 'row', paddingHorizontal: 16, gap: 12 },

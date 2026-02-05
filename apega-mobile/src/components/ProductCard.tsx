@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, radius, shadows } from '../theme';
 import { Product } from '../api';
+import { getConditionLabel, getConditionEmoji } from '../constants';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -41,12 +42,17 @@ export function ProductCard({
     ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
     : 0;
 
-  const conditionLabel = {
-    novo: 'Novo',
-    seminovo: 'Seminovo',
-    usado: 'Usado',
-    vintage: 'Vintage',
-  }[product.condition] || product.condition;
+  // Map legacy conditions to new system
+  const conditionMap: Record<string, string> = {
+    novo: 'novo_etiqueta',
+    seminovo: 'seminovo',
+    usado: 'bom_estado',
+    vintage: 'usado',
+    novo_etiqueta: 'novo_etiqueta',
+    bom_estado: 'bom_estado',
+  };
+  const mappedCondition = conditionMap[product.condition] || product.condition;
+  const conditionLabel = `${getConditionEmoji(mappedCondition)} ${product.condition === 'novo' ? 'Novo' : product.condition === 'seminovo' ? 'Seminovo' : product.condition === 'usado' ? 'Usado' : product.condition === 'vintage' ? 'Vintage' : product.condition}`;
 
   return (
     <Pressable
@@ -251,7 +257,7 @@ const styles = StyleSheet.create({
   },
   brand: {
     fontSize: 12,
-    color: colors.brand,
+    color: colors.primary,
     fontWeight: '600',
     marginBottom: spacing.sm,
   },

@@ -4,12 +4,12 @@ import {
   Text,
   StyleSheet,
   Pressable,
-  TextInput,
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, radius, shadows } from '../theme';
+import { colors, spacing, radius } from '../theme';
+import { MICROCOPY } from '../constants';
 
 interface HeaderProps {
   onSearchPress?: () => void;
@@ -32,14 +32,13 @@ export function Header({
     <View style={[styles.container, { paddingTop: insets.top + spacing.sm }]}>
       {/* Logo */}
       <View style={styles.logoContainer}>
-        <Text style={styles.logo}>apega</Text>
-        <Text style={styles.logoAccent}>desapega</Text>
+        <Text style={styles.logo}>{MICROCOPY.appName}</Text>
       </View>
 
       {/* Search Bar */}
       {showSearch && (
         <Pressable style={styles.searchContainer} onPress={onSearchPress}>
-          <Ionicons name="search" size={18} color={colors.gray400} />
+          <Ionicons name="search" size={18} color={colors.textMuted} />
           <Text style={styles.searchPlaceholder}>Buscar produtos, marcas...</Text>
         </Pressable>
       )}
@@ -47,11 +46,11 @@ export function Header({
       {/* Actions */}
       <View style={styles.actions}>
         <Pressable style={styles.iconButton} onPress={onNotificationPress}>
-          <Ionicons name="notifications-outline" size={24} color={colors.gray700} />
+          <Ionicons name="notifications-outline" size={24} color={colors.text} />
         </Pressable>
 
         <Pressable style={styles.iconButton} onPress={onCartPress}>
-          <Ionicons name="bag-outline" size={24} color={colors.gray700} />
+          <Ionicons name="bag-outline" size={24} color={colors.text} />
           {cartCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{cartCount > 9 ? '9+' : cartCount}</Text>
@@ -65,44 +64,40 @@ export function Header({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray100,
+    borderBottomColor: colors.border,
   },
   logoContainer: {
     flexDirection: 'row',
     alignItems: 'baseline',
   },
   logo: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '800',
-    color: colors.brand,
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
-  },
-  logoAccent: {
-    fontSize: 22,
-    fontWeight: '300',
-    color: colors.gray500,
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    color: colors.primary,
+    fontFamily: 'Nunito_800ExtraBold',
   },
   searchContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.gray100,
+    backgroundColor: colors.background,
     borderRadius: radius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   searchPlaceholder: {
     fontSize: 14,
-    color: colors.gray400,
+    color: colors.textMuted,
   },
   actions: {
     flexDirection: 'row',
@@ -120,7 +115,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 2,
     right: 2,
-    backgroundColor: colors.brand,
+    backgroundColor: colors.primary,
     minWidth: 18,
     height: 18,
     borderRadius: 9,

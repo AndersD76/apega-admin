@@ -82,15 +82,14 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
   const renderWelcome = () => (
     <View style={styles.welcomeContent}>
       <View style={styles.logoContainer}>
-        <Text style={styles.logoText}>apega</Text>
-        <Text style={styles.logoAccent}>desapega</Text>
+        <Text style={styles.logoText}>Largô</Text>
       </View>
 
       <Text style={styles.welcomeTitle}>
-        Moda que conta{'\n'}histórias
+        Largou?{'\n'}Pegou!
       </Text>
       <Text style={styles.welcomeSubtitle}>
-        Compre e venda peças únicas de forma{'\n'}sustentável e consciente
+        Moda circular para um mundo melhor.{'\n'}Larga o que não usa e pega o que ama!
       </Text>
 
       <View style={styles.welcomeButtons}>
@@ -119,19 +118,19 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
       <View style={styles.features}>
         <View style={styles.featureItem}>
           <View style={styles.featureIcon}>
-            <Ionicons name="leaf" size={20} color={colors.brand} />
+            <Ionicons name="leaf" size={20} color={colors.primary} />
           </View>
-          <Text style={styles.featureText}>Moda sustentável</Text>
+          <Text style={styles.featureText}>Moda circular</Text>
         </View>
         <View style={styles.featureItem}>
           <View style={styles.featureIcon}>
-            <Ionicons name="shield-checkmark" size={20} color={colors.brand} />
+            <Ionicons name="shield-checkmark" size={20} color={colors.primary} />
           </View>
           <Text style={styles.featureText}>Compra segura</Text>
         </View>
         <View style={styles.featureItem}>
           <View style={styles.featureIcon}>
-            <Ionicons name="wallet" size={20} color={colors.brand} />
+            <Ionicons name="wallet" size={20} color={colors.primary} />
           </View>
           <Text style={styles.featureText}>Ganhe dinheiro</Text>
         </View>
@@ -147,7 +146,7 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
 
       <Text style={styles.formTitle}>Entrar na conta</Text>
       <Text style={styles.formSubtitle}>
-        Bem-vinda de volta! Continue de onde parou
+        Bora voltar? Suas peças estão te esperando!
       </Text>
 
       <View style={styles.form}>
@@ -219,7 +218,7 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
 
         <Text style={styles.formTitle}>Criar conta</Text>
         <Text style={styles.formSubtitle}>
-          Junte-se a milhares de pessoas apaixonadas por moda
+          Chega mais! Aqui a moda circula
         </Text>
 
         <View style={styles.form}>
@@ -308,7 +307,7 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={[colors.brandMuted, colors.white]}
+        colors={[colors.primaryMuted, colors.white]}
         style={styles.gradient}
       />
 
@@ -342,7 +341,7 @@ const styles = StyleSheet.create({
   decorCircle: {
     position: 'absolute',
     borderRadius: 999,
-    backgroundColor: colors.brand,
+    backgroundColor: colors.primary,
     opacity: 0.05,
   },
   circle1: {
@@ -384,7 +383,7 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 36,
     fontWeight: '800',
-    color: colors.brand,
+    color: colors.primary,
   },
   logoAccent: {
     fontSize: 36,
@@ -428,7 +427,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.brandMuted,
+    backgroundColor: colors.primaryMuted,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm,
@@ -493,7 +492,7 @@ const styles = StyleSheet.create({
   },
   forgotText: {
     fontSize: 14,
-    color: colors.brand,
+    color: colors.primary,
     fontWeight: '500',
   },
   switchMode: {
@@ -505,7 +504,7 @@ const styles = StyleSheet.create({
     color: colors.gray500,
   },
   switchTextBold: {
-    color: colors.brand,
+    color: colors.primary,
     fontWeight: '600',
   },
   terms: {
@@ -515,7 +514,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   termsLink: {
-    color: colors.brand,
+    color: colors.primary,
     fontWeight: '500',
   },
 });

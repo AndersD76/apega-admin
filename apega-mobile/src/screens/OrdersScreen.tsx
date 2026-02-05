@@ -22,6 +22,7 @@ import { formatPrice } from '../utils/format';
 import { API_URL } from '../api/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
+import { colors } from '../theme';
 
 const STATUS_CONFIG: Record<string, { color: string; bgColor: string; label: string; icon: string }> = {
   pending_payment: { color: '#F59E0B', bgColor: '#FEF3C7', label: 'Aguardando pagamento', icon: 'time-outline' },
@@ -258,10 +259,10 @@ export function OrdersScreen({ navigation, route }: any) {
         {/* Tracking */}
         {item.shipping_code && (
           <Pressable style={styles.trackingRow} onPress={() => handleTrackOrder(item)}>
-            <Ionicons name="cube-outline" size={16} color="#5D8A7D" />
+            <Ionicons name="cube-outline" size={16} color={colors.primary} />
             <Text style={styles.trackingLabel}>Rastreio:</Text>
             <Text style={styles.trackingCode}>{item.shipping_code}</Text>
-            <Ionicons name="chevron-forward" size={16} color="#5D8A7D" />
+            <Ionicons name="chevron-forward" size={16} color={colors.primary} />
           </Pressable>
         )}
 
@@ -270,15 +271,15 @@ export function OrdersScreen({ navigation, route }: any) {
           {personAvatar ? (
             <Image source={{ uri: personAvatar }} style={styles.personAvatar} contentFit="cover" />
           ) : (
-            <View style={[styles.personAvatar, { backgroundColor: '#E8F0ED', alignItems: 'center', justifyContent: 'center' }]}>
-              <Ionicons name="person" size={16} color="#5D8A7D" />
+            <View style={[styles.personAvatar, { backgroundColor: colors.primaryMuted, alignItems: 'center', justifyContent: 'center' }]}>
+              <Ionicons name="person" size={16} color={colors.primary} />
             </View>
           )}
           <Text style={styles.personName}>
             {orderType === 'purchases' ? 'Vendido por' : 'Comprado por'} {personName || 'Usuário'}
           </Text>
           <Pressable style={styles.chatBtn}>
-            <Ionicons name="chatbubble-outline" size={18} color="#5D8A7D" />
+            <Ionicons name="chatbubble-outline" size={18} color={colors.primary} />
           </Pressable>
         </View>
 
@@ -339,7 +340,7 @@ export function OrdersScreen({ navigation, route }: any) {
       {/* Orders List */}
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#5D8A7D" />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
         <FlatList
@@ -349,7 +350,7 @@ export function OrdersScreen({ navigation, route }: any) {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#5D8A7D" />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
           }
           ListEmptyComponent={
             <View style={styles.emptyState}>
@@ -357,12 +358,12 @@ export function OrdersScreen({ navigation, route }: any) {
                 <Ionicons name="receipt-outline" size={48} color="#A3A3A3" />
               </View>
               <Text style={styles.emptyTitle}>
-                {orderType === 'purchases' ? 'Nenhuma compra' : 'Nenhuma venda'}
+                {orderType === 'purchases' ? 'Nenhuma compra ainda' : 'Ninguém pegou suas peças ainda'}
               </Text>
               <Text style={styles.emptyText}>
                 {orderType === 'purchases'
-                  ? 'Suas compras aparecerão aqui'
-                  : 'Suas vendas aparecerão aqui'}
+                  ? 'Bora pegar umas peças?'
+                  : 'Quando alguém pegar, aparece aqui!'}
               </Text>
             </View>
           }
@@ -382,7 +383,7 @@ export function OrdersScreen({ navigation, route }: any) {
 
             {trackingLoading ? (
               <View style={styles.modalLoading}>
-                <ActivityIndicator size="large" color="#5D8A7D" />
+                <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={styles.modalLoadingText}>Buscando informacoes...</Text>
               </View>
             ) : trackingData ? (
@@ -396,14 +397,14 @@ export function OrdersScreen({ navigation, route }: any) {
                       style={styles.copyBtn}
                       onPress={() => handleCopyTrackingCode(trackingData.tracking_code)}
                     >
-                      <Ionicons name="copy-outline" size={18} color="#5D8A7D" />
+                      <Ionicons name="copy-outline" size={18} color={colors.primary} />
                     </Pressable>
                   </View>
                 </View>
 
                 {/* Current Status */}
                 <View style={styles.currentStatusBox}>
-                  <Ionicons name="navigate-circle" size={32} color="#5D8A7D" />
+                  <Ionicons name="navigate-circle" size={32} color={colors.primary} />
                   <Text style={styles.currentStatusText}>{trackingData.status || 'Em transito'}</Text>
                 </View>
 
@@ -429,7 +430,7 @@ export function OrdersScreen({ navigation, route }: any) {
                   style={styles.trackExternalBtn}
                   onPress={() => handleOpenTrackingLink(trackingData.tracking_code)}
                 >
-                  <Ionicons name="open-outline" size={18} color="#5D8A7D" />
+                  <Ionicons name="open-outline" size={18} color={colors.primary} />
                   <Text style={styles.trackExternalText}>Rastrear no site dos Correios</Text>
                 </Pressable>
               </ScrollView>
@@ -624,19 +625,19 @@ const styles = StyleSheet.create({
   timelineDate: { fontSize: 12, color: '#A3A3A3' },
 
   // Tracking
-  trackingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, backgroundColor: '#E8F0ED', padding: 10, borderRadius: 8 },
-  trackingLabel: { fontSize: 12, color: '#5D8A7D' },
-  trackingCode: { fontSize: 13, fontWeight: '600', color: '#5D8A7D' },
+  trackingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, backgroundColor: colors.primaryMuted, padding: 10, borderRadius: 8 },
+  trackingLabel: { fontSize: 12, color: colors.primary },
+  trackingCode: { fontSize: 13, fontWeight: '600', color: colors.primary },
 
   // Person
   personRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F5F5F5' },
   personAvatar: { width: 32, height: 32, borderRadius: 16 },
   personName: { flex: 1, fontSize: 13, color: '#737373', marginLeft: 10 },
-  chatBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#E8F0ED', alignItems: 'center', justifyContent: 'center' },
+  chatBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.primaryMuted, alignItems: 'center', justifyContent: 'center' },
 
   // Actions
   actionsRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
-  actionBtnPrimary: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#5D8A7D', paddingVertical: 10, borderRadius: 10 },
+  actionBtnPrimary: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.primary, paddingVertical: 10, borderRadius: 10 },
   actionBtnPrimaryText: { fontSize: 13, fontWeight: '600', color: '#fff' },
   actionBtnSecondary: { flex: 1, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E8E8E8', paddingVertical: 10, borderRadius: 10 },
   actionBtnSecondaryText: { fontSize: 13, fontWeight: '500', color: '#737373' },
@@ -660,23 +661,23 @@ const styles = StyleSheet.create({
   trackingCodeLabel: { fontSize: 12, color: '#737373', marginBottom: 6 },
   trackingCodeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   trackingCodeValue: { fontSize: 16, fontWeight: '700', color: '#1A1A1A', letterSpacing: 1 },
-  copyBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#E8F0ED', alignItems: 'center', justifyContent: 'center' },
+  copyBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.primaryMuted, alignItems: 'center', justifyContent: 'center' },
 
   // Current Status
-  currentStatusBox: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#E8F0ED', borderRadius: 12, padding: 16, marginBottom: 20 },
-  currentStatusText: { fontSize: 16, fontWeight: '600', color: '#5D8A7D' },
+  currentStatusBox: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.primaryMuted, borderRadius: 12, padding: 16, marginBottom: 20 },
+  currentStatusText: { fontSize: 16, fontWeight: '600', color: colors.primary },
 
   // Tracking Timeline
   trackingTimeline: { marginBottom: 20 },
   timelineTitle: { fontSize: 14, fontWeight: '600', color: '#1A1A1A', marginBottom: 16 },
-  timelineDotActive: { backgroundColor: '#5D8A7D' },
+  timelineDotActive: { backgroundColor: colors.primary },
   timelineContent: { flex: 1, marginLeft: 12, paddingBottom: 16, borderLeftWidth: 2, borderLeftColor: '#E8E8E8', paddingLeft: 16 },
   timelineStatus: { fontSize: 14, fontWeight: '500', color: '#1A1A1A', marginBottom: 2 },
   timelineLocation: { fontSize: 12, color: '#737373', marginBottom: 2 },
 
   // Track External
-  trackExternalBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1, borderColor: '#5D8A7D', borderRadius: 12, paddingVertical: 14, marginBottom: 20 },
-  trackExternalText: { fontSize: 14, fontWeight: '500', color: '#5D8A7D' },
+  trackExternalBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1, borderColor: colors.primary, borderRadius: 12, paddingVertical: 14, marginBottom: 20 },
+  trackExternalText: { fontSize: 14, fontWeight: '500', color: colors.primary },
 
   // Shipping Modal
   shippingOrderInfo: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#F5F5F5', borderRadius: 12, padding: 12, marginBottom: 20 },
@@ -688,7 +689,7 @@ const styles = StyleSheet.create({
   shippingActions: { flexDirection: 'row', gap: 12 },
   shippingCancelBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E8E8E8', borderRadius: 12, paddingVertical: 14 },
   shippingCancelText: { fontSize: 14, fontWeight: '500', color: '#737373' },
-  shippingConfirmBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#5D8A7D', borderRadius: 12, paddingVertical: 14 },
+  shippingConfirmBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14 },
   shippingConfirmText: { fontSize: 14, fontWeight: '600', color: '#fff' },
 
   // Review Modal

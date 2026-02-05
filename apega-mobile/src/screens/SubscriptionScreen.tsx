@@ -14,6 +14,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
 import { subscriptionsService, SubscriptionPlan } from '../api';
 import { formatPrice } from '../utils/format';
+import { colors } from '../theme';
+import { MICROCOPY } from '../constants';
 
 export function SubscriptionScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -72,7 +74,7 @@ export function SubscriptionScreen({ navigation }: any) {
   if (loading) {
     return (
       <View style={[styles.container, styles.loadingContainer, { paddingTop: insets.top }]}>
-        <ActivityIndicator size="large" color="#5D8A7D" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -92,7 +94,7 @@ export function SubscriptionScreen({ navigation }: any) {
         {/* Hero */}
         <LinearGradient colors={['#FFD700', '#FFA500']} style={styles.hero}>
           <Ionicons name="star" size={48} color="#fff" />
-          <Text style={styles.heroTitle}>Apega Premium</Text>
+          <Text style={styles.heroTitle}>{MICROCOPY.premium.title}</Text>
           <Text style={styles.heroSubtitle}>
             Desbloqueie recursos exclusivos e venda mais!
           </Text>
@@ -127,7 +129,7 @@ export function SubscriptionScreen({ navigation }: any) {
             ].map((feature, index) => (
               <View key={index} style={styles.featureItem}>
                 <View style={styles.featureIcon}>
-                  <Ionicons name={feature.icon as any} size={22} color="#5D8A7D" />
+                  <Ionicons name={feature.icon as any} size={22} color={colors.primary} />
                 </View>
                 <View style={styles.featureContent}>
                   <Text style={styles.featureTitle}>{feature.title}</Text>
@@ -234,7 +236,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 18, fontWeight: '600', color: '#1A1A1A', marginBottom: 16 },
   featuresList: { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden' },
   featureItem: { flexDirection: 'row', alignItems: 'center', padding: 14, borderBottomWidth: 1, borderBottomColor: '#F5F5F5' },
-  featureIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#E8F0ED', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  featureIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primaryMuted, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   featureContent: { flex: 1 },
   featureTitle: { fontSize: 15, fontWeight: '500', color: '#1A1A1A' },
   featureDesc: { fontSize: 12, color: '#737373', marginTop: 2 },
@@ -243,15 +245,15 @@ const styles = StyleSheet.create({
   plansSection: { marginTop: 24 },
   plansList: { gap: 12 },
   planCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 16, padding: 16, borderWidth: 2, borderColor: '#E8E8E8', position: 'relative', overflow: 'hidden' },
-  planCardActive: { borderColor: '#5D8A7D', backgroundColor: '#E8F0ED' },
-  popularBadge: { position: 'absolute', top: 0, right: 0, backgroundColor: '#5D8A7D', paddingHorizontal: 12, paddingVertical: 4, borderBottomLeftRadius: 8 },
+  planCardActive: { borderColor: colors.primary, backgroundColor: colors.primaryMuted },
+  popularBadge: { position: 'absolute', top: 0, right: 0, backgroundColor: colors.primary, paddingHorizontal: 12, paddingVertical: 4, borderBottomLeftRadius: 8 },
   popularText: { fontSize: 10, fontWeight: '600', color: '#fff' },
   planRadio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: '#D4D4D4', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  planRadioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#5D8A7D' },
+  planRadioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.primary },
   planContent: { flex: 1 },
   planName: { fontSize: 16, fontWeight: '600', color: '#1A1A1A' },
   planPriceRow: { flexDirection: 'row', alignItems: 'baseline', marginTop: 4 },
-  planPrice: { fontSize: 24, fontWeight: '700', color: '#5D8A7D' },
+  planPrice: { fontSize: 24, fontWeight: '700', color: colors.primary },
   planPeriod: { fontSize: 14, color: '#737373', marginLeft: 4 },
   planSavings: { fontSize: 12, color: '#10B981', fontWeight: '500', marginTop: 4 },
 

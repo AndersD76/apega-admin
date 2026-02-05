@@ -5,6 +5,7 @@ export { ProfileScreen } from './ProfileScreen';
 export { SearchScreen } from './SearchScreen';
 export { FavoritesScreen } from './FavoritesScreen';
 export { SellScreen } from './SellScreen';
+export { DiscoveryFeedScreen } from './DiscoveryFeedScreen';
 
 // Product Screens
 export { ProductDetailScreen } from './ProductDetailScreen';
@@ -12,8 +13,13 @@ export { CartScreen } from './CartScreen';
 export { CheckoutScreen } from './CheckoutScreen';
 export { EditProductScreen } from './EditProductScreen';
 
+// Looks Screens
+export { CreateLookScreen } from './CreateLookScreen';
+export { LookDetailScreen } from './LookDetailScreen';
+
 // Auth Screens
 export { RegisterScreen } from './RegisterScreen';
+export { OnboardingQuizScreen } from './OnboardingQuizScreen';
 
 // User Screens
 export { MyProductsScreen } from './MyProductsScreen';

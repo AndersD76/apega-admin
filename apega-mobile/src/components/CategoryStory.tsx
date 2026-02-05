@@ -45,11 +45,11 @@ export function CategoryStories({ categories, onCategoryPress }: CategoryStoryPr
         onPress={() => onCategoryPress({ id: 'all', name: 'Todos', slug: 'all' } as Category)}
       >
         <LinearGradient
-          colors={[colors.brand, colors.brandLight]}
+          colors={[colors.primary, colors.primaryLight]}
           style={styles.storyBorder}
         >
           <View style={styles.storyInner}>
-            <Ionicons name="grid-outline" size={24} color={colors.brand} />
+            <Ionicons name="grid-outline" size={24} color={colors.primary} />
           </View>
         </LinearGradient>
         <Text style={styles.storyLabel}>Todos</Text>
@@ -65,7 +65,7 @@ export function CategoryStories({ categories, onCategoryPress }: CategoryStoryPr
             onPress={() => onCategoryPress(category)}
           >
             <LinearGradient
-              colors={[colors.brand, colors.brandLight]}
+              colors={[colors.primary, colors.primaryLight]}
               style={styles.storyBorder}
             >
               <View style={styles.storyInner}>
@@ -76,7 +76,7 @@ export function CategoryStories({ categories, onCategoryPress }: CategoryStoryPr
                     contentFit="cover"
                   />
                 ) : (
-                  <Ionicons name={iconName} size={24} color={colors.brand} />
+                  <Ionicons name={iconName} size={24} color={colors.primary} />
                 )}
               </View>
             </LinearGradient>
@@ -104,11 +104,11 @@ export function CategoryStory({ icon, label, onPress, isActive }: SingleCategory
   return (
     <Pressable style={styles.storyItem} onPress={onPress}>
       <LinearGradient
-        colors={isActive ? [colors.brand, colors.brandLight] : [colors.gray300, colors.gray200]}
+        colors={isActive ? [colors.primary, colors.primaryLight] : [colors.gray300, colors.gray200]}
         style={styles.storyBorder}
       >
         <View style={styles.storyInner}>
-          <Ionicons name={icon} size={24} color={isActive ? colors.brand : colors.gray500} />
+          <Ionicons name={icon} size={24} color={isActive ? colors.primary : colors.gray500} />
         </View>
       </LinearGradient>
       <Text style={[styles.storyLabel, isActive && styles.storyLabelActive]}>{label}</Text>
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   storyLabelActive: {
-    color: colors.brand,
+    color: colors.primary,
     fontWeight: '600',
   },
   storyCount: {

@@ -17,6 +17,8 @@ import { Image } from 'expo-image';
 import { useAuth } from '../context/AuthContext';
 import { cartService, CartItem, CartSummary } from '../api';
 import { formatPrice } from '../utils/format';
+import { colors } from '../theme';
+import { MICROCOPY } from '../constants';
 
 export function CartScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -80,11 +82,11 @@ export function CartScreen({ navigation }: any) {
     };
 
     if (Platform.OS === 'web') {
-      if (window.confirm('Deseja remover este item do carrinho?')) {
+      if (window.confirm('Deseja remover este item da sacola?')) {
         await doRemove();
       }
     } else {
-      Alert.alert('Remover item', 'Deseja remover este item do carrinho?', [
+      Alert.alert('Remover item', 'Deseja remover este item da sacola?', [
         { text: 'Cancelar', style: 'cancel' },
         { text: 'Remover', style: 'destructive', onPress: doRemove },
       ]);
@@ -106,16 +108,16 @@ export function CartScreen({ navigation }: any) {
           <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
           </Pressable>
-          <Text style={styles.headerTitle}>Carrinho</Text>
+          <Text style={styles.headerTitle}>Sacola</Text>
           <View style={{ width: 40 }} />
         </View>
         <View style={styles.guestContainer}>
           <View style={styles.guestIcon}>
-            <Ionicons name="bag-outline" size={48} color="#5D8A7D" />
+            <Ionicons name="bag-outline" size={48} color={colors.primary} />
           </View>
-          <Text style={styles.guestTitle}>Seu carrinho está vazio</Text>
+          <Text style={styles.guestTitle}>Sua sacola está vazia</Text>
           <Text style={styles.guestSubtitle}>
-            Faça login para adicionar itens ao carrinho
+            Faça login para adicionar itens à sacola
           </Text>
           <Pressable style={styles.loginBtn} onPress={() => navigation.navigate('Login')}>
             <Text style={styles.loginBtnText}>Entrar</Text>
@@ -132,17 +134,17 @@ export function CartScreen({ navigation }: any) {
           <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
           </Pressable>
-          <Text style={styles.headerTitle}>Carrinho</Text>
+          <Text style={styles.headerTitle}>Sacola</Text>
           <View style={{ width: 40 }} />
         </View>
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIcon}>
             <Ionicons name="bag-outline" size={64} color="#E8E8E8" />
           </View>
-          <Text style={styles.emptyTitle}>Carrinho vazio</Text>
-          <Text style={styles.emptyText}>Adicione peças para continuar</Text>
+          <Text style={styles.emptyTitle}>Sua sacola tá vazia...</Text>
+          <Text style={styles.emptyText}>Bora garimpar umas peças?</Text>
           <Pressable style={styles.exploreBtn} onPress={() => navigation.navigate('Home')}>
-            <Text style={styles.exploreBtnText}>Explorar peças</Text>
+            <Text style={styles.exploreBtnText}>Bora garimpar!</Text>
           </Pressable>
         </View>
       </View>
@@ -156,7 +158,7 @@ export function CartScreen({ navigation }: any) {
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
         </Pressable>
-        <Text style={styles.headerTitle}>Carrinho ({cartItems.length})</Text>
+        <Text style={styles.headerTitle}>Sacola ({cartItems.length})</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -219,7 +221,7 @@ export function CartScreen({ navigation }: any) {
         {/* Coupon */}
         <View style={styles.section}>
           <Pressable style={styles.couponRow}>
-            <Ionicons name="pricetag-outline" size={20} color="#5D8A7D" />
+            <Ionicons name="pricetag-outline" size={20} color={colors.primary} />
             <Text style={styles.couponText}>Adicionar cupom de desconto</Text>
             <Ionicons name="chevron-forward" size={20} color="#A3A3A3" />
           </Pressable>
@@ -257,7 +259,7 @@ export function CartScreen({ navigation }: any) {
           <Text style={styles.bottomTotalValue}>R$ {formatPrice(total)}</Text>
         </View>
         <Pressable style={styles.checkoutBtn} onPress={handleCheckout}>
-          <LinearGradient colors={['#5D8A7D', '#4A7266']} style={styles.checkoutBtnGrad}>
+          <LinearGradient colors={[colors.primary, colors.primaryDark]} style={styles.checkoutBtnGrad}>
             <Text style={styles.checkoutBtnText}>Finalizar compra</Text>
             <Ionicons name="arrow-forward" size={20} color="#fff" />
           </LinearGradient>
@@ -268,7 +270,7 @@ export function CartScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAFAFA' },
+  container: { flex: 1, backgroundColor: colors.background },
   scrollContent: { paddingHorizontal: 16 },
 
   // Header
@@ -278,16 +280,16 @@ const styles = StyleSheet.create({
 
   // Guest/Empty
   guestContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
-  guestIcon: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#E8F0ED', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+  guestIcon: { width: 100, height: 100, borderRadius: 50, backgroundColor: colors.primaryMuted, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
   guestTitle: { fontSize: 22, fontWeight: '700', color: '#1A1A1A', marginBottom: 8, textAlign: 'center' },
   guestSubtitle: { fontSize: 15, color: '#737373', textAlign: 'center', marginBottom: 32, lineHeight: 22 },
-  loginBtn: { backgroundColor: '#5D8A7D', paddingHorizontal: 48, paddingVertical: 14, borderRadius: 28 },
+  loginBtn: { backgroundColor: colors.primary, paddingHorizontal: 48, paddingVertical: 14, borderRadius: 28 },
   loginBtnText: { fontSize: 16, fontWeight: '600', color: '#fff' },
   emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
   emptyIcon: { marginBottom: 24 },
   emptyTitle: { fontSize: 20, fontWeight: '600', color: '#1A1A1A' },
   emptyText: { fontSize: 14, color: '#737373', marginTop: 8 },
-  exploreBtn: { marginTop: 24, paddingHorizontal: 32, paddingVertical: 12, borderRadius: 24, backgroundColor: '#5D8A7D' },
+  exploreBtn: { marginTop: 24, paddingHorizontal: 32, paddingVertical: 12, borderRadius: 24, backgroundColor: colors.primary },
   exploreBtnText: { fontSize: 15, fontWeight: '600', color: '#fff' },
 
   // Section
@@ -299,7 +301,7 @@ const styles = StyleSheet.create({
   cartItemBorder: { borderTopWidth: 1, borderTopColor: '#F5F5F5' },
   itemImage: { width: 80, height: 100, borderRadius: 8 },
   itemContent: { flex: 1, marginLeft: 12 },
-  itemBrand: { fontSize: 11, fontWeight: '600', color: '#5D8A7D', textTransform: 'uppercase' },
+  itemBrand: { fontSize: 11, fontWeight: '600', color: colors.primary, textTransform: 'uppercase' },
   itemTitle: { fontSize: 14, fontWeight: '500', color: '#1A1A1A', marginTop: 2 },
   itemSize: { fontSize: 12, color: '#737373', marginTop: 2 },
   itemPriceRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
@@ -310,9 +312,9 @@ const styles = StyleSheet.create({
 
   // Shipping
   shippingOption: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 12, backgroundColor: '#F5F5F5', marginBottom: 8 },
-  shippingOptionActive: { backgroundColor: '#E8F0ED', borderWidth: 1, borderColor: '#5D8A7D' },
+  shippingOptionActive: { backgroundColor: colors.primaryMuted, borderWidth: 1, borderColor: colors.primary },
   shippingRadio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#D4D4D4', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  shippingRadioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#5D8A7D' },
+  shippingRadioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.primary },
   shippingContent: { flex: 1 },
   shippingName: { fontSize: 14, fontWeight: '600', color: '#1A1A1A' },
   shippingTime: { fontSize: 12, color: '#737373' },
@@ -320,7 +322,7 @@ const styles = StyleSheet.create({
 
   // Coupon
   couponRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  couponText: { flex: 1, fontSize: 14, fontWeight: '500', color: '#5D8A7D' },
+  couponText: { flex: 1, fontSize: 14, fontWeight: '500', color: colors.primary },
 
   // Summary
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },

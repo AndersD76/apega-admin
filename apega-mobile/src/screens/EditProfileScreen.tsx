@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { usersService } from '../api/users';
+import { colors } from '../theme';
 
 const PIX_KEY_TYPES = [
   { value: 'cpf', label: 'CPF' },
@@ -132,7 +133,7 @@ export function EditProfileScreen({ navigation }: any) {
           <Ionicons
             name="person-outline"
             size={18}
-            color={activeSection === 'profile' ? '#5D8A7D' : '#737373'}
+            color={activeSection === 'profile' ? colors.primary : '#737373'}
           />
           <Text style={[styles.tabText, activeSection === 'profile' && styles.tabTextActive]}>
             Dados Pessoais
@@ -145,7 +146,7 @@ export function EditProfileScreen({ navigation }: any) {
           <Ionicons
             name="wallet-outline"
             size={18}
-            color={activeSection === 'payment' ? '#5D8A7D' : '#737373'}
+            color={activeSection === 'payment' ? colors.primary : '#737373'}
           />
           <Text style={[styles.tabText, activeSection === 'payment' && styles.tabTextActive]}>
             Dados Bancarios
@@ -237,7 +238,7 @@ export function EditProfileScreen({ navigation }: any) {
           <View style={styles.form}>
             {/* Info Box */}
             <View style={styles.infoBox}>
-              <Ionicons name="information-circle" size={20} color="#5D8A7D" />
+              <Ionicons name="information-circle" size={20} color={colors.primary} />
               <Text style={styles.infoText}>
                 Configure seus dados para receber o pagamento das suas vendas
               </Text>
@@ -260,7 +261,7 @@ export function EditProfileScreen({ navigation }: any) {
             {/* PIX Section */}
             <View style={styles.sectionDivider}>
               <View style={styles.sectionIcon}>
-                <Ionicons name="flash" size={16} color="#5D8A7D" />
+                <Ionicons name="flash" size={16} color={colors.primary} />
               </View>
               <Text style={styles.sectionTitle}>Chave PIX</Text>
             </View>
@@ -318,7 +319,7 @@ export function EditProfileScreen({ navigation }: any) {
             {/* Bank Account Section */}
             <View style={styles.sectionDivider}>
               <View style={styles.sectionIcon}>
-                <Ionicons name="business" size={16} color="#5D8A7D" />
+                <Ionicons name="business" size={16} color={colors.primary} />
               </View>
               <Text style={styles.sectionTitle}>Conta Bancaria (Opcional)</Text>
             </View>
@@ -426,7 +427,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: { fontSize: 18, fontWeight: '600', color: '#1A1A1A' },
-  saveBtn: { fontSize: 16, fontWeight: '600', color: '#5D8A7D' },
+  saveBtn: { fontSize: 16, fontWeight: '600', color: colors.primary },
   saveBtnDisabled: { color: '#A3A3A3' },
 
   // Tabs
@@ -455,7 +456,7 @@ const styles = StyleSheet.create({
     color: '#737373',
   },
   tabTextActive: {
-    color: '#5D8A7D',
+    color: colors.primary,
     fontWeight: '600',
   },
 
@@ -497,7 +498,7 @@ const styles = StyleSheet.create({
   infoText: {
     flex: 1,
     fontSize: 13,
-    color: '#5D8A7D',
+    color: colors.primary,
     lineHeight: 18,
   },
 
@@ -540,7 +541,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   optionBtnActive: {
-    backgroundColor: '#5D8A7D',
+    backgroundColor: colors.primary,
   },
   optionText: {
     fontSize: 13,

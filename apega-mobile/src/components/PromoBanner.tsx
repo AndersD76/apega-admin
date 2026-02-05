@@ -28,7 +28,7 @@ export function PromoBanner({
   subtitle,
   buttonText = 'Ver agora',
   onPress,
-  gradientColors = [colors.brand, colors.brandLight] as const,
+  gradientColors = [colors.primary, colors.primaryLight] as const,
   imageUrl,
   variant = 'large',
 }: PromoBannerProps) {
@@ -65,7 +65,7 @@ export function PromoBanner({
           {buttonText && variant !== 'small' && (
             <View style={styles.button}>
               <Text style={styles.buttonText}>{buttonText}</Text>
-              <Ionicons name="arrow-forward" size={16} color={colors.brand} />
+              <Ionicons name="arrow-forward" size={16} color={colors.primary} />
             </View>
           )}
         </View>
@@ -86,19 +86,19 @@ export function HeroBanner({ onSellPress }: HeroBannerProps) {
   return (
     <View style={styles.heroContainer}>
       <LinearGradient
-        colors={[colors.brand, '#4A7266']}
+        colors={[colors.primary, colors.primaryDark]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.heroGradient}
       >
         <View style={styles.heroContent}>
           <View style={styles.heroText}>
-            <Text style={styles.heroTitle}>Moda que conta{'\n'}histórias</Text>
+            <Text style={styles.heroTitle}>Largou?{'\n'}Pegou!</Text>
             <Text style={styles.heroSubtitle}>
-              Compre e venda peças únicas de forma sustentável
+              Moda circular para um mundo melhor
             </Text>
             <Pressable style={styles.heroButton} onPress={onSellPress}>
-              <Text style={styles.heroButtonText}>Começar a vender</Text>
+              <Text style={styles.heroButtonText}>Bora largar!</Text>
               <Ionicons name="arrow-forward" size={18} color={colors.white} />
             </Pressable>
           </View>
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.brand,
+    color: colors.primary,
   },
   circle: {
     position: 'absolute',

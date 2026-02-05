@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
+import { colors } from '../theme';
 
 export function RegisterScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -63,7 +64,7 @@ export function RegisterScreen({ navigation }: any) {
     setLoading(true);
     try {
       await register({ name, email, password, phone });
-      navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+      navigation.reset({ index: 0, routes: [{ name: 'OnboardingQuiz' }] });
     } catch (error: any) {
       showAlert('Erro', error.message || 'Não foi possível criar a conta');
     } finally {
@@ -197,7 +198,7 @@ export function RegisterScreen({ navigation }: any) {
 
           {/* Register Button */}
           <Pressable onPress={handleRegister} disabled={loading}>
-            <LinearGradient colors={['#5D8A7D', '#4A7266']} style={styles.registerBtn}>
+            <LinearGradient colors={[colors.primary, colors.primaryDark]} style={styles.registerBtn}>
               <Text style={styles.registerBtnText}>
                 {loading ? 'Criando conta...' : 'Criar conta'}
               </Text>
@@ -259,9 +260,9 @@ const styles = StyleSheet.create({
   // Terms
   termsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: '#D4D4D4', alignItems: 'center', justifyContent: 'center' },
-  checkboxActive: { backgroundColor: '#5D8A7D', borderColor: '#5D8A7D' },
+  checkboxActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   termsText: { flex: 1, fontSize: 13, color: '#737373', lineHeight: 20 },
-  termsLink: { color: '#5D8A7D', fontWeight: '500' },
+  termsLink: { color: colors.primary, fontWeight: '500' },
 
   // Register Button
   registerBtn: { paddingVertical: 16, borderRadius: 12, alignItems: 'center', marginTop: 8 },
@@ -279,7 +280,7 @@ const styles = StyleSheet.create({
   // Login
   loginRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 24 },
   loginText: { fontSize: 14, color: '#737373' },
-  loginLink: { fontSize: 14, fontWeight: '600', color: '#5D8A7D' },
+  loginLink: { fontSize: 14, fontWeight: '600', color: colors.primary },
 });
 
 export default RegisterScreen;

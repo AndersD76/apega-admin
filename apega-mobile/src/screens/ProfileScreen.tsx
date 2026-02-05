@@ -8,6 +8,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../context/AuthContext';
 import { formatPrice } from '../utils/format';
 import { usersService } from '../api/users';
+import { colors } from '../theme';
 
 export function ProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -84,11 +85,11 @@ export function ProfileScreen({ navigation }: any) {
     }
   };
 
-  const menuItems = [
+  const menuItems: Array<{ icon: string; title: string; subtitle: string; screen: string; params: object; badge?: string }> = [
     { icon: 'pricetag-outline', title: 'Meus Anúncios', subtitle: 'Gerencie seus produtos', screen: 'MyProducts', params: {} },
     { icon: 'trending-up-outline', title: 'Minhas Vendas', subtitle: 'Acompanhe suas vendas', screen: 'Orders', params: { type: 'sales' } },
     { icon: 'bag-outline', title: 'Minhas Compras', subtitle: 'Histórico de compras', screen: 'Orders', params: { type: 'purchases' } },
-    { icon: 'heart-outline', title: 'Favoritos', subtitle: 'Peças salvas', screen: 'Favorites', params: {} },
+    { icon: 'heart-outline', title: 'Quero!', subtitle: 'Peças que você curtiu', screen: 'Favorites', params: {} },
     { icon: 'chatbubble-outline', title: 'Mensagens', subtitle: 'Conversas', screen: 'Messages', params: {} },
     { icon: 'wallet-outline', title: 'Carteira', subtitle: 'Saldo e saques', screen: 'Wallet', params: {} },
     { icon: 'location-outline', title: 'Endereços', subtitle: 'Endereços de entrega', screen: 'Addresses', params: {} },
@@ -100,7 +101,7 @@ export function ProfileScreen({ navigation }: any) {
   if (isLoading === true) {
     return (
       <View style={[styles.container, styles.loadingContainer, { paddingTop: insets.top }]}>
-        <ActivityIndicator size="large" color="#5D8A7D" />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Carregando...</Text>
       </View>
     );
@@ -112,11 +113,11 @@ export function ProfileScreen({ navigation }: any) {
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.guestContainer}>
           <View style={styles.guestIcon}>
-            <Ionicons name="person-outline" size={48} color="#5D8A7D" />
+            <Ionicons name="person-outline" size={48} color={colors.primary} />
           </View>
           <Text style={styles.guestTitle}>Entre na sua conta</Text>
           <Text style={styles.guestSubtitle}>
-            Faça login para acessar seus anúncios, compras e muito mais
+            Entra aí pra ver suas peças, compras e muito mais!
           </Text>
           <Pressable style={styles.loginBtn} onPress={() => navigation.navigate('Login')}>
             <Text style={styles.loginBtnText}>Entrar</Text>
@@ -138,7 +139,7 @@ export function ProfileScreen({ navigation }: any) {
           {bannerUrl ? (
             <Image source={{ uri: bannerUrl }} style={styles.bannerImage} contentFit="cover" />
           ) : (
-            <LinearGradient colors={['#5D8A7D', '#7BA396']} style={styles.bannerImage} />
+            <LinearGradient colors={[colors.primary, colors.primaryLight]} style={styles.bannerImage} />
           )}
 
           {/* Banner Edit Button */}
@@ -159,13 +160,13 @@ export function ProfileScreen({ navigation }: any) {
             <View style={styles.avatarWrap}>
               {uploadingAvatar ? (
                 <View style={styles.avatarPlaceholder}>
-                  <ActivityIndicator size="large" color="#5D8A7D" />
+                  <ActivityIndicator size="large" color={colors.primary} />
                 </View>
               ) : avatarUrl ? (
                 <Image source={{ uri: avatarUrl }} style={styles.avatar} contentFit="cover" />
               ) : (
                 <View style={styles.avatarPlaceholder}>
-                  <Ionicons name="person" size={48} color="#5D8A7D" />
+                  <Ionicons name="person" size={48} color={colors.primary} />
                 </View>
               )}
               <Pressable
@@ -306,23 +307,23 @@ const styles = StyleSheet.create({
 
   // Guest
   guestContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
-  guestIcon: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#E8F0ED', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+  guestIcon: { width: 100, height: 100, borderRadius: 50, backgroundColor: colors.primaryMuted, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
   guestTitle: { fontSize: 24, fontWeight: '700', color: '#1A1A1A', marginBottom: 8 },
   guestSubtitle: { fontSize: 15, color: '#737373', textAlign: 'center', marginBottom: 32, lineHeight: 22 },
-  loginBtn: { backgroundColor: '#5D8A7D', paddingHorizontal: 48, paddingVertical: 14, borderRadius: 28, marginBottom: 12 },
+  loginBtn: { backgroundColor: colors.primary, paddingHorizontal: 48, paddingVertical: 14, borderRadius: 28, marginBottom: 12 },
   loginBtnText: { fontSize: 16, fontWeight: '600', color: '#fff' },
   registerBtn: { paddingVertical: 14 },
-  registerBtnText: { fontSize: 15, fontWeight: '600', color: '#5D8A7D' },
+  registerBtnText: { fontSize: 15, fontWeight: '600', color: colors.primary },
 
   // Header with Banner
-  headerContainer: { position: 'relative', backgroundColor: '#5D8A7D', minHeight: 320 },
+  headerContainer: { position: 'relative', backgroundColor: colors.primary, minHeight: 320 },
   bannerImage: { position: 'absolute', top: 0, left: 0, right: 0, height: 160, zIndex: 0 },
   bannerEditBtn: { position: 'absolute', right: 16, width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center', zIndex: 10 },
   profileContent: { paddingHorizontal: 16, paddingBottom: 24, alignItems: 'center', zIndex: 1 },
   avatarWrap: { position: 'relative', marginBottom: 12 },
   avatar: { width: 100, height: 100, borderRadius: 50, borderWidth: 3, borderColor: '#fff' },
   avatarPlaceholder: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#fff' },
-  editAvatarBtn: { position: 'absolute', bottom: 0, right: 0, width: 28, height: 28, borderRadius: 14, backgroundColor: '#5D8A7D', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fff' },
+  editAvatarBtn: { position: 'absolute', bottom: 0, right: 0, width: 28, height: 28, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fff' },
   userName: { fontSize: 22, fontWeight: '700', color: '#fff', marginBottom: 4 },
   subscriptionBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, marginBottom: 8 },
   subscriptionBadgeFree: { backgroundColor: 'rgba(255,255,255,0.2)' },
@@ -350,7 +351,7 @@ const styles = StyleSheet.create({
   balanceCard: { marginHorizontal: 16, marginTop: 16, backgroundColor: '#fff', borderRadius: 16, padding: 16, elevation: 2, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' } as any,
   balanceHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   balanceLabel: { fontSize: 14, color: '#737373' },
-  withdrawBtn: { fontSize: 14, fontWeight: '600', color: '#5D8A7D' },
+  withdrawBtn: { fontSize: 14, fontWeight: '600', color: colors.primary },
   balanceValue: { fontSize: 28, fontWeight: '700', color: '#1A1A1A' },
 
   // Menu
@@ -361,7 +362,7 @@ const styles = StyleSheet.create({
   menuContent: { flex: 1 },
   menuTitle: { fontSize: 15, fontWeight: '500', color: '#1A1A1A' },
   menuSubtitle: { fontSize: 12, color: '#A3A3A3', marginTop: 2 },
-  menuBadge: { backgroundColor: '#5D8A7D', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, marginRight: 8 },
+  menuBadge: { backgroundColor: colors.primary, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, marginRight: 8 },
   menuBadgeText: { fontSize: 11, fontWeight: '700', color: '#fff' },
 
   // Logout

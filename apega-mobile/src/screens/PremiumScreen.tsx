@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
+import { colors } from '../theme';
 
 const PREMIUM_BENEFITS = [
   {
@@ -114,7 +115,7 @@ export function PremiumScreen({ navigation }: any) {
       setLoading(false);
       Alert.alert(
         'Em breve!',
-        'O pagamento via app estará disponível em breve.\n\nPor enquanto, entre em contato conosco para ativar seu Premium:\n\nWhatsApp: (54) 99999-9999\nEmail: premium@apegadesapega.com.br',
+        'O pagamento via app estará disponível em breve.\n\nPor enquanto, entre em contato conosco para ativar seu Premium:\n\nWhatsApp: (54) 99999-9999\nEmail: premium@largo.com.br',
         [
           { text: 'OK' },
           {
@@ -145,7 +146,7 @@ export function PremiumScreen({ navigation }: any) {
           </View>
           <Text style={styles.alreadyPremiumTitle}>Você é Premium!</Text>
           <Text style={styles.alreadyPremiumText}>
-            Aproveite todos os recursos exclusivos do Apega Premium
+            Aproveite todos os recursos exclusivos do Largô Premium
           </Text>
 
           <View style={styles.premiumStatusCard}>
@@ -155,11 +156,11 @@ export function PremiumScreen({ navigation }: any) {
                 <Text style={styles.premiumStatusBadgeText}>Ativo</Text>
               </View>
             </View>
-            {user?.subscription_expires_at && (
+            {(user as any)?.subscription_expires_at && (
               <View style={styles.premiumStatusRow}>
                 <Text style={styles.premiumStatusLabel}>Válido até</Text>
                 <Text style={styles.premiumStatusValue}>
-                  {new Date(user.subscription_expires_at).toLocaleDateString('pt-BR')}
+                  {new Date((user as any).subscription_expires_at).toLocaleDateString('pt-BR')}
                 </Text>
               </View>
             )}
@@ -194,7 +195,7 @@ export function PremiumScreen({ navigation }: any) {
           <View style={styles.heroIcon}>
             <Ionicons name="star" size={40} color="#F59E0B" />
           </View>
-          <Text style={styles.heroTitle}>Apega Premium</Text>
+          <Text style={styles.heroTitle}>Largô Premium</Text>
           <Text style={styles.heroSubtitle}>
             Desbloqueie recursos exclusivos e venda mais!
           </Text>
@@ -207,13 +208,13 @@ export function PremiumScreen({ navigation }: any) {
           {PREMIUM_BENEFITS.map((benefit, index) => (
             <View key={index} style={styles.benefitItem}>
               <View style={styles.benefitIcon}>
-                <Ionicons name={benefit.icon as any} size={24} color="#5D8A7D" />
+                <Ionicons name={benefit.icon as any} size={24} color={colors.primary} />
               </View>
               <View style={styles.benefitContent}>
                 <Text style={styles.benefitTitle}>{benefit.title}</Text>
                 <Text style={styles.benefitDesc}>{benefit.description}</Text>
               </View>
-              <Ionicons name="checkmark" size={24} color="#5D8A7D" />
+              <Ionicons name="checkmark" size={24} color={colors.primary} />
             </View>
           ))}
         </View>
@@ -245,7 +246,7 @@ export function PremiumScreen({ navigation }: any) {
                   {typeof benefit.premium === 'string' ? (
                     <Text style={[styles.comparisonValue, styles.comparisonValuePremium]}>{benefit.premium}</Text>
                   ) : (
-                    <Ionicons name="checkmark-circle" size={20} color="#5D8A7D" />
+                    <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
                   )}
                 </View>
               </View>
@@ -296,7 +297,7 @@ export function PremiumScreen({ navigation }: any) {
         {/* Subscribe Button */}
         <Pressable onPress={handleSubscribe} disabled={loading}>
           <LinearGradient
-            colors={['#5D8A7D', '#4A7266']}
+            colors={[colors.primary, colors.primaryDark]}
             style={styles.subscribeBtn}
           >
             {loading ? (
@@ -312,7 +313,7 @@ export function PremiumScreen({ navigation }: any) {
 
         {/* Guarantee */}
         <View style={styles.guaranteeSection}>
-          <Ionicons name="shield-checkmark" size={24} color="#5D8A7D" />
+          <Ionicons name="shield-checkmark" size={24} color={colors.primary} />
           <Text style={styles.guaranteeText}>
             Garantia de 7 dias. Cancele quando quiser.
           </Text>
@@ -345,7 +346,7 @@ const styles = StyleSheet.create({
   // Benefits
   benefitsSection: { marginBottom: 32 },
   benefitItem: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F5F5F5' },
-  benefitIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#E8F0ED', alignItems: 'center', justifyContent: 'center' },
+  benefitIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.primaryMuted, alignItems: 'center', justifyContent: 'center' },
   benefitContent: { flex: 1 },
   benefitTitle: { fontSize: 16, fontWeight: '600', color: '#1A1A1A', marginBottom: 2 },
   benefitDesc: { fontSize: 13, color: '#737373' },
@@ -355,24 +356,24 @@ const styles = StyleSheet.create({
   comparisonTable: { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#E8E8E8' },
   comparisonHeader: { flexDirection: 'row', backgroundColor: '#F5F5F5', paddingVertical: 12, paddingHorizontal: 16 },
   comparisonHeaderText: { flex: 1, fontSize: 13, fontWeight: '600', color: '#737373', textAlign: 'center' },
-  comparisonHeaderPremium: { color: '#5D8A7D' },
+  comparisonHeaderPremium: { color: colors.primary },
   comparisonRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#F5F5F5' },
   comparisonFeature: { flex: 1.2, fontSize: 13, color: '#1A1A1A' },
   comparisonCell: { flex: 0.8, alignItems: 'center' },
-  comparisonCellPremium: { backgroundColor: '#E8F0ED', marginVertical: -14, paddingVertical: 14, marginRight: -16, paddingRight: 16 },
+  comparisonCellPremium: { backgroundColor: colors.primaryMuted, marginVertical: -14, paddingVertical: 14, marginRight: -16, paddingRight: 16 },
   comparisonValue: { fontSize: 12, color: '#737373', fontWeight: '500' },
-  comparisonValuePremium: { color: '#5D8A7D', fontWeight: '600' },
+  comparisonValuePremium: { color: colors.primary, fontWeight: '600' },
 
   // Plans
   plansSection: { marginBottom: 24 },
   plansGrid: { flexDirection: 'row', gap: 12 },
   planCard: { flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 16, borderWidth: 2, borderColor: '#E8E8E8', position: 'relative' },
-  planCardActive: { borderColor: '#5D8A7D', backgroundColor: '#E8F0ED' },
+  planCardActive: { borderColor: colors.primary, backgroundColor: colors.primaryMuted },
   planCardPopular: {},
   popularBadge: { position: 'absolute', top: -10, left: '50%', transform: [{ translateX: -45 }], backgroundColor: '#F59E0B', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
   popularBadgeText: { fontSize: 11, fontWeight: '600', color: '#fff' },
   planRadio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: '#D4D4D4', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
-  planRadioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#5D8A7D' },
+  planRadioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.primary },
   planName: { fontSize: 16, fontWeight: '600', color: '#1A1A1A', marginBottom: 8 },
   planPriceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4, marginBottom: 4 },
   planOriginalPrice: { fontSize: 14, color: '#A3A3A3', textDecorationLine: 'line-through' },
@@ -400,7 +401,7 @@ const styles = StyleSheet.create({
   premiumStatusValue: { fontSize: 14, fontWeight: '600', color: '#1A1A1A' },
   premiumStatusBadge: { backgroundColor: '#D1FAE5', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
   premiumStatusBadgeText: { fontSize: 13, fontWeight: '600', color: '#10B981' },
-  managePlanBtn: { backgroundColor: '#5D8A7D', paddingHorizontal: 32, paddingVertical: 14, borderRadius: 28 },
+  managePlanBtn: { backgroundColor: colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 28 },
   managePlanBtnText: { fontSize: 16, fontWeight: '600', color: '#fff' },
 });
 

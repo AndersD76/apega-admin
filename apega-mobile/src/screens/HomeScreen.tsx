@@ -21,25 +21,30 @@ import { Image } from 'expo-image';
 import { productsService, cartService, favoritesService } from '../api';
 import { formatPrice } from '../utils/format';
 import { useAuth } from '../context/AuthContext';
+import { colors } from '../theme';
+import { MICROCOPY, CATEGORIES as APP_CATEGORIES } from '../constants';
+import { LookCard, Look } from '../components/LookCard';
+import { LOOK_DISCOUNT_PERCENT } from '../constants/looks';
+import { ProductListSkeleton } from '../components/ProductListSkeleton';
 
 // Hero carousel slides
 const HERO_SLIDES = [
   {
     image: require('../../assets/hero/hero1.png'),
     tag: 'MODA SUSTENTÁVEL',
-    title: 'Seu estilo,\nnova história',
+    title: 'Largou?\nPegou!',
     subtitle: 'Peças únicas com até 80% off',
   },
   {
     image: require('../../assets/hero/hero2.png'),
     tag: 'NOVIDADES',
-    title: 'Renove seu\nguarda-roupa',
+    title: 'Acabaram\nde largar',
     subtitle: 'As melhores marcas por menos',
   },
   {
     image: require('../../assets/hero/hero3.png'),
-    tag: 'DESAPEGUE',
-    title: 'Venda suas\npeças paradas',
+    tag: 'LARGUE JÁ',
+    title: 'Largue suas\npeças paradas',
     subtitle: 'Transforme em dinheiro fácil',
   },
 ];
@@ -53,11 +58,10 @@ const CATEGORY_IMAGES = {
 };
 
 const CATEGORIES = [
-  { id: 'roupas', name: 'Roupas', icon: 'shirt', image: CATEGORY_IMAGES.roupas },
-  { id: 'bolsas', name: 'Bolsas', icon: 'bag-handle', image: CATEGORY_IMAGES.bolsas },
-  { id: 'calcados', name: 'Calçados', icon: 'footsteps', image: CATEGORY_IMAGES.calcados },
-  { id: 'acessorios', name: 'Acessórios', icon: 'watch', image: CATEGORY_IMAGES.acessorios },
-  { id: 'joias', name: 'Joias', icon: 'diamond', image: CATEGORY_IMAGES.joias },
+  { id: 'feminino', name: 'Feminino', icon: 'woman', color: colors.catFeminino },
+  { id: 'masculino', name: 'Masculino', icon: 'man', color: colors.catMasculino },
+  { id: 'infantil', name: 'Infantil', icon: 'happy', color: colors.catInfantil },
+  { id: 'acessorios', name: 'Acessórios', icon: 'bag-handle', color: colors.catAcessorios },
 ];
 
 const COLLECTIONS = [
@@ -75,12 +79,54 @@ export function HomeScreen({ navigation }: any) {
   const { user, isAuthenticated } = useAuth();
   const [products, setProducts] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [cartCount, setCartCount] = useState(0);
   const [activeHeroSlide, setActiveHeroSlide] = useState(0);
   const heroScrollRef = useRef<ScrollView>(null);
+  const [looks, setLooks] = useState<Look[]>([]);
+
+  // Mock looks data - TODO: Replace with API call
+  useEffect(() => {
+    const mockLooks: Look[] = [
+      {
+        id: '1',
+        name: 'Look Verao Casual',
+        seller_id: '1',
+        seller_name: 'Maria Silva',
+        products: [
+          { id: '1', title: 'Vestido Floral', price: 150, image_url: 'https://images.unsplash.com/photo-1572804013427-4d7ca7268217?w=400' },
+          { id: '2', title: 'Bolsa de Palha', price: 80, image_url: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400' },
+          { id: '3', title: 'Sandalia Rasteira', price: 60, image_url: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400' },
+        ],
+      },
+      {
+        id: '2',
+        name: 'Work from Home',
+        seller_id: '2',
+        seller_name: 'Julia Santos',
+        products: [
+          { id: '4', title: 'Blazer Linho', price: 180, image_url: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400' },
+          { id: '5', title: 'Calca Alfaiataria', price: 120, image_url: 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=400' },
+        ],
+      },
+      {
+        id: '3',
+        name: 'Festival Look',
+        seller_id: '3',
+        seller_name: 'Ana Costa',
+        products: [
+          { id: '6', title: 'Top Croche', price: 90, image_url: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400' },
+          { id: '7', title: 'Saia Midi', price: 100, image_url: 'https://images.unsplash.com/photo-1583496661160-fb5886a0uj7a?w=400' },
+          { id: '8', title: 'Bota Cano Curto', price: 200, image_url: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400' },
+          { id: '9', title: 'Bolsa Franjas', price: 70, image_url: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400' },
+        ],
+      },
+    ];
+    setLooks(mockLooks);
+  }, []);
 
   // Auto-scroll hero carousel
   useEffect(() => {
@@ -104,11 +150,10 @@ export function HomeScreen({ navigation }: any) {
 
   const FILTER_CATEGORIES = [
     { id: 'all', name: 'Todos' },
-    { id: 'roupas', name: 'Roupas' },
-    { id: 'bolsas', name: 'Bolsas' },
-    { id: 'calcados', name: 'Calçados' },
+    { id: 'feminino', name: 'Feminino' },
+    { id: 'masculino', name: 'Masculino' },
+    { id: 'infantil', name: 'Infantil' },
     { id: 'acessorios', name: 'Acessórios' },
-    { id: 'joias', name: 'Joias' },
   ];
 
   const toggleFavorite = async (productId: string) => {
@@ -159,12 +204,14 @@ export function HomeScreen({ navigation }: any) {
 
   const fetchData = useCallback(async () => {
     try {
+      setLoading(true);
       const res = await productsService.getProducts({ limit: 20 });
       setProducts(res.products || []);
     } catch (error) {
       console.error('Error fetching products:', error);
       setProducts([]);
     } finally {
+      setLoading(false);
       setRefreshing(false);
     }
   }, []);
@@ -250,7 +297,7 @@ export function HomeScreen({ navigation }: any) {
     <View style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#5D8A7D" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
       >
         {/* HERO CAROUSEL */}
         <View style={styles.heroContainer}>
@@ -269,8 +316,7 @@ export function HomeScreen({ navigation }: any) {
                   {index === activeHeroSlide && (
                     <View style={styles.header}>
                       <View style={styles.logoWrap}>
-                        <Text style={styles.logo}>apega</Text>
-                        <Text style={styles.logoLight}>desapega</Text>
+                        <Text style={styles.logo}>{MICROCOPY.appName}</Text>
                       </View>
                       <View style={styles.headerIcons}>
                         <Pressable style={styles.iconBtn} onPress={() => navigation.navigate('Messages')}>
@@ -319,8 +365,11 @@ export function HomeScreen({ navigation }: any) {
                 <Ionicons name="close-circle" size={20} color="#A3A3A3" />
               </Pressable>
             )}
+            <Pressable style={styles.discoveryBtn} onPress={() => navigation.navigate('Discovery')}>
+              <Ionicons name="play-circle" size={20} color="#fff" />
+            </Pressable>
             <Pressable style={styles.filterBtn} onPress={() => navigation.navigate('Search')}>
-              <Ionicons name="options-outline" size={20} color="#5D8A7D" />
+              <Ionicons name="options-outline" size={20} color={colors.primary} />
             </Pressable>
           </View>
         </View>
@@ -354,15 +403,32 @@ export function HomeScreen({ navigation }: any) {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesRow}>
             {CATEGORIES.map((cat) => (
               <Pressable key={cat.id} style={styles.categoryCard} onPress={() => navigation.navigate('Search', { categoryId: cat.id, categoryName: cat.name })}>
-                <View style={styles.categoryImageWrap}>
-                  <Image source={cat.image} style={styles.categoryImg} contentFit="cover" />
-                  <LinearGradient colors={['transparent', 'rgba(0,0,0,0.6)']} style={styles.categoryOverlay} />
+                <View style={[styles.categoryImageWrap, { borderColor: cat.color, backgroundColor: cat.color + '15' }]}>
+                  <Ionicons name={cat.icon as any} size={32} color={cat.color} />
                 </View>
                 <Text style={styles.categoryName}>{cat.name}</Text>
               </Pressable>
             ))}
           </ScrollView>
         </View>
+
+        {/* Garimpeiro Banner */}
+        <Pressable style={styles.garimpeiroBanner} onPress={() => navigation.navigate('Search', { garimpeiro: true })}>
+          <LinearGradient colors={['#D4A574', '#C99A5E']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.garimpeiroGrad}>
+            <View style={styles.garimpeiroLeft}>
+              <View style={styles.garimpeiroIconWrap}>
+                <Ionicons name="time" size={24} color="#fff" />
+              </View>
+              <View style={styles.garimpeiroContent}>
+                <Text style={styles.garimpeiroTitle}>Modo Garimpeiro</Text>
+                <Text style={styles.garimpeiroSubtitle}>Veja o que acabou de chegar!</Text>
+              </View>
+            </View>
+            <View style={styles.garimpeiroBtn}>
+              <Ionicons name="arrow-forward" size={20} color="#D4A574" />
+            </View>
+          </LinearGradient>
+        </Pressable>
 
         {/* Promo Banner */}
         <Pressable style={styles.promoBanner} onPress={() => navigation.navigate('Search', { showOffers: true })}>
@@ -380,7 +446,7 @@ export function HomeScreen({ navigation }: any) {
             <Text style={styles.promoSubtitle}>Peças selecionadas</Text>
             <View style={styles.promoBtn}>
               <Text style={styles.promoBtnText}>Ver ofertas</Text>
-              <Ionicons name="arrow-forward" size={14} color="#5D8A7D" />
+              <Ionicons name="arrow-forward" size={14} color={colors.primary} />
             </View>
           </View>
         </Pressable>
@@ -418,10 +484,39 @@ export function HomeScreen({ navigation }: any) {
           </Pressable>
         )}
 
+        {/* Looks Completos Section */}
+        {looks.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHead}>
+              <View>
+                <View style={styles.looksTitleRow}>
+                  <Text style={styles.looksTitleIcon}>+</Text>
+                  <Text style={styles.sectionTitle}>Looks Completos</Text>
+                </View>
+                <Text style={styles.sectionSub}>Combos com {LOOK_DISCOUNT_PERCENT}% OFF</Text>
+              </View>
+              <Pressable style={styles.seeAllBtn} onPress={() => navigation.navigate('Search', { showLooks: true })}>
+                <Text style={styles.seeAll}>Ver todos</Text>
+                <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+              </Pressable>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.looksRow}>
+              {looks.map((look) => (
+                <LookCard
+                  key={look.id}
+                  look={look}
+                  onPress={() => navigation.navigate('LookDetail', { lookId: look.id })}
+                  width={180}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
         {/* Collections */}
         <View style={styles.section}>
           <View style={styles.sectionHead}>
-            <Text style={styles.sectionTitle}>Coleções</Text>
+            <Text style={styles.sectionTitle}>Colecoes</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.collectionsRow}>
             {COLLECTIONS.map((col) => (
@@ -441,7 +536,7 @@ export function HomeScreen({ navigation }: any) {
           <View style={styles.sectionHead}>
             <View>
               <Text style={styles.sectionTitle}>
-                {searchQuery ? `Resultados para "${searchQuery}"` : 'Novidades ✨'}
+                {searchQuery ? `Resultados para "${searchQuery}"` : MICROCOPY.sections.newArrivals}
               </Text>
               <Text style={styles.sectionSub}>
                 {searchQuery ? `${displayProducts.length} produtos encontrados` : 'Acabou de chegar'}
@@ -450,15 +545,17 @@ export function HomeScreen({ navigation }: any) {
             {!searchQuery && (
               <Pressable style={styles.seeAllBtn} onPress={() => navigation.navigate('Search')}>
                 <Text style={styles.seeAll}>Ver tudo</Text>
-                <Ionicons name="chevron-forward" size={16} color="#5D8A7D" />
+                <Ionicons name="chevron-forward" size={16} color={colors.primary} />
               </Pressable>
             )}
           </View>
 
-          {displayProducts.length === 0 ? (
+          {loading ? (
+            <ProductListSkeleton count={6} />
+          ) : displayProducts.length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="search-outline" size={48} color="#D4D4D4" />
-              <Text style={styles.emptyTitle}>Nenhum resultado</Text>
+              <Text style={styles.emptyTitle}>{MICROCOPY.empty.search}</Text>
               <Text style={styles.emptyText}>Tente buscar por outro termo</Text>
             </View>
           ) : (
@@ -533,25 +630,24 @@ export function HomeScreen({ navigation }: any) {
 
         {/* Sell CTA */}
         <Pressable style={styles.sellCta} onPress={() => navigation.navigate('Sell')}>
-          <LinearGradient colors={['#5D8A7D', '#4A7266']} style={styles.sellCtaGrad}>
+          <LinearGradient colors={[colors.primary, colors.primaryDark]} style={styles.sellCtaGrad}>
             <View style={styles.sellCtaContent}>
-              <Text style={styles.sellCtaTitle}>Venda suas peças</Text>
+              <Text style={styles.sellCtaTitle}>Largue suas peças</Text>
               <Text style={styles.sellCtaSub}>Transforme o que não usa em dinheiro</Text>
             </View>
             <View style={styles.sellCtaBtn}>
-              <Ionicons name="add" size={22} color="#5D8A7D" />
+              <Ionicons name="add" size={22} color={colors.primary} />
             </View>
           </LinearGradient>
         </Pressable>
 
         {/* Footer */}
-        <LinearGradient colors={['#f8f9fa', '#e9ecef']} style={styles.footer}>
+        <LinearGradient colors={[colors.background, '#F5F0E8']} style={styles.footer}>
           <View style={styles.footerTop}>
             <View style={styles.footerLogoWrap}>
-              <Text style={styles.footerLogo}>apega</Text>
-              <Text style={styles.footerLogoLight}>desapega</Text>
+              <Text style={styles.footerLogo}>{MICROCOPY.appName}</Text>
             </View>
-            <Text style={styles.footerSlogan}>Moda circular para um mundo melhor</Text>
+            <Text style={styles.footerSlogan}>{MICROCOPY.slogan}</Text>
           </View>
 
           <View style={styles.footerDivider} />
@@ -560,7 +656,7 @@ export function HomeScreen({ navigation }: any) {
             <View style={styles.footerCol}>
               <Text style={styles.footerColTitle}>Navegação</Text>
               <Pressable onPress={() => navigation.navigate('Search')}><Text style={styles.footerLink}>Explorar</Text></Pressable>
-              <Pressable onPress={() => navigation.navigate('Sell')}><Text style={styles.footerLink}>Vender</Text></Pressable>
+              <Pressable onPress={() => navigation.navigate('Sell')}><Text style={styles.footerLink}>Largar</Text></Pressable>
               <Pressable onPress={() => navigation.navigate('Premium')}><Text style={styles.footerLink}>Premium</Text></Pressable>
             </View>
             <View style={styles.footerCol}>
@@ -571,11 +667,11 @@ export function HomeScreen({ navigation }: any) {
             </View>
             <View style={styles.footerCol}>
               <Text style={styles.footerColTitle}>Contato</Text>
-              <Pressable onPress={() => Linking.openURL('https://instagram.com/apegadesapegars')} style={styles.footerSocialLink}>
+              <Pressable onPress={() => Linking.openURL('https://instagram.com/largo.app')} style={styles.footerSocialLink}>
                 <Ionicons name="logo-instagram" size={16} color="#E1306C" />
                 <Text style={styles.footerLink}>Instagram</Text>
               </Pressable>
-              <Pressable onPress={() => Linking.openURL('https://wa.me/5554999096202')} style={styles.footerSocialLink}>
+              <Pressable onPress={() => Linking.openURL('https://wa.me/5511999999999')} style={styles.footerSocialLink}>
                 <Ionicons name="logo-whatsapp" size={16} color="#25D366" />
                 <Text style={styles.footerLink}>WhatsApp</Text>
               </Pressable>
@@ -585,10 +681,10 @@ export function HomeScreen({ navigation }: any) {
           <View style={styles.footerDivider} />
 
           <View style={styles.footerBottom}>
-            <Text style={styles.copyright}>© 2025 Apega Desapega</Text>
+            <Text style={styles.copyright}>{MICROCOPY.footer.copyright}</Text>
             <View style={styles.footerBadge}>
-              <Ionicons name="leaf" size={12} color="#5D8A7D" />
-              <Text style={styles.footerBadgeText}>Moda Sustentável</Text>
+              <Ionicons name="leaf" size={12} color={colors.success} />
+              <Text style={styles.footerBadgeText}>{MICROCOPY.footer.tagline}</Text>
             </View>
           </View>
         </LinearGradient>
@@ -598,7 +694,7 @@ export function HomeScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: colors.background },
 
   // Hero Carousel
   heroContainer: { position: 'relative' },
@@ -614,7 +710,7 @@ const styles = StyleSheet.create({
   cartBadgeText: { fontSize: 10, fontWeight: '700', color: '#fff' },
   heroContent: {},
   heroTag: { backgroundColor: '#fff', alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20, marginBottom: 12 },
-  heroTagText: { fontSize: 11, fontWeight: '700', color: '#5D8A7D', letterSpacing: 1 },
+  heroTagText: { fontSize: 11, fontWeight: '700', color: colors.primary, letterSpacing: 1 },
   heroTitle: { fontSize: 36, fontWeight: '800', color: '#fff', lineHeight: 42 },
   heroSubtitle: { fontSize: 15, color: 'rgba(255,255,255,0.9)', marginTop: 8 },
 
@@ -623,7 +719,8 @@ const styles = StyleSheet.create({
   searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 28, paddingHorizontal: 16, height: 52, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', elevation: 8, gap: 8 } as any,
   searchInput: { flex: 1, fontSize: 15, color: '#1A1A1A', height: 44 },
   clearBtn: { padding: 4 },
-  filterBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#E8F0ED', alignItems: 'center', justifyContent: 'center' },
+  discoveryBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginRight: 6 },
+  filterBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.primaryMuted, alignItems: 'center', justifyContent: 'center' },
   emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40 },
   emptyTitle: { fontSize: 16, fontWeight: '600', color: '#525252', marginTop: 12 },
   emptyText: { fontSize: 14, color: '#A3A3A3', marginTop: 4 },
@@ -632,7 +729,7 @@ const styles = StyleSheet.create({
   filterChipsWrap: { marginTop: 16, maxHeight: 44 },
   filterChipsContent: { paddingHorizontal: 16, gap: 8 },
   filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: '#fff', borderWidth: 1, borderColor: '#E8E8E8' },
-  filterChipActive: { backgroundColor: '#5D8A7D', borderColor: '#5D8A7D' },
+  filterChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   filterChipText: { fontSize: 13, fontWeight: '500', color: '#525252' },
   filterChipTextActive: { color: '#fff' },
 
@@ -641,27 +738,35 @@ const styles = StyleSheet.create({
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', paddingHorizontal: 16, marginBottom: 14 },
   sectionTitle: { fontSize: 20, fontWeight: '700', color: '#1A1A1A' },
   sectionSub: { fontSize: 13, color: '#737373', marginTop: 2 },
-  seeAll: { fontSize: 14, fontWeight: '600', color: '#5D8A7D' },
+  seeAll: { fontSize: 14, fontWeight: '600', color: colors.primary },
   seeAllBtn: { flexDirection: 'row', alignItems: 'center', gap: 2 },
 
   // Categories
   categoriesRow: { paddingHorizontal: 16, gap: 14 },
   categoryCard: { alignItems: 'center' },
-  categoryImageWrap: { width: 80, height: 80, borderRadius: 40, overflow: 'hidden', backgroundColor: '#F8F8F8', borderWidth: 3, borderColor: '#5D8A7D', marginBottom: 8 },
-  categoryImg: { width: '100%', height: '100%' },
-  categoryOverlay: { display: 'none' },
+  categoryImageWrap: { width: 80, height: 80, borderRadius: 40, overflow: 'hidden', backgroundColor: colors.surface, borderWidth: 3, borderColor: colors.primary, marginBottom: 8, alignItems: 'center', justifyContent: 'center' },
   categoryName: { fontSize: 12, fontWeight: '600', color: '#1A1A1A', textAlign: 'center' },
+
+  // Garimpeiro Banner
+  garimpeiroBanner: { marginHorizontal: 16, marginTop: 20, borderRadius: 16, overflow: 'hidden' },
+  garimpeiroGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16, paddingHorizontal: 16 },
+  garimpeiroLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  garimpeiroIconWrap: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  garimpeiroContent: { flex: 1 },
+  garimpeiroTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  garimpeiroSubtitle: { fontSize: 13, color: 'rgba(255,255,255,0.9)', marginTop: 2 },
+  garimpeiroBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
 
   // Promo Banner
   promoBanner: { marginHorizontal: 16, marginTop: 24, borderRadius: 20, overflow: 'hidden', height: 200, position: 'relative' },
   promoImage: { width: '100%', height: '100%', borderRadius: 20, position: 'absolute' },
   promoOverlay: { flex: 1, padding: 20, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.3)' },
-  promoTag: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#5D8A7D', alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, marginBottom: 8 },
+  promoTag: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.primary, alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, marginBottom: 8 },
   promoTagText: { fontSize: 10, fontWeight: '700', color: '#fff', letterSpacing: 0.5 },
   promoTitle: { fontSize: 32, fontWeight: '900', color: '#fff', marginBottom: 2 },
   promoSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.9)', marginBottom: 12 },
   promoBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fff', alignSelf: 'flex-start', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20 },
-  promoBtnText: { fontSize: 13, fontWeight: '700', color: '#5D8A7D' },
+  promoBtnText: { fontSize: 13, fontWeight: '700', color: colors.primary },
 
   // Premium Banner
   premiumBanner: { marginHorizontal: 16, marginTop: 16, borderRadius: 16, overflow: 'hidden' },
@@ -677,6 +782,11 @@ const styles = StyleSheet.create({
   premiumBtn: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20 },
   premiumBtnText: { fontSize: 13, fontWeight: '700', color: '#1a1a1a' },
 
+  // Looks Section
+  looksTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  looksTitleIcon: { fontSize: 20, fontWeight: '700', color: colors.lilas },
+  looksRow: { paddingHorizontal: 16, gap: 12 },
+
   // Collections
   collectionsRow: { paddingHorizontal: 16, gap: 12 },
   collectionCard: { width: 160, height: 200, borderRadius: 16, overflow: 'hidden' },
@@ -687,7 +797,7 @@ const styles = StyleSheet.create({
 
   // Products
   productsGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16 },
-  productCard: { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', elevation: 3 } as any,
+  productCard: { backgroundColor: colors.surface, borderRadius: 16, overflow: 'hidden', marginBottom: 12, boxShadow: '0 2px 8px rgba(45,41,38,0.08)', elevation: 3 } as any,
   productImgWrap: { aspectRatio: 0.85, position: 'relative' },
   productImg: { width: '100%', height: '100%' },
   heartBtn: { position: 'absolute', top: 8, right: 8, width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
@@ -696,7 +806,7 @@ const styles = StyleSheet.create({
   premiumTag: { position: 'absolute', bottom: 8, left: 8, width: 20, height: 20, borderRadius: 10, backgroundColor: '#F59E0B', alignItems: 'center', justifyContent: 'center' },
   productInfo: { padding: 12 },
   brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  productBrand: { fontSize: 10, fontWeight: '700', color: '#5D8A7D', textTransform: 'uppercase', letterSpacing: 0.5 },
+  productBrand: { fontSize: 10, fontWeight: '700', color: colors.primary, textTransform: 'uppercase', letterSpacing: 0.5 },
   premiumSellerBadge: { flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: '#FEF3C7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 },
   premiumSellerText: { fontSize: 8, fontWeight: '600', color: '#F59E0B' },
   productName: { fontSize: 13, fontWeight: '500', color: '#1A1A1A', marginTop: 2 },
@@ -705,8 +815,8 @@ const styles = StyleSheet.create({
   oldPrice: { fontSize: 12, color: '#A3A3A3', textDecorationLine: 'line-through' },
   sellerRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
   sellerText: { fontSize: 11, color: '#A3A3A3' },
-  loadMoreBtn: { alignSelf: 'center', marginTop: 16, paddingHorizontal: 32, paddingVertical: 14, borderWidth: 2, borderColor: '#5D8A7D', borderRadius: 28 },
-  loadMoreText: { fontSize: 14, fontWeight: '600', color: '#5D8A7D' },
+  loadMoreBtn: { alignSelf: 'center', marginTop: 16, paddingHorizontal: 32, paddingVertical: 14, borderWidth: 2, borderColor: colors.primary, borderRadius: 28 },
+  loadMoreText: { fontSize: 14, fontWeight: '600', color: colors.primary },
 
   // Sell CTA
   sellCta: { marginHorizontal: 16, marginTop: 32, borderRadius: 16, overflow: 'hidden' },
@@ -720,8 +830,7 @@ const styles = StyleSheet.create({
   footer: { marginTop: 40, paddingVertical: 28, paddingHorizontal: 20 },
   footerTop: { alignItems: 'center', marginBottom: 20 },
   footerLogoWrap: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 6 },
-  footerLogo: { fontSize: 22, fontWeight: '800', color: '#5D8A7D' },
-  footerLogoLight: { fontSize: 22, fontWeight: '300', color: '#A3A3A3' },
+  footerLogo: { fontSize: 24, fontWeight: '800', color: colors.primary, fontFamily: 'Nunito_800ExtraBold' },
   footerSlogan: { fontSize: 13, color: '#737373', textAlign: 'center' },
   footerDivider: { height: 1, backgroundColor: '#ddd', marginVertical: 16 },
   footerMiddle: { flexDirection: 'row', justifyContent: 'space-between' },
@@ -731,8 +840,8 @@ const styles = StyleSheet.create({
   footerSocialLink: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   footerBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   copyright: { fontSize: 11, color: '#A3A3A3' },
-  footerBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#E8F5E9', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  footerBadgeText: { fontSize: 11, fontWeight: '600', color: '#5D8A7D' },
+  footerBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.successLight, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  footerBadgeText: { fontSize: 11, fontWeight: '600', color: colors.success },
 });
 
 export default HomeScreen;

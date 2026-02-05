@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { HomeScreen, LoginScreen, ProfileScreen } from '../screens';
+import { HomeScreen, LoginScreen, ProfileScreen, DiscoveryFeedScreen, CreateLookScreen, LookDetailScreen } from '../screens';
 import { colors } from '../theme';
 
 export type RootStackParamList = {
@@ -10,6 +10,7 @@ export type RootStackParamList = {
   Home: undefined;
   Profile: undefined;
   Search: undefined;
+  Discovery: undefined;
   Favorites: undefined;
   NewItem: undefined;
   ProductDetail: { productId: string };
@@ -22,6 +23,8 @@ export type RootStackParamList = {
   Addresses: undefined;
   Settings: undefined;
   Help: undefined;
+  CreateLook: { productId?: string };
+  LookDetail: { lookId: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -46,6 +49,11 @@ export function AppNavigator() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="Search" component={PlaceholderScreen} />
+        <Stack.Screen
+          name="Discovery"
+          component={DiscoveryFeedScreen}
+          options={{ animation: 'slide_from_bottom' }}
+        />
         <Stack.Screen name="Favorites" component={PlaceholderScreen} />
         <Stack.Screen name="NewItem" component={PlaceholderScreen} />
         <Stack.Screen name="ProductDetail" component={PlaceholderScreen} />
@@ -58,6 +66,8 @@ export function AppNavigator() {
         <Stack.Screen name="Addresses" component={PlaceholderScreen} />
         <Stack.Screen name="Settings" component={PlaceholderScreen} />
         <Stack.Screen name="Help" component={PlaceholderScreen} />
+        <Stack.Screen name="CreateLook" component={CreateLookScreen} />
+        <Stack.Screen name="LookDetail" component={LookDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
