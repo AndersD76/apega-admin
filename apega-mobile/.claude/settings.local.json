@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx expo doctor)",
+      "Bash(npm run lint:*)",
+      "Bash(npx expo export:*)",
+      "Bash(dir:*)",
+      "Bash(npx eslint:*)",
+      "Bash(node --check:*)",
+      "Bash(for file in src/routes/*.js)",
+      "Bash(do echo \"Checking $file...\")",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(for file in src/services/*.js src/middleware/*.js src/config/*.js)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: complete Largô rebrand with new features\n\nMajor rebrand from Apega Desapega to Largô:\n- New terracotta color palette \\(#C75C3A\\)\n- Dark mode support with ThemeContext\n- Nunito font family integration\n\nNew Features:\n- OnboardingQuizScreen: 4-step style quiz\n- DiscoveryFeedScreen: TikTok/Reels-style feed\n- CreateLookScreen/LookDetailScreen: Complete looks system\n- OfferModal/OfferMessage: Chat offer system with accept/reject/counter\n- SellerBadges: Largômetro badge system \\(6 badges\\)\n- Skeleton loading components for better UX\n\nNew Constants:\n- categories.ts: 4 main categories with subcategories\n- sizes.ts: Dynamic sizing system per category\n- conditions.ts: Item condition options\n- badges.ts: Seller badge definitions\n- microcopy.ts: Brand-consistent copy\n- looks.ts: Looks/combo system constants\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(curl:*)",
+      "Bash(gh api:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(npm ls:*)",
+      "Bash(npx expo install:*)",
+      "Bash(xcopy /E /Y dist* \"..\\\\apega-backend\\\\public\"\")",
+      "Bash(git restore:*)",
+      "Bash(git checkout:*)",
+      "Bash(ls:*)"
+    ]
+  }
+}

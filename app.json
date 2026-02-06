@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "c03d1ade-f261-4ee2-a674-d3593f008a0f"
+      }
+    },
+    "android": {
+      "package": "com.andersd1976.apegaadmindeploy"
+    }
+  }
+}

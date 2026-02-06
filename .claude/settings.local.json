@@ -101,7 +101,19 @@
       "Bash(git ls-remote:*)",
       "Bash(git checkout:*)",
       "Bash(ls -la \"e:\\\\APPS EM DESENVOLVIMENTO\\\\App Brechó\\\\apega-admin\\\\dist\\\\assets\"\" 2>/dev/null || dir \"e:APPS EM DESENVOLVIMENTOApp Brechóapega-admindistassets \")",
-      "Bash(ls \"e:\\\\APPS EM DESENVOLVIMENTO\\\\App Brechó\\\\apega-mobile\\\\src\\\\screens\"\" 2>/dev/null || dir \"e:APPS EM DESENVOLVIMENTOApp Brechóapega-mobilesrcscreens \")"
+      "Bash(ls \"e:\\\\APPS EM DESENVOLVIMENTO\\\\App Brechó\\\\apega-mobile\\\\src\\\\screens\"\" 2>/dev/null || dir \"e:APPS EM DESENVOLVIMENTOApp Brechóapega-mobilesrcscreens \")",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_jLKi14GrXfCt@ep-polished-fire-a49edkh7-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\" node:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_jLKi14GrXfCt@ep-polished-fire-a49edkh7-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\" node -e:*)",
+      "Bash(node -e:*)",
+      "Bash(eas build:*)",
+      "Bash(eas init:*)",
+      "Bash(eas whoami:*)",
+      "Bash(yes:*)",
+      "Bash(eas logout:*)",
+      "Bash(npx expo-doctor)",
+      "Bash(eas build:list:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_jLKi14GrXfCt@ep-polished-fire-a49edkh7-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\" node -e \"\nconst { neon } = require\\(''@neondatabase/serverless''\\);\n\nasync function checkColumns\\(\\) {\n  const sql = neon\\(process.env.DATABASE_URL\\);\n  const cols = await sql\\\\`SELECT column_name FROM information_schema.columns WHERE table_name = ''users'' AND column_name LIKE ''%pass%''\\\\`;\n  console.log\\(cols\\);\n}\ncheckColumns\\(\\);\n\")",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

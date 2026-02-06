@@ -1,0 +1,2042 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ApegaDesapega - Pitch Deck Completo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand: #5D8A7D;
+            --brand-light: #7BA396;
+            --brand-dark: #4A7266;
+            --brand-muted: #E8F0ED;
+            --accent: #EC4899;
+            --accent-light: #FCE7F3;
+            --success: #10B981;
+            --success-light: #D1FAE5;
+            --warning: #F59E0B;
+            --warning-light: #FEF3C7;
+            --error: #EF4444;
+            --gray-50: #FAFAFA;
+            --gray-100: #F5F5F5;
+            --gray-200: #E8E8E8;
+            --gray-300: #D4D4D4;
+            --gray-400: #A3A3A3;
+            --gray-500: #737373;
+            --gray-600: #525252;
+            --gray-700: #404040;
+            --gray-800: #262626;
+            --black: #1A1A1A;
+            --white: #FFFFFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--white);
+            color: var(--black);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .nav-logo {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--brand);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .nav-links a {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--brand);
+        }
+
+        /* Sections */
+        .slide {
+            min-height: 100vh;
+            padding: 100px 60px 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .slide-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--brand-dark);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slide-title .number {
+            background: var(--brand);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .slide-subtitle {
+            font-size: 16px;
+            color: var(--gray-500);
+            margin-bottom: 40px;
+            max-width: 700px;
+        }
+
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+            color: white;
+            text-align: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 80%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero .logo {
+            font-size: 64px;
+            font-weight: 900;
+            margin-bottom: 8px;
+            letter-spacing: -2px;
+        }
+
+        .hero .logo span {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .hero .tagline {
+            font-size: 24px;
+            font-weight: 300;
+            opacity: 0.9;
+            margin-bottom: 60px;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat-value {
+            font-size: 48px;
+            font-weight: 800;
+        }
+
+        .hero-stat-label {
+            font-size: 12px;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 13px;
+        }
+
+        .data-table th {
+            background: var(--brand);
+            color: white;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .data-table tr:nth-child(even) {
+            background: var(--gray-50);
+        }
+
+        .data-table tr:hover {
+            background: var(--brand-muted);
+        }
+
+        .data-table .highlight {
+            background: var(--brand-muted) !important;
+            font-weight: 600;
+        }
+
+        .data-table .total {
+            background: var(--brand-dark) !important;
+            color: white;
+            font-weight: 700;
+        }
+
+        .data-table .number {
+            text-align: right;
+            font-family: 'SF Mono', 'Monaco', monospace;
+        }
+
+        /* Cards Grid */
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+
+        @media (max-width: 900px) {
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .card-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--brand-muted);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--black);
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--brand);
+            margin-bottom: 4px;
+        }
+
+        .card-description {
+            font-size: 13px;
+            color: var(--gray-600);
+        }
+
+        /* Big Value Box */
+        .value-box {
+            background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 48px;
+            text-align: center;
+            margin: 24px 0;
+        }
+
+        .value-box-label {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        .value-box-value {
+            font-size: 64px;
+            font-weight: 900;
+            margin-bottom: 8px;
+        }
+
+        .value-box-range {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        /* Formula Box */
+        .formula-box {
+            background: var(--gray-800);
+            color: white;
+            border-radius: 12px;
+            padding: 20px 24px;
+            font-family: 'SF Mono', 'Monaco', monospace;
+            font-size: 14px;
+            margin: 16px 0;
+            overflow-x: auto;
+        }
+
+        .formula-box .comment {
+            color: var(--gray-400);
+        }
+
+        .formula-box .highlight {
+            color: var(--success);
+        }
+
+        .formula-box .number {
+            color: var(--accent);
+        }
+
+        /* Method Card */
+        .method-card {
+            background: white;
+            border: 2px solid var(--gray-200);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .method-card.active {
+            border-color: var(--brand);
+            background: var(--brand-muted);
+        }
+
+        .method-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .method-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--brand-dark);
+        }
+
+        .method-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--brand);
+        }
+
+        /* Flow Chart */
+        .flow-chart {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+        }
+
+        .flow-step {
+            background: white;
+            border: 2px solid var(--brand);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--brand-dark);
+        }
+
+        .flow-step.active {
+            background: var(--brand);
+            color: white;
+        }
+
+        .flow-arrow {
+            color: var(--brand);
+            font-size: 20px;
+        }
+
+        /* Comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            border: 2px solid var(--gray-200);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .comparison-column {
+            border-right: 1px solid var(--gray-200);
+        }
+
+        .comparison-column:last-child {
+            border-right: none;
+        }
+
+        .comparison-header {
+            padding: 24px;
+            text-align: center;
+            background: var(--gray-100);
+        }
+
+        .comparison-header.premium {
+            background: var(--brand);
+            color: white;
+        }
+
+        .comparison-header.annual {
+            background: linear-gradient(135deg, var(--accent) 0%, #BE185D 100%);
+            color: white;
+        }
+
+        .comparison-plan {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+        }
+
+        .comparison-price {
+            font-size: 36px;
+            font-weight: 800;
+            margin: 8px 0;
+        }
+
+        .comparison-period {
+            font-size: 13px;
+            opacity: 0.7;
+        }
+
+        .comparison-features {
+            padding: 16px;
+        }
+
+        .comparison-feature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--gray-100);
+            font-size: 13px;
+        }
+
+        .comparison-feature:last-child {
+            border-bottom: none;
+        }
+
+        .comparison-check {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+
+        .comparison-check.yes {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .comparison-check.no {
+            background: var(--gray-100);
+            color: var(--gray-400);
+        }
+
+        /* Timeline Vertical */
+        .timeline-v {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .timeline-v::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--brand-muted);
+        }
+
+        .timeline-v-item {
+            position: relative;
+            margin-bottom: 32px;
+        }
+
+        .timeline-v-item::before {
+            content: '';
+            position: absolute;
+            left: -32px;
+            top: 4px;
+            width: 16px;
+            height: 16px;
+            background: var(--brand);
+            border-radius: 50%;
+            border: 3px solid var(--brand-muted);
+        }
+
+        .timeline-v-title {
+            font-weight: 700;
+            color: var(--brand-dark);
+            margin-bottom: 4px;
+        }
+
+        .timeline-v-desc {
+            font-size: 13px;
+            color: var(--gray-600);
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: flex;
+            gap: 24px;
+            margin: 24px 0;
+        }
+
+        .stat-item {
+            flex: 1;
+            background: var(--gray-50);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--brand);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Highlight Box */
+        .highlight-box {
+            background: var(--brand-muted);
+            border-left: 4px solid var(--brand);
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 16px 0;
+        }
+
+        .highlight-box.warning {
+            background: var(--warning-light);
+            border-color: var(--warning);
+        }
+
+        .highlight-box.success {
+            background: var(--success-light);
+            border-color: var(--success);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--gray-100);
+            padding: 4px;
+            border-radius: 10px;
+            margin-bottom: 24px;
+            width: fit-content;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: white;
+            color: var(--brand);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Mini Chart */
+        .mini-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 60px;
+            margin: 16px 0;
+        }
+
+        .mini-bar {
+            flex: 1;
+            background: var(--brand);
+            border-radius: 4px 4px 0 0;
+            min-height: 4px;
+        }
+
+        /* List */
+        .check-list {
+            list-style: none;
+        }
+
+        .check-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 0;
+        }
+
+        .check-list li::before {
+            content: '✓';
+            width: 20px;
+            height: 20px;
+            background: var(--success-light);
+            color: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .check-list li.negative::before {
+            content: '!';
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--gray-800);
+            color: var(--gray-400);
+            padding: 40px 60px;
+            text-align: center;
+        }
+
+        footer a {
+            color: var(--brand-light);
+            text-decoration: none;
+        }
+
+        /* Print */
+        @media print {
+            .nav { display: none; }
+            .slide {
+                page-break-after: always;
+                min-height: auto;
+                padding: 40px;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .slide { padding: 80px 20px 40px; }
+            .hero-grid { grid-template-columns: repeat(2, 1fr); }
+            .comparison-grid { grid-template-columns: 1fr; }
+            .stats-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-logo">ApegaDesapega</div>
+        <div class="nav-links">
+            <a href="#overview">Visão Geral</a>
+            <a href="#business">Negócio</a>
+            <a href="#valuation">Valuation</a>
+            <a href="#projections">Projeções</a>
+            <a href="#investment">Investimento</a>
+        </div>
+    </nav>
+
+    <!-- 1. HERO -->
+    <section class="slide hero">
+        <div class="hero-content">
+            <div class="logo">Apega<span>Desapega</span></div>
+            <p class="tagline">Marketplace de moda circular com inteligência artificial</p>
+
+            <div class="hero-grid">
+                <div class="hero-stat">
+                    <div class="hero-stat-value">10</div>
+                    <div class="hero-stat-label">Anos de mercado</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">19K</div>
+                    <div class="hero-stat-label">Seguidores Instagram</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">R$ 50K</div>
+                    <div class="hero-stat-label">Faturamento mensal</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">MVP</div>
+                    <div class="hero-stat-label">App publicado</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. VISÃO GERAL DOS ATIVOS -->
+    <section class="slide" id="overview">
+        <h2 class="slide-title"><span class="number">1</span> Visão Geral dos Ativos</h2>
+        <p class="slide-subtitle">Resumo de todos os ativos tangíveis e intangíveis do negócio</p>
+
+        <div class="grid-2">
+            <div>
+                <h3 style="margin-bottom: 16px; color: var(--brand-dark);">Ativos Tangíveis</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Ativo</th>
+                            <th>Descrição</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Loja Física</strong></td>
+                            <td>10 anos de operação contínua</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Patrimônio Loja</strong></td>
+                            <td><strong>R$ 850.000</strong> (móveis, estrutura, ponto)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Faturamento Mensal</strong></td>
+                            <td>R$ 50.000 (média)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Faturamento Anual</strong></td>
+                            <td>R$ 600.000</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Estoque Comprado</strong></td>
+                            <td>R$ 20.000 (peças próprias)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Estoque Consignado</strong></td>
+                            <td>Peças de terceiros (variável)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div>
+                <h3 style="margin-bottom: 16px; color: var(--brand-dark);">Ativos Intangíveis</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Ativo</th>
+                            <th>Descrição</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Marca</strong></td>
+                            <td>"Brechó Apega Desapega" - 10 anos <span style="color: var(--error);">(NÃO registrada INPI)</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Instagram</strong></td>
+                            <td>19.000 seguidores engajados</td>
+                        </tr>
+                        <tr>
+                            <td><strong>App Mobile</strong></td>
+                            <td>MVP completo, publicado Google Play</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Backend</strong></td>
+                            <td>Sistema completo com IA (Claude)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Admin Panel</strong></td>
+                            <td>Dashboard de gestão completo</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Base de Clientes</strong></td>
+                            <td>~2.000 clientes recorrentes</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="stats-row" style="margin-top: 40px;">
+            <div class="stat-item">
+                <div class="stat-value">R$ 600K</div>
+                <div class="stat-label">Faturamento Anual Loja</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">694h</div>
+                <div class="stat-label">Horas de Desenvolvimento</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">19.000</div>
+                <div class="stat-label">Seguidores Instagram</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">~2.000</div>
+                <div class="stat-label">Clientes Ativos</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. STACK TECNOLÓGICO -->
+    <section class="slide" id="business">
+        <h2 class="slide-title"><span class="number">2</span> Stack Tecnológico</h2>
+        <p class="slide-subtitle">Arquitetura completa do sistema desenvolvido</p>
+
+        <div class="grid-3" style="margin-bottom: 32px;">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">📱</div>
+                    <div class="card-title">App Mobile</div>
+                </div>
+                <div class="card-description">
+                    <strong>React Native + Expo</strong><br>
+                    • 50+ telas funcionais<br>
+                    • Publicado na Google Play<br>
+                    • iOS ready (Apple dev account)<br>
+                    • Push notifications<br>
+                    • Deep linking
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">⚙️</div>
+                    <div class="card-title">Backend API</div>
+                </div>
+                <div class="card-description">
+                    <strong>Node.js + Express</strong><br>
+                    • 30+ endpoints REST<br>
+                    • JWT authentication<br>
+                    • WebSocket (chat real-time)<br>
+                    • PostgreSQL (Neon)<br>
+                    • Deploy Railway.app
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🖥️</div>
+                    <div class="card-title">Admin Panel</div>
+                </div>
+                <div class="card-description">
+                    <strong>React + Vite</strong><br>
+                    • Dashboard métricas<br>
+                    • Gestão de usuários<br>
+                    • Aprovação de saques<br>
+                    • Analytics<br>
+                    • Deploy Railway.app
+                </div>
+            </div>
+        </div>
+
+        <h3 style="margin-bottom: 16px; color: var(--brand-dark);">Integrações Implementadas</h3>
+        <div class="grid-4">
+            <div class="card" style="text-align: center;">
+                <div style="font-size: 32px; margin-bottom: 8px;">💳</div>
+                <strong>Mercado Pago</strong>
+                <div style="font-size: 12px; color: var(--gray-500); margin-top: 4px;">PIX, Cartão, Boleto</div>
+            </div>
+            <div class="card" style="text-align: center;">
+                <div style="font-size: 32px; margin-bottom: 8px;">🤖</div>
+                <strong>Claude AI</strong>
+                <div style="font-size: 12px; color: var(--gray-500); margin-top: 4px;">Análise de roupas</div>
+            </div>
+            <div class="card" style="text-align: center;">
+                <div style="font-size: 32px; margin-bottom: 8px;">🖼️</div>
+                <strong>Cloudinary</strong>
+                <div style="font-size: 12px; color: var(--gray-500); margin-top: 4px;">Imagens + Remoção fundo</div>
+            </div>
+            <div class="card" style="text-align: center;">
+                <div style="font-size: 32px; margin-bottom: 8px;">📦</div>
+                <strong>Melhor Envio</strong>
+                <div style="font-size: 12px; color: var(--gray-500); margin-top: 4px;">Cálculo de frete</div>
+            </div>
+        </div>
+
+        <h3 style="margin: 32px 0 16px; color: var(--brand-dark);">Custo de Desenvolvimento (Reposição)</h3>
+        <p style="color: var(--gray-600); margin-bottom: 16px;"><strong>Escopo real:</strong> 24 telas, 145 endpoints, 9 componentes reutilizáveis</p>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Componente</th>
+                    <th class="number">Detalhes</th>
+                    <th class="number">Horas</th>
+                    <th class="number">Custo (R$150/h)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>App Mobile (RN + Expo)</td>
+                    <td class="number">24 telas</td>
+                    <td class="number">200h</td>
+                    <td class="number">R$ 30.000</td>
+                </tr>
+                <tr>
+                    <td>Componentes reutilizáveis</td>
+                    <td class="number">9 componentes</td>
+                    <td class="number">30h</td>
+                    <td class="number">R$ 4.500</td>
+                </tr>
+                <tr>
+                    <td>Backend (Node.js)</td>
+                    <td class="number">145 endpoints</td>
+                    <td class="number">180h</td>
+                    <td class="number">R$ 27.000</td>
+                </tr>
+                <tr>
+                    <td>Admin Panel (React)</td>
+                    <td class="number">Dashboard</td>
+                    <td class="number">80h</td>
+                    <td class="number">R$ 12.000</td>
+                </tr>
+                <tr>
+                    <td>Integração Mercado Pago</td>
+                    <td class="number">Pagamentos</td>
+                    <td class="number">20h</td>
+                    <td class="number">R$ 3.000</td>
+                </tr>
+                <tr>
+                    <td>Integração Claude AI</td>
+                    <td class="number">Análise roupas</td>
+                    <td class="number">16h</td>
+                    <td class="number">R$ 2.400</td>
+                </tr>
+                <tr>
+                    <td>Integração Cloudinary</td>
+                    <td class="number">Upload imgs</td>
+                    <td class="number">12h</td>
+                    <td class="number">R$ 1.800</td>
+                </tr>
+                <tr>
+                    <td>Integração Melhor Envio</td>
+                    <td class="number">Frete/rastreio</td>
+                    <td class="number">12h</td>
+                    <td class="number">R$ 1.800</td>
+                </tr>
+                <tr>
+                    <td>Banco de Dados</td>
+                    <td class="number">Schema + migr.</td>
+                    <td class="number">30h</td>
+                    <td class="number">R$ 4.500</td>
+                </tr>
+                <tr>
+                    <td>DevOps/Deploy</td>
+                    <td class="number">Railway, EAS</td>
+                    <td class="number">24h</td>
+                    <td class="number">R$ 3.600</td>
+                </tr>
+                <tr>
+                    <td>Testes/QA</td>
+                    <td class="number">Básico</td>
+                    <td class="number">40h</td>
+                    <td class="number">R$ 6.000</td>
+                </tr>
+                <tr>
+                    <td>UI/UX Design</td>
+                    <td class="number">Design system</td>
+                    <td class="number">50h</td>
+                    <td class="number">R$ 7.500</td>
+                </tr>
+                <tr class="total">
+                    <td><strong>TOTAL DESENVOLVIMENTO</strong></td>
+                    <td class="number"></td>
+                    <td class="number"><strong>694h</strong></td>
+                    <td class="number"><strong>R$ 104.100</strong></td>
+                </tr>
+                <tr class="highlight">
+                    <td colspan="3"><strong>Prêmio por App Funcional (1.2x)</strong> - MVP testado, publicado Play Store</td>
+                    <td class="number"><strong>R$ 124.800</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- 4. MODELO DE NEGÓCIO -->
+    <section class="slide">
+        <h2 class="slide-title"><span class="number">3</span> Modelo de Negócio</h2>
+        <p class="slide-subtitle">Três fontes de receita: Assinaturas + Comissões + Anúncios</p>
+
+        <h3 style="margin-bottom: 16px; color: var(--brand-dark);">Planos e Taxas</h3>
+        <div class="comparison-grid">
+            <div class="comparison-column">
+                <div class="comparison-header">
+                    <div class="comparison-plan">Gratuito</div>
+                    <div class="comparison-price">R$ 0</div>
+                    <div class="comparison-period">para sempre</div>
+                </div>
+                <div class="comparison-features">
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        Anúncios ILIMITADOS
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        Taxa de 25% por venda
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        Cashback 1% nas compras
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check no">✗</span>
+                        Análise com IA
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check no">✗</span>
+                        Sugestão de preço automática
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check no">✗</span>
+                        Remoção de fundo das fotos
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check no">✗</span>
+                        Destaque nos resultados
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check no">✗</span>
+                        Selo Premium
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-column">
+                <div class="comparison-header premium">
+                    <div class="comparison-plan">Premium Mensal</div>
+                    <div class="comparison-price">R$ 19,90</div>
+                    <div class="comparison-period">por mês</div>
+                </div>
+                <div class="comparison-features">
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        Anúncios ILIMITADOS
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        Taxa reduzida: 12%
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        Cashback 1% nas compras
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        Análise IA (Claude 3.5)
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        Sugestão de preço automática
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        Remoção de fundo das fotos
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        Destaque nos resultados
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        Selo Premium dourado
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-column">
+                <div class="comparison-header annual">
+                    <div class="comparison-plan">Premium Anual</div>
+                    <div class="comparison-price">R$ 199,90</div>
+                    <div class="comparison-period">por ano (R$ 16,66/mês)</div>
+                </div>
+                <div class="comparison-features">
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        Tudo do Premium Mensal
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        Economia de R$ 38,90
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        2 meses grátis
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        Prova Virtual IA (em breve)
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        Suporte prioritário
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        Badge exclusivo
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        Relatórios de vendas
+                    </div>
+                    <div class="comparison-feature">
+                        <span class="comparison-check yes">✓</span>
+                        Acesso beta features
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h3 style="margin: 40px 0 16px; color: var(--brand-dark);">Cálculo das Taxas</h3>
+        <div class="grid-2">
+            <div class="card">
+                <h4 style="color: var(--gray-600); margin-bottom: 12px;">Vendedor FREE (25%)</h4>
+                <div class="formula-box">
+                    <span class="comment">// Exemplo: vendedor quer receber R$ 100</span><br>
+                    Preço vendedor: <span class="number">R$ 100,00</span><br>
+                    Taxa (25%): <span class="number">R$ 25,00</span><br>
+                    <span class="highlight">Preço exibido: R$ 125,00</span><br>
+                    <br>
+                    <span class="comment">// Receita bruta plataforma: R$ 25,00</span><br>
+                    <span class="comment">// (-) Impostos LP 16,33%: R$ 4,08</span><br>
+                    <span class="comment">// (=) Receita líquida: <strong>R$ 20,92</strong></span><br>
+                    <span class="comment">// Vendedor recebe: R$ 100</span>
+                </div>
+            </div>
+            <div class="card">
+                <h4 style="color: var(--gray-600); margin-bottom: 12px;">Vendedor PREMIUM (12%)</h4>
+                <div class="formula-box">
+                    <span class="comment">// Exemplo: vendedor quer receber R$ 100</span><br>
+                    Preço vendedor: <span class="number">R$ 100,00</span><br>
+                    Taxa (12%): <span class="number">R$ 12,00</span><br>
+                    <span class="highlight">Preço exibido: R$ 112,00</span><br>
+                    <br>
+                    <span class="comment">// Receita bruta plataforma: R$ 12,00</span><br>
+                    <span class="comment">// (-) Impostos LP 16,33%: R$ 1,96</span><br>
+                    <span class="comment">// (=) Receita líquida: <strong>R$ 10,04</strong></span><br>
+                    <span class="comment">// Vendedor recebe: R$ 100</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="highlight-box" style="margin-top: 24px;">
+            <strong>🎉 Promoção de Lançamento:</strong> Primeiros 50 vendedores = <strong>5% de taxa</strong> (desconto especial!)
+        </div>
+    </section>
+
+    <!-- 5. VALUATION DETALHADO -->
+    <section class="slide" id="valuation">
+        <h2 class="slide-title"><span class="number">4</span> Valuation - Método 1: Múltiplo de Receita</h2>
+        <p class="slide-subtitle">Avaliação da loja física baseada no faturamento anual</p>
+
+        <div class="method-card active">
+            <div class="method-header">
+                <div class="method-name">Múltiplo de Receita (Loja Física)</div>
+                <div class="method-value">R$ 900.000</div>
+            </div>
+
+            <div class="grid-2">
+                <div>
+                    <h4 style="margin-bottom: 12px; color: var(--gray-600);">Dados da Loja</h4>
+                    <table class="data-table">
+                        <tr>
+                            <td>Faturamento Mensal</td>
+                            <td class="number">R$ 50.000</td>
+                        </tr>
+                        <tr>
+                            <td>Faturamento Anual</td>
+                            <td class="number"><strong>R$ 600.000</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Anos de operação</td>
+                            <td class="number">10 anos</td>
+                        </tr>
+                    </table>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 12px; color: var(--gray-600);">Múltiplos de Mercado</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Tipo Negócio</th>
+                                <th>Múltiplo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Varejo tradicional</td>
+                                <td class="number">0.3x - 0.5x</td>
+                            </tr>
+                            <tr>
+                                <td>Varejo + marca forte</td>
+                                <td class="number">0.5x - 1.0x</td>
+                            </tr>
+                            <tr class="highlight">
+                                <td><strong>Varejo + tech + marca</strong></td>
+                                <td class="number"><strong>1.0x - 2.0x</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="formula-box" style="margin-top: 24px;">
+                <span class="comment">// Cálculo do valor</span><br>
+                Faturamento Anual: <span class="number">R$ 600.000</span><br>
+                Múltiplo aplicado: <span class="number">1.5x</span> <span class="comment">(marca forte + tech)</span><br>
+                <br>
+                <span class="highlight">VALOR = R$ 600.000 × 1.5 = R$ 900.000</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. VALUATION - MÉTODO 2 -->
+    <section class="slide">
+        <h2 class="slide-title"><span class="number">5</span> Valuation - Método 2: Custo de Reposição</h2>
+        <p class="slide-subtitle">Quanto custaria desenvolver toda a tecnologia do zero</p>
+
+        <div class="method-card active">
+            <div class="method-header">
+                <div class="method-name">Custo de Reposição (Tecnologia)</div>
+                <div class="method-value">R$ 124.800</div>
+            </div>
+
+            <div class="formula-box">
+                <span class="comment">// Escopo real: 24 telas, 145 endpoints, 9 componentes</span><br>
+                Total horas: <span class="number">694h</span><br>
+                Taxa hora (dev sênior freelancer): <span class="number">R$ 150/h</span><br>
+                Custo base: <span class="number">R$ 104.100</span><br>
+                <br>
+                <span class="comment">// Prêmio por MVP funcional (1.2x)</span><br>
+                <span class="comment">// - Já testado e funcionando</span><br>
+                <span class="comment">// - Publicado na Play Store</span><br>
+                <span class="comment">// - Pronto para escalar</span><br>
+                <br>
+                <span class="highlight">VALOR = R$ 104.100 × 1.2 = R$ 124.800</span>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 16px;">
+                <strong>Por que o prêmio de 20%?</strong> MVP pronto elimina riscos de desenvolvimento.
+                Um comprador pode começar a operar imediatamente.
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. VALUATION - MÉTODO 3 -->
+    <section class="slide">
+        <h2 class="slide-title"><span class="number">6</span> Valuation - Método 3: Marca e Audiência</h2>
+        <p class="slide-subtitle">Valor dos ativos intangíveis: marca, seguidores e base de clientes</p>
+
+        <div class="method-card active">
+            <div class="method-header">
+                <div class="method-name">Marca + Audiência + Base de Clientes</div>
+                <div class="method-value">R$ 470.000</div>
+            </div>
+
+            <div class="grid-3">
+                <div class="card">
+                    <h4 style="color: var(--brand-dark); margin-bottom: 12px;">Valor da Marca</h4>
+                    <div class="card-value">R$ 105.000</div>
+                    <table class="data-table" style="font-size: 12px;">
+                        <tr>
+                            <td>Tempo estabelecida</td>
+                            <td class="number">10 anos</td>
+                        </tr>
+                        <tr>
+                            <td>Custo criar marca</td>
+                            <td class="number">R$ 50-100K</td>
+                        </tr>
+                        <tr>
+                            <td>Registro INPI</td>
+                            <td class="number" style="color: var(--error);">NÃO (-30%)</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <h4 style="color: var(--brand-dark); margin-bottom: 12px;">Instagram</h4>
+                    <div class="card-value">R$ 65.000</div>
+                    <table class="data-table" style="font-size: 12px;">
+                        <tr>
+                            <td>Seguidores</td>
+                            <td class="number">19.000</td>
+                        </tr>
+                        <tr>
+                            <td>Valor/seguidor (moda)</td>
+                            <td class="number">R$ 2 - R$ 5</td>
+                        </tr>
+                        <tr>
+                            <td>Engajamento</td>
+                            <td class="number">3-5%</td>
+                        </tr>
+                    </table>
+                    <div class="formula-box" style="font-size: 11px; padding: 12px;">
+                        Conservador: 19K × R$2 = R$38K<br>
+                        Otimista: 19K × R$5 = R$95K<br>
+                        <span class="highlight">Média: R$ 65.000</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h4 style="color: var(--brand-dark); margin-bottom: 12px;">Base de Clientes</h4>
+                    <div class="card-value">R$ 300.000</div>
+                    <table class="data-table" style="font-size: 12px;">
+                        <tr>
+                            <td>Clientes estimados</td>
+                            <td class="number">~2.000</td>
+                        </tr>
+                        <tr>
+                            <td>LTV médio</td>
+                            <td class="number">R$ 500/ano</td>
+                        </tr>
+                        <tr>
+                            <td>Conv. esperada app</td>
+                            <td class="number">30%</td>
+                        </tr>
+                    </table>
+                    <div class="formula-box" style="font-size: 11px; padding: 12px;">
+                        2.000 × 30% × R$500<br>
+                        <span class="highlight">= R$ 300.000</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="formula-box" style="margin-top: 24px;">
+                <span class="comment">// Soma dos valores (marca com desconto por não registro)</span><br>
+                Marca: <span class="number">R$ 105.000</span> <span class="comment">(-30% por falta de registro INPI)</span><br>
+                Instagram: <span class="number">R$ 65.000</span><br>
+                Base Clientes: <span class="number">R$ 300.000</span><br>
+                <br>
+                <span class="highlight">TOTAL = R$ 470.000</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. VALUATION - MÉTODO 4 (DCF) -->
+    <section class="slide">
+        <h2 class="slide-title"><span class="number">7</span> Valuation - Método 4: DCF (Fluxo de Caixa Descontado)</h2>
+        <p class="slide-subtitle">Projeção de 5 anos com valor presente dos fluxos futuros</p>
+
+        <div class="method-card active">
+            <div class="method-header">
+                <div class="method-name">DCF Ajustado (App)</div>
+                <div class="method-value">R$ 6.745.374</div>
+            </div>
+
+            <div class="highlight-box" style="margin-bottom: 20px;">
+                <strong>Premissas:</strong> Taxa de desconto 25% (risco startup) | Crescimento conservador | Cenário 50% das metas
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Ano</th>
+                        <th class="number">Receita App</th>
+                        <th class="number">Custos</th>
+                        <th class="number">Lucro</th>
+                        <th class="number">Fator VP</th>
+                        <th class="number">Valor Presente</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Ano 1</td>
+                        <td class="number">R$ 1.244.000</td>
+                        <td class="number">R$ 60.000</td>
+                        <td class="number">R$ 1.184.000</td>
+                        <td class="number">÷ 1.25¹</td>
+                        <td class="number">R$ 947.200</td>
+                    </tr>
+                    <tr>
+                        <td>Ano 2</td>
+                        <td class="number">R$ 2.800.000</td>
+                        <td class="number">R$ 120.000</td>
+                        <td class="number">R$ 2.680.000</td>
+                        <td class="number">÷ 1.25²</td>
+                        <td class="number">R$ 1.715.200</td>
+                    </tr>
+                    <tr>
+                        <td>Ano 3</td>
+                        <td class="number">R$ 4.500.000</td>
+                        <td class="number">R$ 200.000</td>
+                        <td class="number">R$ 4.300.000</td>
+                        <td class="number">÷ 1.25³</td>
+                        <td class="number">R$ 2.201.600</td>
+                    </tr>
+                    <tr>
+                        <td>Ano 4</td>
+                        <td class="number">R$ 6.500.000</td>
+                        <td class="number">R$ 300.000</td>
+                        <td class="number">R$ 6.200.000</td>
+                        <td class="number">÷ 1.25⁴</td>
+                        <td class="number">R$ 2.540.800</td>
+                    </tr>
+                    <tr>
+                        <td>Ano 5</td>
+                        <td class="number">R$ 8.500.000</td>
+                        <td class="number">R$ 400.000</td>
+                        <td class="number">R$ 8.100.000</td>
+                        <td class="number">÷ 1.25⁵</td>
+                        <td class="number">R$ 2.654.208</td>
+                    </tr>
+                    <tr class="highlight">
+                        <td colspan="5"><strong>Total VP dos Fluxos (5 anos)</strong></td>
+                        <td class="number"><strong>R$ 10.059.008</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="formula-box" style="margin-top: 24px;">
+                <span class="comment">// Valor Terminal (perpetuidade com 3% crescimento)</span><br>
+                VT = (Lucro Ano 5 × 1.03) ÷ (taxa - crescimento)<br>
+                VT = (<span class="number">R$ 8.100.000</span> × 1.03) ÷ (0.25 - 0.03)<br>
+                VT = <span class="number">R$ 37.922.727</span><br>
+                <br>
+                <span class="comment">// VP do Valor Terminal</span><br>
+                VP = R$ 37.922.727 ÷ (1.25)⁵ = <span class="number">R$ 12.425.574</span><br>
+                <br>
+                <span class="comment">// Valor DCF Total</span><br>
+                DCF = VP Fluxos + VP Terminal<br>
+                DCF = R$ 10.059.008 + R$ 12.425.574 = <span class="number">R$ 22.484.582</span><br>
+                <br>
+                <span class="comment">// AJUSTE PARA PRÉ-RECEITA (30% do valor)</span><br>
+                <span class="comment">// App ainda não tem usuários pagantes = RISCO</span><br>
+                <span class="highlight">VALOR AJUSTADO = R$ 22.484.582 × 30% = R$ 6.745.374</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 9. VALUATION - MÉTODO 5 -->
+    <section class="slide">
+        <h2 class="slide-title"><span class="number">8</span> Valuation - Método 5: Comparáveis de Mercado</h2>
+        <p class="slide-subtitle">Múltiplos de GMV de marketplaces similares no Brasil</p>
+
+        <div class="method-card active">
+            <div class="method-header">
+                <div class="method-name">Comparáveis de Mercado</div>
+                <div class="method-value">R$ 5.400.000</div>
+            </div>
+
+            <h4 style="margin-bottom: 12px; color: var(--gray-600);">Marketplaces Brasileiros de Moda Usada</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Empresa</th>
+                        <th class="number">Valuation</th>
+                        <th class="number">GMV Anual</th>
+                        <th class="number">Múltiplo GMV</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Enjoei</strong> (IPO 2020)</td>
+                        <td class="number">R$ 1.5 Bilhão</td>
+                        <td class="number">R$ 500 Milhões</td>
+                        <td class="number">3.0x</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Repassa</strong> (estimado)</td>
+                        <td class="number">R$ 200 Milhões</td>
+                        <td class="number">R$ 80 Milhões</td>
+                        <td class="number">2.5x</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Troc</strong> (estimado)</td>
+                        <td class="number">R$ 50 Milhões</td>
+                        <td class="number">R$ 25 Milhões</td>
+                        <td class="number">2.0x</td>
+                    </tr>
+                    <tr class="highlight">
+                        <td colspan="3"><strong>Média do Mercado</strong></td>
+                        <td class="number"><strong>2.5x GMV</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="formula-box" style="margin-top: 24px;">
+                <span class="comment">// GMV projetado ApegaDesapega</span><br>
+                GMV Ano 1: <span class="number">R$ 5.400.000</span><br>
+                GMV Ano 2: <span class="number">R$ 15.000.000</span><br>
+                <br>
+                <span class="comment">// Aplicação de múltiplos (ajustados para pré-tração)</span><br>
+                Conservador (0.5x): R$ 5.4M × 0.5 = <span class="number">R$ 2.700.000</span><br>
+                Otimista (1.5x): R$ 5.4M × 1.5 = <span class="number">R$ 8.100.000</span><br>
+                <br>
+                <span class="highlight">VALOR MÉDIO = (R$ 2.7M + R$ 8.1M) ÷ 2 = R$ 5.400.000</span>
+            </div>
+
+            <div class="highlight-box warning" style="margin-top: 16px;">
+                <strong>Por que múltiplo menor que Enjoei?</strong> ApegaDesapega ainda não tem tração no app.
+                Com usuários validados, o múltiplo pode subir para 1.5-2.5x GMV.
+            </div>
+        </div>
+    </section>
+
+    <!-- 10. VALUATION - RESUMO FINAL -->
+    <section class="slide">
+        <h2 class="slide-title"><span class="number">9</span> Valuation - Resumo Final</h2>
+        <p class="slide-subtitle">Consolidação dos 5 métodos e valor justo ponderado</p>
+
+        <table class="data-table" style="margin-bottom: 32px;">
+            <thead>
+                <tr>
+                    <th>Método</th>
+                    <th>O que avalia</th>
+                    <th class="number">Valor</th>
+                    <th class="number">Peso</th>
+                    <th class="number">Ponderado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>1. Múltiplo Receita</strong></td>
+                    <td>Loja física (ativo certo)</td>
+                    <td class="number">R$ 900.000</td>
+                    <td class="number">100%</td>
+                    <td class="number">R$ 900.000</td>
+                </tr>
+                <tr>
+                    <td><strong>Patrimônio Loja</strong></td>
+                    <td>Móveis, estrutura, ponto</td>
+                    <td class="number">R$ 850.000</td>
+                    <td class="number">100%</td>
+                    <td class="number">R$ 850.000</td>
+                </tr>
+                <tr>
+                    <td><strong>Estoque Comprado</strong></td>
+                    <td>Peças próprias</td>
+                    <td class="number">R$ 20.000</td>
+                    <td class="number">100%</td>
+                    <td class="number">R$ 20.000</td>
+                </tr>
+                <tr>
+                    <td><strong>2. Custo Reposição</strong></td>
+                    <td>Tecnologia (existe)</td>
+                    <td class="number">R$ 124.800</td>
+                    <td class="number">100%</td>
+                    <td class="number">R$ 124.800</td>
+                </tr>
+                <tr>
+                    <td><strong>3. Marca + Audiência</strong></td>
+                    <td>Intangíveis (marca não registrada)</td>
+                    <td class="number">R$ 470.000</td>
+                    <td class="number">100%</td>
+                    <td class="number">R$ 470.000</td>
+                </tr>
+                <tr>
+                    <td><strong>4. DCF Ajustado</strong></td>
+                    <td>Potencial futuro (incerto)</td>
+                    <td class="number">R$ 6.745.374</td>
+                    <td class="number">30%</td>
+                    <td class="number">R$ 2.023.612</td>
+                </tr>
+                <tr>
+                    <td><strong>5. Comparáveis</strong></td>
+                    <td>Referência mercado</td>
+                    <td class="number">R$ 5.400.000</td>
+                    <td class="number">-</td>
+                    <td class="number"><em>Referência</em></td>
+                </tr>
+                <tr class="total">
+                    <td colspan="4"><strong>TOTAL PONDERADO</strong></td>
+                    <td class="number"><strong>R$ 4.388.412</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="value-box">
+            <div class="value-box-label">Valuation Justo</div>
+            <div class="value-box-value">R$ 4.4M</div>
+            <div class="value-box-range">Range de negociação: R$ 3.500.000 - R$ 5.500.000</div>
+        </div>
+
+        <div class="grid-3" style="margin-top: 32px;">
+            <div class="card" style="text-align: center; border: 2px solid var(--gray-300);">
+                <div style="font-size: 12px; color: var(--gray-500); text-transform: uppercase;">Valor Mínimo (Floor)</div>
+                <div style="font-size: 32px; font-weight: 800; color: var(--gray-600);">R$ 2.5M</div>
+                <div style="font-size: 12px; color: var(--gray-400);">Só ativos tangíveis</div>
+            </div>
+            <div class="card" style="text-align: center; border: 2px solid var(--brand);">
+                <div style="font-size: 12px; color: var(--brand); text-transform: uppercase;">Valor Justo</div>
+                <div style="font-size: 32px; font-weight: 800; color: var(--brand);">R$ 4.4M</div>
+                <div style="font-size: 12px; color: var(--gray-400);">Todos ativos ponderados</div>
+            </div>
+            <div class="card" style="text-align: center; border: 2px solid var(--accent);">
+                <div style="font-size: 12px; color: var(--accent); text-transform: uppercase;">Valor Máximo</div>
+                <div style="font-size: 32px; font-weight: 800; color: var(--accent);">R$ 6.0M</div>
+                <div style="font-size: 12px; color: var(--gray-400);">Com potencial crescimento</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 11. PROJEÇÕES DETALHADAS -->
+    <section class="slide" id="projections">
+        <h2 class="slide-title"><span class="number">10</span> Projeção de Usuários - Ano 1</h2>
+        <p class="slide-subtitle">Crescimento mensal de usuários e conversão Premium</p>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Mês</th>
+                    <th class="number">Novos</th>
+                    <th class="number">Total</th>
+                    <th class="number">Ativos (80%)</th>
+                    <th class="number">Conv. Premium</th>
+                    <th class="number">Premium</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Janeiro</td><td class="number">500</td><td class="number">500</td><td class="number">400</td><td class="number">2.0%</td><td class="number">10</td></tr>
+                <tr><td>Fevereiro</td><td class="number">1.000</td><td class="number">1.500</td><td class="number">1.200</td><td class="number">3.0%</td><td class="number">36</td></tr>
+                <tr><td>Março</td><td class="number">2.000</td><td class="number">3.500</td><td class="number">2.800</td><td class="number">4.0%</td><td class="number">112</td></tr>
+                <tr><td>Abril</td><td class="number">3.000</td><td class="number">6.500</td><td class="number">5.200</td><td class="number">5.0%</td><td class="number">260</td></tr>
+                <tr><td>Maio</td><td class="number">4.000</td><td class="number">10.500</td><td class="number">8.400</td><td class="number">6.0%</td><td class="number">504</td></tr>
+                <tr><td>Junho</td><td class="number">5.000</td><td class="number">15.500</td><td class="number">12.400</td><td class="number">7.0%</td><td class="number">868</td></tr>
+                <tr><td>Julho</td><td class="number">6.000</td><td class="number">21.500</td><td class="number">17.200</td><td class="number">8.0%</td><td class="number">1.376</td></tr>
+                <tr><td>Agosto</td><td class="number">7.000</td><td class="number">28.500</td><td class="number">22.800</td><td class="number">9.0%</td><td class="number">2.052</td></tr>
+                <tr><td>Setembro</td><td class="number">8.000</td><td class="number">36.500</td><td class="number">29.200</td><td class="number">10.0%</td><td class="number">2.920</td></tr>
+                <tr><td>Outubro</td><td class="number">9.000</td><td class="number">45.500</td><td class="number">36.400</td><td class="number">10.0%</td><td class="number">3.640</td></tr>
+                <tr><td>Novembro</td><td class="number">10.000</td><td class="number">55.500</td><td class="number">44.400</td><td class="number">10.0%</td><td class="number">4.440</td></tr>
+                <tr class="total"><td>Dezembro</td><td class="number">12.000</td><td class="number">67.500</td><td class="number">54.000</td><td class="number">10.0%</td><td class="number">5.400</td></tr>
+            </tbody>
+        </table>
+
+        <div class="highlight-box" style="margin-top: 20px;">
+            <strong>Premissas:</strong> 80% dos usuários permanecem ativos | Taxa de conversão Premium cresce de 2% a 10% | Crescimento orgânico via indicação e ASO
+        </div>
+    </section>
+
+    <!-- 12. RECEITA DETALHADA -->
+    <section class="slide">
+        <h2 class="slide-title"><span class="number">11</span> Projeção de Receita - Ano 1</h2>
+        <p class="slide-subtitle">Detalhamento mensal das três fontes de receita</p>
+
+        <table class="data-table" style="font-size: 12px;">
+            <thead>
+                <tr>
+                    <th>Mês</th>
+                    <th class="number">Assinaturas</th>
+                    <th class="number">Comissões</th>
+                    <th class="number">Anúncios</th>
+                    <th class="number">TOTAL</th>
+                    <th class="number">Acumulado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Jan</td><td class="number">R$ 739</td><td class="number">R$ 540</td><td class="number">R$ 259</td><td class="number">R$ 1.538</td><td class="number">R$ 1,5K</td></tr>
+                <tr><td>Fev</td><td class="number">R$ 2.697</td><td class="number">R$ 1.530</td><td class="number">R$ 778</td><td class="number">R$ 5.005</td><td class="number">R$ 6,5K</td></tr>
+                <tr><td>Mar</td><td class="number">R$ 8.349</td><td class="number">R$ 4.160</td><td class="number">R$ 2.041</td><td class="number">R$ 14.550</td><td class="number">R$ 21,1K</td></tr>
+                <tr><td>Abr</td><td class="number">R$ 19.214</td><td class="number">R$ 7.800</td><td class="number">R$ 3.791</td><td class="number">R$ 30.805</td><td class="number">R$ 51,9K</td></tr>
+                <tr><td>Mai</td><td class="number">R$ 37.194</td><td class="number">R$ 14.700</td><td class="number">R$ 6.804</td><td class="number">R$ 58.698</td><td class="number">R$ 110,6K</td></tr>
+                <tr><td>Jun</td><td class="number">R$ 64.073</td><td class="number">R$ 24.500</td><td class="number">R$ 10.044</td><td class="number">R$ 98.617</td><td class="number">R$ 209,2K</td></tr>
+                <tr><td>Jul</td><td class="number">R$ 101.695</td><td class="number">R$ 39.000</td><td class="number">R$ 15.325</td><td class="number">R$ 156.020</td><td class="number">R$ 365,2K</td></tr>
+                <tr><td>Ago</td><td class="number">R$ 151.659</td><td class="number">R$ 58.500</td><td class="number">R$ 20.315</td><td class="number">R$ 230.474</td><td class="number">R$ 595,7K</td></tr>
+                <tr><td>Set</td><td class="number">R$ 215.763</td><td class="number">R$ 81.600</td><td class="number">R$ 28.382</td><td class="number">R$ 325.745</td><td class="number">R$ 921,5K</td></tr>
+                <tr><td>Out</td><td class="number">R$ 268.945</td><td class="number">R$ 105.600</td><td class="number">R$ 35.381</td><td class="number">R$ 409.926</td><td class="number">R$ 1,33M</td></tr>
+                <tr><td>Nov</td><td class="number">R$ 328.136</td><td class="number">R$ 142.800</td><td class="number">R$ 46.753</td><td class="number">R$ 517.689</td><td class="number">R$ 1,85M</td></tr>
+                <tr class="total"><td>Dez</td><td class="number">R$ 399.060</td><td class="number">R$ 183.600</td><td class="number">R$ 56.862</td><td class="number">R$ 639.522</td><td class="number">R$ 2,49M</td></tr>
+            </tbody>
+        </table>
+
+        <div class="stats-row" style="margin-top: 32px;">
+            <div class="stat-item" style="background: var(--success-light);">
+                <div class="stat-value" style="color: var(--success);">R$ 1.6M</div>
+                <div class="stat-label">Assinaturas (64%)</div>
+            </div>
+            <div class="stat-item" style="background: var(--brand-muted);">
+                <div class="stat-value">R$ 664K</div>
+                <div class="stat-label">Comissões (27%)</div>
+            </div>
+            <div class="stat-item" style="background: var(--accent-light);">
+                <div class="stat-value" style="color: var(--accent);">R$ 227K</div>
+                <div class="stat-label">Anúncios (9%)</div>
+            </div>
+            <div class="stat-item" style="background: var(--brand); color: white;">
+                <div class="stat-value" style="color: white;">R$ 2.49M</div>
+                <div class="stat-label" style="color: rgba(255,255,255,0.8);">Total Ano 1</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 13. CUSTOS E LUCRO -->
+    <section class="slide">
+        <h2 class="slide-title"><span class="number">12</span> Estrutura de Custos e Lucro</h2>
+        <p class="slide-subtitle">Estimativa de custos operacionais e margem</p>
+
+        <div class="grid-2">
+            <div>
+                <h4 style="margin-bottom: 16px; color: var(--brand-dark);">Custos Mensais Estimados</h4>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th class="number">Custo/mês</th>
+                            <th class="number">Custo/ano</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Railway (Backend + Admin)</td>
+                            <td class="number">R$ 200</td>
+                            <td class="number">R$ 2.400</td>
+                        </tr>
+                        <tr>
+                            <td>Neon DB (PostgreSQL)</td>
+                            <td class="number">R$ 100</td>
+                            <td class="number">R$ 1.200</td>
+                        </tr>
+                        <tr>
+                            <td>Cloudinary (Imagens)</td>
+                            <td class="number">R$ 300</td>
+                            <td class="number">R$ 3.600</td>
+                        </tr>
+                        <tr class="highlight">
+                            <td><strong>Subtotal Infra</strong></td>
+                            <td class="number"><strong>R$ 600</strong></td>
+                            <td class="number"><strong>R$ 7.200</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Claude AI (~50K análises)</td>
+                            <td class="number">R$ 63</td>
+                            <td class="number">R$ 750</td>
+                        </tr>
+                        <tr>
+                            <td>Mercado Pago (0.5% GMV)</td>
+                            <td class="number">variável</td>
+                            <td class="number">R$ 27.000</td>
+                        </tr>
+                        <tr class="highlight">
+                            <td><strong>Subtotal APIs</strong></td>
+                            <td class="number"></td>
+                            <td class="number"><strong>R$ 27.750</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Suporte (freelancer remoto)</td>
+                            <td class="number">R$ 2.000</td>
+                            <td class="number">R$ 24.000</td>
+                        </tr>
+                        <tr>
+                            <td>Programador (freelancer)</td>
+                            <td class="number">R$ 3.500</td>
+                            <td class="number">R$ 42.000</td>
+                        </tr>
+                        <tr>
+                            <td>Contador</td>
+                            <td class="number">R$ 500</td>
+                            <td class="number">R$ 6.000</td>
+                        </tr>
+                        <tr>
+                            <td>Marketing (freelancer)</td>
+                            <td class="number">R$ 1.500</td>
+                            <td class="number">R$ 18.000</td>
+                        </tr>
+                        <tr class="highlight">
+                            <td><strong>Subtotal Pessoal</strong></td>
+                            <td class="number"><strong>R$ 7.500</strong></td>
+                            <td class="number"><strong>R$ 90.000</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Ads pagos (opcional)</td>
+                            <td class="number">R$ 1.667</td>
+                            <td class="number">R$ 20.000</td>
+                        </tr>
+                        <tr class="total">
+                            <td><strong>TOTAL CUSTOS</strong></td>
+                            <td class="number"><strong>R$ 9.830</strong></td>
+                            <td class="number"><strong>R$ 144.950</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div>
+                <h4 style="margin-bottom: 16px; color: var(--brand-dark);">Demonstração de Resultado</h4>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th class="number">Valor</th>
+                            <th class="number">%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Receita Assinaturas</td>
+                            <td class="number">R$ 1.597.525</td>
+                            <td class="number">64.1%</td>
+                        </tr>
+                        <tr>
+                            <td>Receita Comissões</td>
+                            <td class="number">R$ 664.330</td>
+                            <td class="number">26.7%</td>
+                        </tr>
+                        <tr>
+                            <td>Receita Anúncios</td>
+                            <td class="number">R$ 226.735</td>
+                            <td class="number">9.1%</td>
+                        </tr>
+                        <tr class="highlight">
+                            <td><strong>RECEITA BRUTA</strong></td>
+                            <td class="number"><strong>R$ 2.488.590</strong></td>
+                            <td class="number"><strong>100%</strong></td>
+                        </tr>
+                        <tr>
+                            <td>(-) Custos Totais</td>
+                            <td class="number">(R$ 144.950)</td>
+                            <td class="number">5.8%</td>
+                        </tr>
+                        <tr class="total">
+                            <td><strong>LUCRO BRUTO</strong></td>
+                            <td class="number"><strong>R$ 2.343.640</strong></td>
+                            <td class="number"><strong>94.2%</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="highlight-box success" style="margin-top: 20px;">
+                    <strong>Margem de 94.2%</strong> - Modelo SaaS com custos operacionais enxutos (freelancers remotos).
+                    Break-even estimado no mês 4-5.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 14. CENÁRIOS DE INVESTIMENTO -->
+    <section class="slide" id="investment">
+        <h2 class="slide-title"><span class="number">13</span> Cenários de Investimento/Venda</h2>
+        <p class="slide-subtitle">Opções de negociação para diferentes perfis de compradores</p>
+
+        <div class="grid-2">
+            <div class="card" style="border: 2px solid var(--brand);">
+                <h3 style="color: var(--brand-dark); margin-bottom: 16px;">🏪 Cenário 1: Venda Total</h3>
+                <table class="data-table" style="font-size: 13px;">
+                    <tr><td><strong>Inclui</strong></td><td>Loja física + App + Marca + Instagram + Estoque</td></tr>
+                    <tr><td><strong>Valor Pedido</strong></td><td class="number"><strong>R$ 4.000.000</strong></td></tr>
+                    <tr><td><strong>Valor Mínimo</strong></td><td class="number">R$ 2.500.000</td></tr>
+                    <tr><td><strong>Condições</strong></td><td>50% à vista + 50% em 12 meses</td></tr>
+                </table>
+            </div>
+
+            <div class="card" style="border: 2px solid var(--gray-300);">
+                <h3 style="color: var(--brand-dark); margin-bottom: 16px;">📱 Cenário 2: Só Digital</h3>
+                <table class="data-table" style="font-size: 13px;">
+                    <tr><td><strong>Inclui</strong></td><td>App + Backend + Admin + Marca + Instagram</td></tr>
+                    <tr><td><strong>NÃO Inclui</strong></td><td>Loja física, estoque e operação</td></tr>
+                    <tr><td><strong>Valor Pedido</strong></td><td class="number"><strong>R$ 1.500.000</strong></td></tr>
+                    <tr><td><strong>Valor Mínimo</strong></td><td class="number">R$ 800.000</td></tr>
+                </table>
+            </div>
+
+            <div class="card" style="border: 2px solid var(--success);">
+                <h3 style="color: var(--brand-dark); margin-bottom: 16px;">💰 Cenário 3: Investimento Equity</h3>
+                <table class="data-table" style="font-size: 13px;">
+                    <tr><td><strong>Captação</strong></td><td class="number"><strong>R$ 300.000</strong></td></tr>
+                    <tr><td><strong>Valuation Pré-money</strong></td><td class="number">R$ 2.500.000</td></tr>
+                    <tr><td><strong>Equity Oferecido</strong></td><td class="number">10.7%</td></tr>
+                    <tr><td><strong>Uso: Marketing</strong></td><td class="number">R$ 120.000</td></tr>
+                    <tr><td><strong>Uso: Time (6 meses)</strong></td><td class="number">R$ 100.000</td></tr>
+                    <tr><td><strong>Uso: Infraestrutura</strong></td><td class="number">R$ 50.000</td></tr>
+                    <tr><td><strong>Uso: Reserva</strong></td><td class="number">R$ 30.000</td></tr>
+                </table>
+            </div>
+
+            <div class="card" style="border: 2px solid var(--accent);">
+                <h3 style="color: var(--brand-dark); margin-bottom: 16px;">🤝 Cenário 4: Smart Money</h3>
+                <table class="data-table" style="font-size: 13px;">
+                    <tr><td><strong>Investidor Ideal</strong></td><td>Rede de brechós, marketplace moda</td></tr>
+                    <tr><td><strong>Captação</strong></td><td class="number"><strong>R$ 500.000</strong></td></tr>
+                    <tr><td><strong>Valuation Pré-money</strong></td><td class="number">R$ 3.000.000</td></tr>
+                    <tr><td><strong>Equity Oferecido</strong></td><td class="number">14.3%</td></tr>
+                    <tr><td><strong>Benefícios</strong></td><td>Know-how + Escala + Sinergias</td></tr>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- 15. FORÇAS E RISCOS -->
+    <section class="slide">
+        <h2 class="slide-title"><span class="number">14</span> Pontos Fortes & Riscos</h2>
+        <p class="slide-subtitle">Análise transparente do negócio</p>
+
+        <div class="grid-2">
+            <div>
+                <h3 style="color: var(--success); margin-bottom: 16px;">✓ Pontos Fortes</h3>
+                <ul class="check-list">
+                    <li>Marca estabelecida há 10 anos com histórico comprovado</li>
+                    <li>Fluxo de caixa positivo existente (R$ 50K/mês)</li>
+                    <li>Base de ~2.000 clientes prontos para migrar para o app</li>
+                    <li>19.000 seguidores engajados no Instagram (nicho moda)</li>
+                    <li>MVP completo e publicado na Google Play Store</li>
+                    <li>Tecnologia diferenciada (IA Claude para precificação)</li>
+                    <li>Três fontes de receita (comissão + assinatura + ads)</li>
+                    <li>Mercado de segunda mão em crescimento (25%/ano, ESG)</li>
+                    <li>Baixo CAC pela migração de clientes existentes</li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 style="color: var(--warning); margin-bottom: 16px;">⚠ Pontos de Atenção</h3>
+                <ul class="check-list">
+                    <li class="negative"><strong>Marca NÃO registrada no INPI</strong> (risco jurídico)</li>
+                    <li class="negative">App ainda sem usuários pagantes (pré-tração)</li>
+                    <li class="negative">Mercado competitivo (Enjoei, Repassa, Troc)</li>
+                    <li class="negative">Dependência da aprovação Google Play (em análise)</li>
+                    <li class="negative">Necessidade de investimento em marketing para escalar</li>
+                    <li class="negative">Risco de execução na escalabilidade técnica</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- 16. ROADMAP FUTURO -->
+    <section class="slide">
+        <h2 class="slide-title"><span class="number">15</span> Projeção de Valuation Futuro</h2>
+        <p class="slide-subtitle">Marcos e valuations esperados nos próximos 3 anos</p>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Marco</th>
+                    <th>Métricas</th>
+                    <th class="number">MRR</th>
+                    <th class="number">Valuation Esperado</th>
+                    <th class="number">Múltiplo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="highlight">
+                    <td><strong>HOJE</strong></td>
+                    <td>MVP pronto, publicado</td>
+                    <td class="number">R$ 0</td>
+                    <td class="number"><strong>R$ 2M - R$ 4M</strong></td>
+                    <td class="number">-</td>
+                </tr>
+                <tr>
+                    <td><strong>6 meses</strong></td>
+                    <td>10.000 usuários</td>
+                    <td class="number">~R$ 50K</td>
+                    <td class="number">R$ 4M - R$ 6M</td>
+                    <td class="number">8-12x MRR</td>
+                </tr>
+                <tr>
+                    <td><strong>12 meses</strong></td>
+                    <td>50.000 usuários</td>
+                    <td class="number">R$ 200K</td>
+                    <td class="number">R$ 8M - R$ 12M</td>
+                    <td class="number">5-7x ARR</td>
+                </tr>
+                <tr>
+                    <td><strong>24 meses</strong></td>
+                    <td>150.000 usuários</td>
+                    <td class="number">R$ 500K</td>
+                    <td class="number">R$ 25M - R$ 40M</td>
+                    <td class="number">4-7x ARR</td>
+                </tr>
+                <tr class="total">
+                    <td><strong>36 meses</strong></td>
+                    <td>300.000 usuários</td>
+                    <td class="number">R$ 1M</td>
+                    <td class="number"><strong>R$ 50M - R$ 80M</strong></td>
+                    <td class="number">4-7x ARR</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="highlight-box" style="margin-top: 24px;">
+            <strong>Múltiplos de referência:</strong><br>
+            • Seed/Pré-Seed: 5-10x ARR<br>
+            • Série A: 10-20x ARR<br>
+            • Série B+: 15-30x ARR
+        </div>
+    </section>
+
+    <!-- 17. CONTATO -->
+    <section class="slide" style="background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%); color: white; text-align: center; justify-content: center;">
+        <div style="max-width: 600px; margin: 0 auto;">
+            <div style="font-size: 48px; margin-bottom: 16px;">🤝</div>
+            <h2 style="font-size: 42px; font-weight: 800; margin-bottom: 16px;">Vamos Conversar?</h2>
+            <p style="font-size: 18px; opacity: 0.9; margin-bottom: 48px;">
+                Estamos abertos a parcerias estratégicas, investimentos ou venda do negócio.
+            </p>
+
+            <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+                <a href="mailto:contato@apegadesapega.com.br" style="background: white; color: var(--brand-dark); padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 600;">
+                    📧 contato@apegadesapega.com.br
+                </a>
+                <a href="https://instagram.com/apegadesapega" style="background: rgba(255,255,255,0.2); color: white; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">
+                    📱 @apegadesapega
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p style="margin-bottom: 8px;"><strong>ApegaDesapega</strong> - Marketplace de moda circular</p>
+        <p>© 2025 ApegaDesapega. Todos os direitos reservados.</p>
+        <p style="margin-top: 16px; font-size: 12px;">
+            <a href="mailto:contato@apegadesapega.com.br">contato@apegadesapega.com.br</a> |
+            <a href="https://instagram.com/apegadesapega">Instagram</a>
+        </p>
+    </footer>
+
+</body>
+</html>
