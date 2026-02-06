@@ -21,3 +21,6 @@ export { ProfileSkeleton } from './ProfileSkeleton';
 // Looks
 export { LookCard } from './LookCard';
 export type { Look, LookProduct } from './LookCard';
+
+// Grid
+export { ProductGrid, useProductGrid } from './ProductGrid';

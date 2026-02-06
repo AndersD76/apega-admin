@@ -6,7 +6,6 @@ import {
   ScrollView,
   RefreshControl,
   Pressable,
-  useWindowDimensions,
   ImageBackground,
   TextInput,
   NativeSyntheticEvent,
@@ -21,7 +20,9 @@ import { Image } from 'expo-image';
 import { productsService, cartService, favoritesService } from '../api';
 import { formatPrice } from '../utils/format';
 import { useAuth } from '../context/AuthContext';
-import { colors } from '../theme';
+import { colors, spacing, getColors } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../hooks/useResponsive';
 import { MICROCOPY, CATEGORIES as APP_CATEGORIES } from '../constants';
 import { LookCard, Look } from '../components/LookCard';
 import { LOOK_DISCOUNT_PERCENT } from '../constants/looks';
@@ -74,9 +75,11 @@ const COLLECTIONS = [
 const PLACEHOLDER_IMAGE = 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400';
 
 export function HomeScreen({ navigation }: any) {
-  const { width } = useWindowDimensions();
+  const { width, gridColumns, productWidth, isMobile, isTablet, isDesktop } = useResponsive();
   const insets = useSafeAreaInsets();
   const { user, isAuthenticated } = useAuth();
+  const { isDark } = useTheme();
+  const themeColors = getColors(isDark);
   const [products, setProducts] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -196,11 +199,8 @@ export function HomeScreen({ navigation }: any) {
     }
   };
 
-  // Responsive
-  const isDesktop = width > 900;
-  const isTablet = width > 600 && width <= 900;
-  const numColumns = isDesktop ? 4 : isTablet ? 3 : 2;
-  const productWidth = (width - 32 - (numColumns - 1) * 12) / numColumns;
+  // Responsive values from hook (gridColumns, productWidth, isMobile, isTablet, isDesktop)
+  const numColumns = gridColumns;
 
   const fetchData = useCallback(async () => {
     try {

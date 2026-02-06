@@ -5,7 +5,6 @@ import {
   StyleSheet,
   FlatList,
   Pressable,
-  useWindowDimensions,
   RefreshControl,
   Alert,
 } from 'react-native';
@@ -14,22 +13,26 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../hooks/useResponsive';
 import { favoritesService } from '../api';
 import { formatPrice } from '../utils/format';
-import { colors } from '../theme';
+import { colors, spacing, getColors } from '../theme';
 import { MICROCOPY } from '../constants';
 
 export function FavoritesScreen({ navigation }: any) {
-  const { width } = useWindowDimensions();
+  const { width, gridColumns, productWidth, isMobile, isTablet, isDesktop } = useResponsive();
   const insets = useSafeAreaInsets();
   const auth = useAuth();
   const { isAuthenticated, isLoading: authLoading } = auth || {};
+  const { isDark } = useTheme();
+  const themeColors = getColors(isDark);
   const [favorites, setFavorites] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const numColumns = width > 600 ? 3 : 2;
-  const productWidth = (width - 32 - (numColumns - 1) * 12) / numColumns;
+  // Responsive values from hook
+  const numColumns = gridColumns;
 
   const fetchFavorites = useCallback(async () => {
     if (!isAuthenticated) {

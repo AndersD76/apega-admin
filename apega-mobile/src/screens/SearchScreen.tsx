@@ -6,7 +6,6 @@ import {
   ScrollView,
   TextInput,
   Pressable,
-  useWindowDimensions,
   Modal,
   Switch,
 } from 'react-native';
@@ -16,7 +15,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { productsService } from '../api';
 import { formatPrice } from '../utils/format';
-import { colors } from '../theme';
+import { colors, spacing, getColors } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../hooks/useResponsive';
 import { ProductListSkeleton } from '../components/ProductListSkeleton';
 
 // Garimpeiro mode color
@@ -48,8 +49,10 @@ const SORT_OPTIONS = [
 
 export function SearchScreen({ navigation, route }: any) {
   const { categoryId, categoryName, collection, showOffers, garimpeiro } = route.params || {};
-  const { width } = useWindowDimensions();
+  const { width, gridColumns, productWidth, isMobile, isTablet, isDesktop } = useResponsive();
   const insets = useSafeAreaInsets();
+  const { isDark } = useTheme();
+  const themeColors = getColors(isDark);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(categoryId || 'all');
   const [selectedCondition, setSelectedCondition] = useState('all');
@@ -85,8 +88,8 @@ export function SearchScreen({ navigation, route }: any) {
     }, [categoryId, collection, showOffers, garimpeiro])
   );
 
-  const numColumns = width > 600 ? 3 : 2;
-  const productWidth = (width - 32 - (numColumns - 1) * 12) / numColumns;
+  // Responsive values from hook
+  const numColumns = gridColumns;
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);

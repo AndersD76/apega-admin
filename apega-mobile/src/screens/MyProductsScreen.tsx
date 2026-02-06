@@ -5,7 +5,6 @@ import {
   StyleSheet,
   FlatList,
   Pressable,
-  useWindowDimensions,
   RefreshControl,
   Alert,
   ScrollView,
@@ -17,7 +16,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import { productsService } from '../api';
 import { formatPrice } from '../utils/format';
-import { colors } from '../theme';
+import { colors, spacing, getColors } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../hooks/useResponsive';
 import { LookCard, Look } from '../components/LookCard';
 import { LOOK_DISCOUNT_PERCENT } from '../constants/looks';
 
@@ -32,16 +33,18 @@ const PLACEHOLDER_IMAGE = 'https://images.unsplash.com/photo-1558171813-4c088753
 
 
 export function MyProductsScreen({ navigation }: any) {
-  const { width } = useWindowDimensions();
+  const { width, gridColumns, productWidth, isMobile, isTablet, isDesktop } = useResponsive();
   const insets = useSafeAreaInsets();
+  const { isDark } = useTheme();
+  const themeColors = getColors(isDark);
   const [activeTab, setActiveTab] = useState('active');
   const [products, setProducts] = useState<any[]>([]);
   const [looks, setLooks] = useState<Look[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const numColumns = width > 600 ? 3 : 2;
-  const productWidth = (width - 32 - (numColumns - 1) * 12) / numColumns;
+  // Responsive values from hook
+  const numColumns = gridColumns;
 
   const fetchProducts = useCallback(async () => {
     try {

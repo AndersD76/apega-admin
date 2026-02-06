@@ -4,16 +4,15 @@ import {
   Text,
   StyleSheet,
   Pressable,
-  Dimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, spacing, radius, shadows } from '../theme';
+import { colors, spacing, radius, shadows, getColors } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../hooks/useResponsive';
 import { Product } from '../api';
 import { getConditionLabel, getConditionEmoji } from '../constants';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface ProductCardProps {
   product: Product;
@@ -27,9 +26,14 @@ export function ProductCard({
   product,
   onPress,
   onFavorite,
-  width = (SCREEN_WIDTH - spacing.lg * 2 - spacing.sm) / 2,
+  width,
   showSeller = true,
 }: ProductCardProps) {
+  const { productWidth: defaultWidth } = useResponsive();
+  const { isDark } = useTheme();
+  const themeColors = getColors(isDark);
+  const cardWidth = width ?? defaultWidth;
+
   const [isFavorited, setIsFavorited] = useState(product.is_favorited || false);
   const imageUrl = product.image_url || product.images?.[0]?.image_url;
 
@@ -56,11 +60,11 @@ export function ProductCard({
 
   return (
     <Pressable
-      style={[styles.container, { width }]}
+      style={[styles.container, { width: cardWidth, backgroundColor: themeColors.surface }]}
       onPress={onPress}
     >
       {/* Image Container */}
-      <View style={[styles.imageContainer, { height: width * 1.25 }]}>
+      <View style={[styles.imageContainer, { height: cardWidth * 1.25, backgroundColor: themeColors.gray100 }]}>
         {imageUrl ? (
           <Image
             source={{ uri: imageUrl }}
@@ -69,8 +73,8 @@ export function ProductCard({
             transition={200}
           />
         ) : (
-          <View style={styles.placeholder}>
-            <Ionicons name="image-outline" size={40} color={colors.gray300} />
+          <View style={[styles.placeholder, { backgroundColor: themeColors.gray100 }]}>
+            <Ionicons name="image-outline" size={40} color={themeColors.gray300} />
           </View>
         )}
 
@@ -80,21 +84,21 @@ export function ProductCard({
             <Ionicons
               name={isFavorited ? 'heart' : 'heart-outline'}
               size={18}
-              color={isFavorited ? colors.error : colors.white}
+              color={isFavorited ? themeColors.error : '#fff'}
             />
           </View>
         </Pressable>
 
         {/* Discount Badge */}
         {discount > 0 && (
-          <View style={styles.discountBadge}>
+          <View style={[styles.discountBadge, { backgroundColor: themeColors.error }]}>
             <Text style={styles.discountText}>-{discount}%</Text>
           </View>
         )}
 
         {/* Condition Badge */}
-        <View style={styles.conditionBadge}>
-          <Text style={styles.conditionText}>{conditionLabel}</Text>
+        <View style={[styles.conditionBadge, { backgroundColor: themeColors.surface }]}>
+          <Text style={[styles.conditionText, { color: themeColors.text }]}>{conditionLabel}</Text>
         </View>
 
         {/* Price Tag */}
@@ -117,12 +121,12 @@ export function ProductCard({
 
       {/* Info Container */}
       <View style={styles.infoContainer}>
-        <Text style={styles.title} numberOfLines={2}>
+        <Text style={[styles.title, { color: themeColors.text }]} numberOfLines={2}>
           {product.title}
         </Text>
 
         {product.brand && (
-          <Text style={styles.brand}>{product.brand}</Text>
+          <Text style={[styles.brand, { color: themeColors.primary }]}>{product.brand}</Text>
         )}
 
         {showSeller && product.seller_name && (
@@ -134,15 +138,15 @@ export function ProductCard({
                 contentFit="cover"
               />
             ) : (
-              <View style={[styles.sellerAvatar, styles.sellerAvatarPlaceholder]}>
-                <Ionicons name="person" size={10} color={colors.gray400} />
+              <View style={[styles.sellerAvatar, styles.sellerAvatarPlaceholder, { backgroundColor: themeColors.gray200 }]}>
+                <Ionicons name="person" size={10} color={themeColors.gray400} />
               </View>
             )}
-            <Text style={styles.sellerName} numberOfLines={1}>
+            <Text style={[styles.sellerName, { color: themeColors.textSecondary }]} numberOfLines={1}>
               {product.seller_name}
             </Text>
             {product.seller_city && (
-              <Text style={styles.sellerCity}> • {product.seller_city}</Text>
+              <Text style={[styles.sellerCity, { color: themeColors.textMuted }]}> • {product.seller_city}</Text>
             )}
           </View>
         )}

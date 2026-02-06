@@ -173,6 +173,103 @@ export const spacing = {
   '5xl': 48,
 };
 
+// Responsive breakpoints
+export const breakpoints = {
+  mobile: 0,      // 0 - 599px
+  tablet: 600,    // 600 - 899px
+  desktop: 900,   // 900px+
+};
+
+// Component size tokens for consistent sizing
+export const componentSizes = {
+  button: {
+    sm: 36,
+    md: 44,
+    lg: 56,
+  },
+  avatar: {
+    sm: 32,
+    md: 44,
+    lg: 64,
+    xl: 80,
+  },
+  icon: {
+    sm: 18,
+    md: 24,
+    lg: 32,
+  },
+  input: {
+    height: 48,
+  },
+  touchTarget: 44, // Minimum recommended touch target
+};
+
+// Helper function to get responsive typography
+export function getResponsiveTypography(scale: number = 1) {
+  return {
+    h1: {
+      fontSize: Math.round(28 * scale),
+      fontWeight: '700' as const,
+      lineHeight: Math.round(36 * scale),
+    },
+    h2: {
+      fontSize: Math.round(22 * scale),
+      fontWeight: '700' as const,
+      lineHeight: Math.round(28 * scale),
+    },
+    h3: {
+      fontSize: Math.round(18 * scale),
+      fontWeight: '600' as const,
+      lineHeight: Math.round(24 * scale),
+    },
+    h4: {
+      fontSize: Math.round(16 * scale),
+      fontWeight: '600' as const,
+      lineHeight: Math.round(22 * scale),
+    },
+    body: {
+      fontSize: Math.round(16 * scale),
+      fontWeight: '400' as const,
+      lineHeight: Math.round(24 * scale),
+    },
+    bodyBold: {
+      fontSize: Math.round(16 * scale),
+      fontWeight: '600' as const,
+      lineHeight: Math.round(24 * scale),
+    },
+    small: {
+      fontSize: Math.round(14 * scale),
+      fontWeight: '400' as const,
+      lineHeight: Math.round(20 * scale),
+    },
+    smallBold: {
+      fontSize: Math.round(14 * scale),
+      fontWeight: '600' as const,
+      lineHeight: Math.round(20 * scale),
+    },
+    caption: {
+      fontSize: Math.round(13 * scale),
+      fontWeight: '400' as const,
+      lineHeight: Math.round(18 * scale),
+    },
+    captionBold: {
+      fontSize: Math.round(13 * scale),
+      fontWeight: '600' as const,
+      lineHeight: Math.round(18 * scale),
+    },
+    price: {
+      fontSize: Math.round(20 * scale),
+      fontWeight: '700' as const,
+      lineHeight: Math.round(26 * scale),
+    },
+    badge: {
+      fontSize: Math.round(12 * scale),
+      fontWeight: '600' as const,
+      lineHeight: Math.round(16 * scale),
+    },
+  };
+}
+
 export const radius = {
   sm: 4,
   md: 8,
@@ -278,4 +375,7 @@ export default {
   typography,
   shadows,
   fontFamily,
+  breakpoints,
+  componentSizes,
+  getResponsiveTypography,
 };

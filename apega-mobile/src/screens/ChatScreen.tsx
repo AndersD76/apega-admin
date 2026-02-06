@@ -18,8 +18,9 @@ import { Image } from 'expo-image';
 import { messagesService } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
+import { useTheme } from '../context/ThemeContext';
 import { formatPrice } from '../utils/format';
-import { colors, radius, shadows } from '../theme';
+import { colors, radius, shadows, spacing, getColors } from '../theme';
 import { OfferModal } from '../components/OfferModal';
 import { OfferMessage, OfferData, OfferStatus } from '../components/OfferMessage';
 
@@ -41,6 +42,8 @@ export function ChatScreen({ route, navigation }: any) {
   const scrollRef = useRef<ScrollView>(null);
   const { user } = useAuth();
   const { socket, isConnected, onlineUsers } = useSocket();
+  const { isDark } = useTheme();
+  const themeColors = getColors(isDark);
 
   const [conversationId, setConversationId] = useState<string | null>(initialConversationId || null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -478,13 +481,15 @@ export function ChatScreen({ route, navigation }: any) {
         key={message.id}
         style={[
           styles.messageBubble,
-          message.isMe ? styles.myMessage : styles.theirMessage,
+          message.isMe
+            ? [styles.myMessage, { backgroundColor: themeColors.primary }]
+            : [styles.theirMessage, { backgroundColor: themeColors.surface, borderColor: themeColors.border }],
         ]}
       >
-        <Text style={[styles.messageText, message.isMe && styles.myMessageText]}>
+        <Text style={[styles.messageText, { color: themeColors.text }, message.isMe && { color: isDark ? themeColors.background : '#fff' }]}>
           {message.text}
         </Text>
-        <Text style={[styles.messageTime, message.isMe && styles.myMessageTime]}>
+        <Text style={[styles.messageTime, { color: themeColors.textMuted }, message.isMe && { color: 'rgba(255,255,255,0.75)' }]}>
           {message.timestamp}
         </Text>
       </View>
@@ -493,21 +498,21 @@ export function ChatScreen({ route, navigation }: any) {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.loadingContainer, { paddingTop: insets.top }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={[styles.container, styles.loadingContainer, { paddingTop: insets.top, backgroundColor: themeColors.background }]}>
+        <ActivityIndicator size="large" color={themeColors.primary} />
       </View>
     );
   }
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: themeColors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
+      <View style={[styles.header, { paddingTop: insets.top + 8, backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
+        <Pressable style={[styles.backBtn, { backgroundColor: themeColors.gray100 }]} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color={themeColors.text} />
         </Pressable>
 
         <Pressable
@@ -515,43 +520,43 @@ export function ChatScreen({ route, navigation }: any) {
           onPress={() => sellerId && navigation.navigate('SellerProfile', { sellerId })}
         >
           <View style={styles.avatarContainer}>
-            <Image source={{ uri: seller.avatar }} style={styles.headerAvatar} contentFit="cover" />
-            {seller.online && <View style={styles.onlineIndicator} />}
+            <Image source={{ uri: seller.avatar }} style={[styles.headerAvatar, { borderColor: themeColors.border }]} contentFit="cover" />
+            {seller.online && <View style={[styles.onlineIndicator, { borderColor: themeColors.surface }]} />}
           </View>
           <View style={styles.headerInfo}>
-            <Text style={styles.headerName}>{seller.name}</Text>
-            <Text style={[styles.headerStatus, !seller.online && styles.headerStatusOffline]}>
+            <Text style={[styles.headerName, { color: themeColors.text }]}>{seller.name}</Text>
+            <Text style={[styles.headerStatus, { color: themeColors.success }, !seller.online && { color: themeColors.error }]}>
               {isTyping ? 'Digitando...' : (seller.online ? 'Online agora' : 'Offline')}
             </Text>
           </View>
         </Pressable>
 
         <Pressable style={styles.moreBtn}>
-          <Ionicons name="ellipsis-vertical" size={20} color="#525252" />
+          <Ionicons name="ellipsis-vertical" size={20} color={themeColors.textSecondary} />
         </Pressable>
       </View>
 
       {/* Connection Status */}
       {!isConnected && (
-        <View style={styles.connectionBar}>
-          <Ionicons name="cloud-offline-outline" size={16} color="#F59E0B" />
-          <Text style={styles.connectionText}>Reconectando...</Text>
+        <View style={[styles.connectionBar, { backgroundColor: themeColors.warningLight }]}>
+          <Ionicons name="cloud-offline-outline" size={16} color={themeColors.warning} />
+          <Text style={[styles.connectionText, { color: themeColors.text }]}>Reconectando...</Text>
         </View>
       )}
 
       {/* Product Preview */}
       {productId && (
-        <View style={styles.productBar}>
-          <Image source={{ uri: product.image }} style={styles.productThumb} contentFit="cover" />
+        <View style={[styles.productBar, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
+          <Image source={{ uri: product.image }} style={[styles.productThumb, { borderColor: themeColors.border }]} contentFit="cover" />
           <View style={styles.productInfo}>
-            <Text style={styles.productTitle} numberOfLines={1}>{product.title}</Text>
-            <Text style={styles.productPrice}>R$ {formatPrice(product.price)}</Text>
+            <Text style={[styles.productTitle, { color: themeColors.text }]} numberOfLines={1}>{product.title}</Text>
+            <Text style={[styles.productPrice, { color: themeColors.primary }]}>R$ {formatPrice(product.price)}</Text>
           </View>
           <Pressable
-            style={styles.viewBtn}
+            style={[styles.viewBtn, { backgroundColor: themeColors.primaryMuted }]}
             onPress={() => navigation.navigate('ProductDetail', { productId })}
           >
-            <Text style={styles.viewBtnText}>Ver</Text>
+            <Text style={[styles.viewBtnText, { color: themeColors.primary }]}>Ver</Text>
           </Pressable>
         </View>
       )}
@@ -559,29 +564,29 @@ export function ChatScreen({ route, navigation }: any) {
       {/* Messages */}
       <ScrollView
         ref={scrollRef}
-        style={styles.messagesContainer}
+        style={[styles.messagesContainer, { backgroundColor: themeColors.background }]}
         contentContainerStyle={styles.messagesContent}
         showsVerticalScrollIndicator={false}
       >
         {messages.length === 0 ? (
           <View style={styles.emptyMessages}>
-            <View style={styles.emptyIconContainer}>
-              <Ionicons name="chatbubble-ellipses-outline" size={40} color={colors.primary} />
+            <View style={[styles.emptyIconContainer, { backgroundColor: themeColors.primaryMuted }]}>
+              <Ionicons name="chatbubble-ellipses-outline" size={40} color={themeColors.primary} />
             </View>
-            <Text style={styles.emptyText}>Inicie a conversa</Text>
-            <Text style={styles.emptySubtext}>Envie uma mensagem para o vendedor</Text>
+            <Text style={[styles.emptyText, { color: themeColors.text }]}>Inicie a conversa</Text>
+            <Text style={[styles.emptySubtext, { color: themeColors.textMuted }]}>Envie uma mensagem para o vendedor</Text>
           </View>
         ) : (
           <>
             <View style={styles.dateHeader}>
-              <Text style={styles.dateText}>Hoje</Text>
+              <Text style={[styles.dateText, { backgroundColor: themeColors.gray200, color: themeColors.textSecondary }]}>Hoje</Text>
             </View>
 
             {messages.map((message) => renderMessage(message))}
 
             {isTyping && (
-              <View style={[styles.messageBubble, styles.theirMessage, styles.typingBubble]}>
-                <Text style={styles.typingText}>...</Text>
+              <View style={[styles.messageBubble, styles.theirMessage, styles.typingBubble, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+                <Text style={[styles.typingText, { color: themeColors.textMuted }]}>...</Text>
               </View>
             )}
           </>
@@ -590,43 +595,43 @@ export function ChatScreen({ route, navigation }: any) {
 
       {/* Quick Actions Bar */}
       {productId && !isSeller && (
-        <View style={styles.quickActionsBar}>
+        <View style={[styles.quickActionsBar, { backgroundColor: themeColors.surface, borderTopColor: themeColors.border }]}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.quickActionsContent}
           >
             <Pressable
-              style={styles.quickActionBtn}
+              style={[styles.quickActionBtn, { backgroundColor: themeColors.primaryMuted, borderColor: themeColors.primary }]}
               onPress={() => setShowOfferModal(true)}
             >
-              <Ionicons name="cash-outline" size={18} color={colors.primary} />
-              <Text style={styles.quickActionText}>Fazer oferta</Text>
+              <Ionicons name="cash-outline" size={18} color={themeColors.primary} />
+              <Text style={[styles.quickActionText, { color: themeColors.primary }]}>Fazer oferta</Text>
             </Pressable>
 
             <Pressable
-              style={styles.quickActionBtn}
+              style={[styles.quickActionBtn, { backgroundColor: themeColors.primaryMuted, borderColor: themeColors.primary }]}
               onPress={handleAskMeasures}
               disabled={sending}
             >
-              <Ionicons name="help-circle-outline" size={18} color={colors.primary} />
-              <Text style={styles.quickActionText}>Perguntar medidas</Text>
+              <Ionicons name="help-circle-outline" size={18} color={themeColors.primary} />
+              <Text style={[styles.quickActionText, { color: themeColors.primary }]}>Perguntar medidas</Text>
             </Pressable>
           </ScrollView>
         </View>
       )}
 
       {/* Input */}
-      <View style={[styles.inputBar, { paddingBottom: insets.bottom + 12 }]}>
+      <View style={[styles.inputBar, { paddingBottom: insets.bottom + 12, backgroundColor: themeColors.surface, borderTopColor: themeColors.border }]}>
         <Pressable style={styles.attachBtn}>
-          <Ionicons name="add-circle-outline" size={24} color={colors.primary} />
+          <Ionicons name="add-circle-outline" size={24} color={themeColors.primary} />
         </Pressable>
 
-        <View style={styles.inputWrap}>
+        <View style={[styles.inputWrap, { backgroundColor: themeColors.gray100, borderColor: themeColors.border }]}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: themeColors.text }]}
             placeholder="Digite uma mensagem..."
-            placeholderTextColor="#A3A3A3"
+            placeholderTextColor={themeColors.textMuted}
             value={inputText}
             onChangeText={setInputText}
             multiline
@@ -635,11 +640,11 @@ export function ChatScreen({ route, navigation }: any) {
         </View>
 
         <Pressable
-          style={[styles.sendBtn, inputText.trim() && styles.sendBtnActive]}
+          style={[styles.sendBtn, { backgroundColor: themeColors.gray200 }, inputText.trim() && { backgroundColor: themeColors.primary }]}
           onPress={sendMessage}
           disabled={sending}
         >
-          <Ionicons name="send" size={20} color={inputText.trim() ? '#fff' : '#A3A3A3'} />
+          <Ionicons name="send" size={20} color={inputText.trim() ? themeColors.surface : themeColors.textMuted} />
         </Pressable>
       </View>
 
@@ -655,34 +660,28 @@ export function ChatScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9FA' },
+  container: { flex: 1 },
   loadingContainer: { alignItems: 'center', justifyContent: 'center' },
 
   // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-    backgroundColor: '#fff',
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    ...(Platform.OS === 'web'
-      ? { boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }
-      : { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }
-    ),
+    ...shadows.sm,
   } as any,
   backBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerContent: { flex: 1, flexDirection: 'row', alignItems: 'center', marginLeft: 12 },
+  headerContent: { flex: 1, flexDirection: 'row', alignItems: 'center', marginLeft: spacing.md },
   avatarContainer: { position: 'relative' },
-  headerAvatar: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, borderColor: '#E5E7EB' },
+  headerAvatar: { width: 44, height: 44, borderRadius: 22, borderWidth: 2 },
   onlineIndicator: {
     position: 'absolute',
     bottom: 2,
@@ -692,12 +691,10 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: '#10B981',
     borderWidth: 2,
-    borderColor: '#fff',
   },
-  headerInfo: { marginLeft: 12, flex: 1 },
-  headerName: { fontSize: 16, fontWeight: '600', color: '#111827' },
-  headerStatus: { fontSize: 13, color: '#10B981', marginTop: 2 },
-  headerStatusOffline: { color: '#EF4444' },
+  headerInfo: { marginLeft: spacing.md, flex: 1 },
+  headerName: { fontSize: 16, fontWeight: '600' },
+  headerStatus: { fontSize: 13, marginTop: 2 },
   moreBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
 
   // Connection Bar
@@ -705,46 +702,41 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    backgroundColor: '#FEF3C7',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
   },
-  connectionText: { fontSize: 13, color: '#92400E', fontWeight: '500' },
+  connectionText: { fontSize: 13, fontWeight: '500' },
 
   // Product Bar
   productBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
-  productThumb: { width: 48, height: 48, borderRadius: 10, borderWidth: 1, borderColor: '#E5E7EB' },
-  productInfo: { flex: 1, marginLeft: 12 },
-  productTitle: { fontSize: 14, fontWeight: '500', color: '#374151' },
-  productPrice: { fontSize: 15, fontWeight: '700', color: colors.primary, marginTop: 3 },
+  productThumb: { width: 48, height: 48, borderRadius: 10, borderWidth: 1 },
+  productInfo: { flex: 1, marginLeft: spacing.md },
+  productTitle: { fontSize: 14, fontWeight: '500' },
+  productPrice: { fontSize: 15, fontWeight: '700', marginTop: 3 },
   viewBtn: {
     paddingHorizontal: 18,
     paddingVertical: 10,
-    backgroundColor: '#E8F5F0',
     borderRadius: 10,
   },
-  viewBtnText: { fontSize: 14, fontWeight: '600', color: colors.primary },
+  viewBtnText: { fontSize: 14, fontWeight: '600' },
 
   // Messages
-  messagesContainer: { flex: 1, backgroundColor: '#F8F9FA' },
-  messagesContent: { paddingHorizontal: 16, paddingVertical: 20, flexGrow: 1 },
-  dateHeader: { alignItems: 'center', marginBottom: 20 },
+  messagesContainer: { flex: 1 },
+  messagesContent: { paddingHorizontal: spacing.lg, paddingVertical: spacing.xl, flexGrow: 1 },
+  dateHeader: { alignItems: 'center', marginBottom: spacing.xl },
   dateText: {
     fontSize: 12,
-    color: '#6B7280',
-    backgroundColor: '#E5E7EB',
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 12,
     fontWeight: '500',
+    overflow: 'hidden',
   },
 
   emptyMessages: {
@@ -758,82 +750,66 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#E8F5F0',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emptyText: { fontSize: 17, fontWeight: '600', color: '#374151', marginTop: 20 },
-  emptySubtext: { fontSize: 14, color: '#9CA3AF', marginTop: 6, textAlign: 'center' },
+  emptyText: { fontSize: 17, fontWeight: '600', marginTop: spacing.xl },
+  emptySubtext: { fontSize: 14, marginTop: 6, textAlign: 'center' },
 
   messageBubble: {
     maxWidth: '75%',
-    marginBottom: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderRadius: 20,
   },
   myMessage: {
     alignSelf: 'flex-end',
-    backgroundColor: colors.primary,
     borderBottomRightRadius: 6,
-    ...(Platform.OS === 'web'
-      ? { boxShadow: '0 1px 2px rgba(93,138,125,0.2)' }
-      : { shadowColor: colors.primary, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 2, elevation: 1 }
-    ),
+    ...shadows.sm,
   } as any,
   theirMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: '#fff',
     borderBottomLeftRadius: 6,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
   },
-  messageText: { fontSize: 15, color: '#374151', lineHeight: 22 },
-  myMessageText: { color: '#fff' },
-  messageTime: { fontSize: 11, color: '#9CA3AF', marginTop: 6, alignSelf: 'flex-end' },
-  myMessageTime: { color: 'rgba(255,255,255,0.75)' },
+  messageText: { fontSize: 15, lineHeight: 22 },
+  messageTime: { fontSize: 11, marginTop: 6, alignSelf: 'flex-end' },
 
   // Typing indicator
   typingBubble: { paddingVertical: 10, paddingHorizontal: 18 },
-  typingText: { fontSize: 24, color: '#9CA3AF', letterSpacing: 3 },
+  typingText: { fontSize: 24, letterSpacing: 3 },
 
   // Quick Actions Bar
   quickActionsBar: {
-    backgroundColor: colors.white,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingVertical: 10,
+    paddingVertical: spacing.sm,
   },
   quickActionsContent: {
-    paddingHorizontal: 12,
-    gap: 10,
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
   },
   quickActionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primaryMuted,
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.primary,
     gap: 6,
   },
   quickActionText: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.primary,
   },
 
   // Input
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: 12,
-    paddingTop: 12,
-    backgroundColor: '#fff',
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
   },
   attachBtn: {
     width: 44,
@@ -843,31 +819,21 @@ const styles = StyleSheet.create({
   },
   inputWrap: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
     borderRadius: 24,
     paddingHorizontal: 18,
     paddingVertical: 10,
     marginHorizontal: 6,
     maxHeight: 120,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
   },
-  input: { fontSize: 15, color: '#111827', minHeight: 24, maxHeight: 80 },
+  input: { fontSize: 15, minHeight: 24, maxHeight: 80 },
   sendBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#E5E7EB',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sendBtnActive: {
-    backgroundColor: colors.primary,
-    ...(Platform.OS === 'web'
-      ? { boxShadow: '0 2px 6px rgba(93,138,125,0.3)' }
-      : { shadowColor: colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 }
-    ),
-  } as any,
 });
 
 export default ChatScreen;
