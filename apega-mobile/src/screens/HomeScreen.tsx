@@ -28,15 +28,22 @@ import { MICROCOPY, CATEGORIES as APP_CATEGORIES } from '../constants';
 import { LookCard, Look } from '../components/LookCard';
 import { LOOK_DISCOUNT_PERCENT } from '../constants/looks';
 import { ProductListSkeleton } from '../components/ProductListSkeleton';
+import { CategoryIcon } from '../components/CategoryIcon';
+import { Logo } from '../components/Logo';
 
-// Categories with professional Ionicons
-const CATEGORIES = [
-  { id: 'feminino', name: 'Feminino', icon: 'woman-outline' as const, color: colors.catFeminino, bg: colors.catFemininoBg },
-  { id: 'masculino', name: 'Masculino', icon: 'man-outline' as const, color: colors.catMasculino, bg: colors.catMasculinoBg },
-  { id: 'infantil', name: 'Infantil', icon: 'happy-outline' as const, color: colors.catInfantil, bg: colors.catInfantilBg },
-  { id: 'acessorios', name: 'Acessórios', icon: 'bag-handle-outline' as const, color: colors.catAcessorios, bg: colors.catAcessoriosBg },
-  { id: 'calcados', name: 'Calçados', icon: 'footsteps-outline' as const, color: colors.dourado, bg: colors.douradoLight },
-  { id: 'joias', name: 'Joias', icon: 'diamond-outline' as const, color: colors.lilas, bg: colors.lilasLight },
+// Categories with custom SVG icons
+const CATEGORIES: Array<{
+  id: 'feminino' | 'masculino' | 'infantil' | 'acessorios' | 'calcados' | 'joias';
+  name: string;
+  color: string;
+  bg: string;
+}> = [
+  { id: 'feminino', name: 'Feminino', color: colors.catFeminino, bg: colors.catFemininoBg },
+  { id: 'masculino', name: 'Masculino', color: colors.catMasculino, bg: colors.catMasculinoBg },
+  { id: 'infantil', name: 'Infantil', color: colors.catInfantil, bg: colors.catInfantilBg },
+  { id: 'acessorios', name: 'Acessórios', color: colors.catAcessorios, bg: colors.catAcessoriosBg },
+  { id: 'calcados', name: 'Calçados', color: colors.dourado, bg: colors.douradoLight },
+  { id: 'joias', name: 'Joias', color: colors.lilas, bg: colors.lilasLight },
 ];
 
 // Featured collections for desktop sidebar
@@ -324,7 +331,7 @@ export function HomeScreen({ navigation }: any) {
         <View style={[styles.headerContent, { maxWidth: contentMaxWidth }]}>
           {/* Logo */}
           <Pressable onPress={() => navigation.navigate('Home')}>
-            <Text style={[styles.logo, { color: colors.primary }]}>{MICROCOPY.appName}</Text>
+            <Logo size={36} showText={!isMobile} color={colors.primary} />
           </Pressable>
 
           {/* Search Bar */}
@@ -391,7 +398,7 @@ export function HomeScreen({ navigation }: any) {
                   onPress={() => navigation.navigate('Search', { categoryId: cat.id, categoryName: cat.name })}
                 >
                   <View style={[styles.categoryIconWrap, { backgroundColor: cat.bg, borderColor: cat.color }]}>
-                    <Ionicons name={cat.icon} size={26} color={cat.color} />
+                    <CategoryIcon category={cat.id} size={28} color={cat.color} />
                   </View>
                   <Text style={[styles.categoryName, { color: themeColors.text }]}>{cat.name}</Text>
                 </Pressable>
