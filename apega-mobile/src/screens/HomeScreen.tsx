@@ -9,95 +9,82 @@ import {
   TextInput,
   useWindowDimensions,
   StatusBar,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { productsService, cartService, favoritesService } from '../api';
 import { formatPrice } from '../utils/format';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 
-// ============================================
-// DESIGN SYSTEM - Inspirado no Enjoei REAL
-// ============================================
+// ════════════════════════════════════════════════════════════
+// DESIGN SYSTEM — Clean & Modern Marketplace
+// ════════════════════════════════════════════════════════════
 
-const COLORS = {
-  // Brand
-  primary: '#8B1A50', // Roxo/Magenta do Enjoei
-  secondary: '#FFD700', // Amarelo
-  tertiary: '#E8D5F0', // Lilás claro
-  accent: '#00C853', // Verde
-
-  // UI
-  background: '#FFFFFF',
-  surface: '#F5F5F5',
-  text: '#222222',
-  textSecondary: '#666666',
-  textMuted: '#999999',
-  border: '#E0E0E0',
+const BRAND = {
+  primary: '#C75C3A',     // Terracotta - main brand color
+  primaryDark: '#A84B2E',
+  black: '#0F0F0F',
   white: '#FFFFFF',
+  gray50: '#FAFAFA',
+  gray100: '#F4F4F5',
+  gray200: '#E4E4E7',
+  gray400: '#A1A1AA',
+  gray500: '#71717A',
+  gray600: '#52525B',
+  gray900: '#18181B',
 };
 
-// Categories with images
-const CATEGORIES = [
-  { id: 'all', name: 'tudo', icon: 'grid-outline' },
-  { id: 'feminino', name: 'moças', icon: 'woman-outline' },
-  { id: 'masculino', name: 'rapazes', icon: 'man-outline' },
-  { id: 'infantil', name: 'crianças', icon: 'happy-outline' },
-  { id: 'acessorios', name: 'acessórios', icon: 'watch-outline' },
-  { id: 'calcados', name: 'calçados', icon: 'footsteps-outline' },
+const FILTERS = [
+  { id: 'all', label: 'Tudo' },
+  { id: 'feminino', label: 'Feminino' },
+  { id: 'masculino', label: 'Masculino' },
+  { id: 'infantil', label: 'Infantil' },
+  { id: 'acessorios', label: 'Acessórios' },
 ];
 
-const PLACEHOLDER_IMAGE = 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=300';
-
 export function HomeScreen({ navigation }: any) {
-  const { width: screenWidth } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
-  // Responsive
-  const isMobile = screenWidth < 600;
-  const isTablet = screenWidth >= 600 && screenWidth < 1024;
-  const isDesktop = screenWidth >= 1024;
+  // Responsive breakpoints
+  const isMobile = width < 640;
+  const isTablet = width >= 640 && width < 1024;
+  const isDesktop = width >= 1024;
 
-  // Grid: 2 mobile, 4 tablet, 5 desktop (como Enjoei)
-  const gridColumns = isDesktop ? 5 : isTablet ? 4 : 2;
-  const containerPadding = isMobile ? 16 : 24;
-  const maxWidth = 1280;
-  const contentWidth = Math.min(screenWidth, maxWidth);
+  // Grid configuration
+  const cols = isDesktop ? 5 : isTablet ? 3 : 2;
+  const padding = isMobile ? 16 : 24;
   const gap = isMobile ? 12 : 16;
-  const cardWidth = Math.floor((contentWidth - containerPadding * 2 - gap * (gridColumns - 1)) / gridColumns);
+  const maxW = 1400;
+  const containerW = Math.min(width, maxW);
+  const cardW = (containerW - padding * 2 - gap * (cols - 1)) / cols;
 
   // State
   const [products, setProducts] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [filter, setFilter] = useState('all');
   const [cartCount, setCartCount] = useState(0);
+  const [searchFocused, setSearchFocused] = useState(false);
 
-  // Fetch functions
-  const fetchData = useCallback(async () => {
+  // Data fetching
+  const fetchProducts = useCallback(async () => {
     try {
-      const res = await productsService.getProducts({ limit: 50 });
+      const res = await productsService.getProducts({ limit: 60 });
       setProducts(res.products || []);
-    } catch (error) {
-      console.error('Error:', error);
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
-
-  const fetchCartCount = useCallback(async () => {
-    if (!isAuthenticated) return setCartCount(0);
-    try {
-      const res = await cartService.getCart();
-      setCartCount(res.items?.length || 0);
-    } catch { setCartCount(0); }
-  }, [isAuthenticated]);
 
   const fetchFavorites = useCallback(async () => {
     if (!isAuthenticated) return setFavorites(new Set());
@@ -107,657 +94,679 @@ export function HomeScreen({ navigation }: any) {
     } catch { setFavorites(new Set()); }
   }, [isAuthenticated]);
 
-  useEffect(() => {
-    fetchData();
-    fetchFavorites();
-  }, [fetchData, fetchFavorites]);
+  const fetchCart = useCallback(async () => {
+    if (!isAuthenticated) return setCartCount(0);
+    try {
+      const res = await cartService.getCart();
+      setCartCount(res.items?.length || 0);
+    } catch { setCartCount(0); }
+  }, [isAuthenticated]);
 
-  useFocusEffect(useCallback(() => { fetchCartCount(); }, [fetchCartCount]));
+  useEffect(() => { fetchProducts(); fetchFavorites(); }, []);
+  useFocusEffect(useCallback(() => { fetchCart(); }, [fetchCart]));
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchData();
-  };
+  const onRefresh = () => { setRefreshing(true); fetchProducts(); };
 
-  const toggleFavorite = async (productId: string) => {
+  const toggleFavorite = async (id: string) => {
     if (!isAuthenticated) return navigation.navigate('Login');
     try {
-      if (favorites.has(productId)) {
-        await favoritesService.removeFavorite(productId);
-        setFavorites(prev => { const n = new Set(prev); n.delete(productId); return n; });
+      if (favorites.has(id)) {
+        await favoritesService.removeFavorite(id);
+        setFavorites(prev => { const s = new Set(prev); s.delete(id); return s; });
       } else {
-        await favoritesService.addFavorite(productId);
-        setFavorites(prev => new Set(prev).add(productId));
+        await favoritesService.addFavorite(id);
+        setFavorites(prev => new Set(prev).add(id));
       }
     } catch {}
   };
 
-  // Filter
-  const filteredProducts = products.filter(item => {
-    if (selectedCategory === 'all') return true;
-    const map: Record<string, string[]> = {
-      'feminino': ['vestido', 'saia', 'blusa', 'feminino'],
-      'masculino': ['camisa', 'calça', 'blazer', 'masculino'],
-      'infantil': ['kids', 'infantil', 'bebê'],
-      'acessorios': ['bolsa', 'cinto', 'relógio'],
-      'calcados': ['tênis', 'sapato', 'sandália'],
+  // Filter products
+  const filtered = products.filter(p => {
+    if (filter === 'all') return true;
+    const keywords: Record<string, string[]> = {
+      feminino: ['vestido', 'saia', 'blusa', 'feminino'],
+      masculino: ['camisa', 'calça', 'blazer', 'masculino'],
+      infantil: ['infantil', 'kids', 'bebê'],
+      acessorios: ['bolsa', 'cinto', 'relógio', 'acessório'],
     };
-    return (map[selectedCategory] || []).some(kw => item.title?.toLowerCase().includes(kw));
+    return (keywords[filter] || []).some(k => p.title?.toLowerCase().includes(k));
   });
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+    <View style={styles.root}>
+      <StatusBar barStyle="dark-content" backgroundColor={BRAND.white} />
 
-      {/* ========== HEADER (Estilo Enjoei) ========== */}
-      <View style={[styles.header, { paddingTop: insets.top }]}>
-        <View style={[styles.headerInner, { maxWidth, paddingHorizontal: containerPadding }]}>
+      {/* ══════════ HEADER ══════════ */}
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <View style={[styles.headerContent, { maxWidth: maxW, paddingHorizontal: padding }]}>
+
           {/* Logo */}
-          <View style={styles.logoWrap}>
-            <Text style={styles.logoText}>L</Text>
-          </View>
+          <Pressable onPress={() => navigation.navigate('Home')}>
+            <Text style={styles.logo}>Largô</Text>
+          </Pressable>
 
-          {/* Search Bar */}
-          <View style={styles.searchBar}>
+          {/* Search */}
+          <View style={[styles.searchBox, searchFocused && styles.searchBoxFocused]}>
+            <Ionicons name="search" size={18} color={BRAND.gray400} />
             <TextInput
               style={styles.searchInput}
-              placeholder='busque "zara"'
-              placeholderTextColor={COLORS.textMuted}
+              placeholder="Buscar marcas, peças..."
+              placeholderTextColor={BRAND.gray400}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
               onSubmitEditing={(e) => navigation.navigate('Search', { query: e.nativeEvent.text })}
             />
-            <Pressable style={styles.searchBtn}>
-              <Ionicons name="search" size={18} color={COLORS.textMuted} />
-            </Pressable>
           </View>
 
-          {/* Nav Links (Desktop) */}
-          {!isMobile && (
-            <View style={styles.navLinks}>
-              {CATEGORIES.slice(1, 5).map(cat => (
-                <Pressable
-                  key={cat.id}
-                  style={styles.navLink}
-                  onPress={() => setSelectedCategory(cat.id)}
-                >
-                  <Text style={[styles.navLinkText, selectedCategory === cat.id && styles.navLinkActive]}>
-                    {cat.name}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          )}
-
           {/* Actions */}
-          <View style={styles.headerActions}>
-            <Pressable style={styles.headerIconBtn} onPress={() => navigation.navigate('Help')}>
-              <Ionicons name="help-circle-outline" size={22} color={COLORS.text} />
-            </Pressable>
-
-            {isAuthenticated ? (
-              <Pressable style={styles.headerIconBtn} onPress={() => navigation.navigate('Profile')}>
-                <Ionicons name="person-outline" size={20} color={COLORS.text} />
-              </Pressable>
-            ) : (
-              <Pressable onPress={() => navigation.navigate('Login')}>
-                <Text style={styles.loginText}>entrar</Text>
+          <View style={styles.actions}>
+            {isDesktop && (
+              <Pressable style={styles.sellButton} onPress={() => navigation.navigate('Sell')}>
+                <Ionicons name="add" size={18} color={BRAND.white} />
+                <Text style={styles.sellButtonText}>Vender</Text>
               </Pressable>
             )}
 
-            <Pressable style={styles.sellBtn} onPress={() => navigation.navigate('Sell')}>
-              <Text style={styles.sellBtnText}>quero vender</Text>
+            <Pressable style={styles.iconBtn} onPress={() => navigation.navigate('Favorites')}>
+              <Ionicons name="heart-outline" size={22} color={BRAND.gray900} />
+            </Pressable>
+
+            <Pressable style={styles.iconBtn} onPress={() => navigation.navigate('Cart')}>
+              <Ionicons name="bag-outline" size={22} color={BRAND.gray900} />
+              {cartCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{cartCount}</Text>
+                </View>
+              )}
+            </Pressable>
+
+            <Pressable
+              style={styles.iconBtn}
+              onPress={() => navigation.navigate(isAuthenticated ? 'Profile' : 'Login')}
+            >
+              <Ionicons name="person-outline" size={22} color={BRAND.gray900} />
             </Pressable>
           </View>
         </View>
       </View>
 
       <ScrollView
-        style={styles.scrollView}
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={BRAND.primary} />
+        }
       >
-        {/* ========== HERO BANNER ========== */}
-        <View style={[styles.heroBanner, { marginHorizontal: containerPadding }]}>
-          <View style={styles.heroContent}>
-            <Text style={styles.heroTitle}>largou?{'\n'}pegou!</Text>
-            <Text style={styles.heroSubtitle}>peças únicas até 80% off</Text>
-            <Pressable style={styles.heroBtn} onPress={() => navigation.navigate('Search')}>
-              <Text style={styles.heroBtnText}>ver ofertas</Text>
-            </Pressable>
-          </View>
-          <View style={styles.heroDecor}>
-            <View style={[styles.heroCircle, { backgroundColor: COLORS.secondary }]} />
-            <View style={[styles.heroCircle2, { backgroundColor: COLORS.accent }]} />
-          </View>
-        </View>
-
-        {/* ========== CATEGORIES (Mobile) ========== */}
-        {isMobile && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[styles.categoriesRow, { paddingHorizontal: containerPadding }]}
+        {/* ══════════ HERO ══════════ */}
+        <View style={[styles.heroSection, { paddingHorizontal: padding, maxWidth: maxW }]}>
+          <LinearGradient
+            colors={['#1A1A1A', '#2D2D2D']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroCard}
           >
-            {CATEGORIES.map(cat => (
-              <Pressable
-                key={cat.id}
-                style={[styles.categoryItem, selectedCategory === cat.id && styles.categoryItemActive]}
-                onPress={() => setSelectedCategory(cat.id)}
-              >
-                <View style={[styles.categoryIcon, selectedCategory === cat.id && styles.categoryIconActive]}>
-                  <Ionicons
-                    name={cat.icon as any}
-                    size={20}
-                    color={selectedCategory === cat.id ? COLORS.white : COLORS.text}
-                  />
-                </View>
-                <Text style={[styles.categoryLabel, selectedCategory === cat.id && styles.categoryLabelActive]}>
-                  {cat.name}
-                </Text>
+            <View style={styles.heroContent}>
+              <Text style={styles.heroTag}>MODA CIRCULAR</Text>
+              <Text style={styles.heroTitle}>Peças únicas,{'\n'}preços incríveis</Text>
+              <Text style={styles.heroDesc}>Compre e venda moda com até 90% off</Text>
+              <Pressable style={styles.heroCta} onPress={() => navigation.navigate('Search')}>
+                <Text style={styles.heroCtaText}>Explorar</Text>
+                <Ionicons name="arrow-forward" size={16} color={BRAND.black} />
               </Pressable>
-            ))}
-          </ScrollView>
-        )}
-
-        {/* ========== SECTION: queridíssimos ========== */}
-        <View style={[styles.section, { paddingHorizontal: containerPadding }]}>
-          <View style={styles.sectionHeader}>
-            <View>
-              <Text style={styles.sectionTitle}>queridíssimos e disputados</Text>
-              <Text style={styles.sectionSubtitle}>formam mais fila que toboágua</Text>
             </View>
-            <Pressable onPress={() => navigation.navigate('Search')}>
-              <Text style={styles.sectionLink}>ver mais</Text>
-            </Pressable>
-          </View>
-
-          {/* Products Grid */}
-          <View style={[styles.productsGrid, { gap }]}>
-            {loading ? (
-              <Text style={styles.loadingText}>carregando...</Text>
-            ) : filteredProducts.length === 0 ? (
-              <Text style={styles.emptyText}>nenhum produto encontrado</Text>
-            ) : (
-              filteredProducts.slice(0, isDesktop ? 10 : 6).map((item: any) => {
-                const img = item.image_url || item.image || PLACEHOLDER_IMAGE;
-                const isFav = favorites.has(item.id);
-
-                return (
-                  <Pressable
-                    key={item.id}
-                    style={[styles.productCard, { width: cardWidth }]}
-                    onPress={() => navigation.navigate('ProductDetail', { productId: item.id })}
-                  >
-                    <View style={[styles.productImageWrap, { height: cardWidth * 1.2 }]}>
-                      <Image source={{ uri: img }} style={styles.productImage} contentFit="cover" />
-
-                      {/* Cart icon (like Enjoei) */}
-                      <Pressable
-                        style={styles.cartIconBtn}
-                        onPress={(e) => { e.stopPropagation(); toggleFavorite(item.id); }}
-                      >
-                        <Ionicons name={isFav ? 'heart' : 'cart-outline'} size={16} color={isFav ? '#E53935' : COLORS.text} />
-                        {!isFav && <Text style={styles.cartIconCount}>1</Text>}
-                      </Pressable>
-
-                      {/* Price badge */}
-                      <View style={styles.priceBadge}>
-                        <Text style={styles.priceText}>R$ {formatPrice(item.price)}</Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.productInfo}>
-                      <Text style={styles.productTitle} numberOfLines={1}>{item.title}</Text>
-                      <Text style={styles.productMeta}>{item.brand || 'sem marca'} • {item.size || 'M'}</Text>
-                    </View>
-                  </Pressable>
-                );
-              })
-            )}
-          </View>
+            <View style={styles.heroVisual}>
+              <View style={styles.heroCircle1} />
+              <View style={styles.heroCircle2} />
+              <View style={styles.heroCircle3} />
+            </View>
+          </LinearGradient>
         </View>
 
-        {/* ========== SECTION: outlet ========== */}
-        <View style={[styles.section, { paddingHorizontal: containerPadding }]}>
-          <View style={styles.sectionHeader}>
-            <View>
-              <Text style={styles.sectionTitle}>outlet largô</Text>
-              <Text style={styles.sectionSubtitle}>grandes marcas e curadoria afiada</Text>
-            </View>
+        {/* ══════════ FILTERS ══════════ */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={[styles.filtersRow, { paddingHorizontal: padding }]}
+        >
+          {FILTERS.map(f => (
+            <Pressable
+              key={f.id}
+              style={[styles.filterChip, filter === f.id && styles.filterChipActive]}
+              onPress={() => setFilter(f.id)}
+            >
+              <Text style={[styles.filterText, filter === f.id && styles.filterTextActive]}>
+                {f.label}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+
+        {/* ══════════ PRODUCTS ══════════ */}
+        <View style={[styles.productsSection, { paddingHorizontal: padding, maxWidth: maxW }]}>
+          <View style={styles.sectionHead}>
+            <Text style={styles.sectionTitle}>Destaques</Text>
             <Pressable onPress={() => navigation.navigate('Search')}>
-              <Text style={styles.sectionLink}>ver tudo</Text>
+              <Text style={styles.seeAll}>Ver tudo</Text>
             </Pressable>
           </View>
 
-          <View style={[styles.productsGrid, { gap }]}>
-            {filteredProducts.slice(6, isDesktop ? 16 : 10).map((item: any) => {
-              const img = item.image_url || item.image || PLACEHOLDER_IMAGE;
-              return (
+          {loading ? (
+            <View style={styles.loadingGrid}>
+              {[...Array(cols * 2)].map((_, i) => (
+                <View key={i} style={[styles.skeleton, { width: cardW, height: cardW * 1.4 }]} />
+              ))}
+            </View>
+          ) : (
+            <View style={[styles.grid, { gap }]}>
+              {filtered.map((item) => (
                 <Pressable
                   key={item.id}
-                  style={[styles.productCard, { width: cardWidth }]}
+                  style={[styles.card, { width: cardW }]}
                   onPress={() => navigation.navigate('ProductDetail', { productId: item.id })}
                 >
-                  <View style={[styles.productImageWrap, { height: cardWidth * 1.2 }]}>
-                    <Image source={{ uri: img }} style={styles.productImage} contentFit="cover" />
-                    <View style={styles.priceBadge}>
-                      <Text style={styles.priceText}>R$ {formatPrice(item.price)}</Text>
+                  <View style={[styles.cardImageWrap, { height: cardW * 1.3 }]}>
+                    <Image
+                      source={{ uri: item.image_url || item.image || 'https://via.placeholder.com/300' }}
+                      style={styles.cardImage}
+                      contentFit="cover"
+                      transition={200}
+                    />
+
+                    {/* Favorite button */}
+                    <Pressable
+                      style={styles.favBtn}
+                      onPress={(e) => { e.stopPropagation(); toggleFavorite(item.id); }}
+                    >
+                      <Ionicons
+                        name={favorites.has(item.id) ? 'heart' : 'heart-outline'}
+                        size={18}
+                        color={favorites.has(item.id) ? '#EF4444' : BRAND.gray600}
+                      />
+                    </Pressable>
+
+                    {/* Discount badge */}
+                    {item.original_price && item.price < item.original_price && (
+                      <View style={styles.discountBadge}>
+                        <Text style={styles.discountText}>
+                          -{Math.round((1 - item.price / item.original_price) * 100)}%
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.cardBrand} numberOfLines={1}>
+                      {item.brand || 'Sem marca'}
+                    </Text>
+                    <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
+                    <View style={styles.priceRow}>
+                      <Text style={styles.cardPrice}>R$ {formatPrice(item.price)}</Text>
+                      {item.original_price && item.price < item.original_price && (
+                        <Text style={styles.cardOldPrice}>R$ {formatPrice(item.original_price)}</Text>
+                      )}
                     </View>
                   </View>
-                  <View style={styles.productInfo}>
-                    <Text style={styles.productTitle} numberOfLines={1}>{item.title}</Text>
-                    <Text style={styles.productMeta}>{item.brand || 'sem marca'}</Text>
-                  </View>
                 </Pressable>
-              );
-            })}
-          </View>
+              ))}
+            </View>
+          )}
         </View>
 
-        {/* ========== APP DOWNLOAD BANNER ========== */}
-        <View style={[styles.appBanner, { marginHorizontal: containerPadding }]}>
-          <Text style={styles.appBannerTitle}>baixe o app do largô</Text>
-          <Text style={styles.appBannerSubtitle}>altas tendências em preços de oportunidade</Text>
-          <View style={styles.appBtns}>
-            <Pressable style={styles.storeBadge}>
-              <Ionicons name="logo-google-playstore" size={16} color={COLORS.white} />
-              <Text style={styles.storeBadgeText}>Google Play</Text>
-            </Pressable>
-            <Pressable style={styles.storeBadge}>
-              <Ionicons name="logo-apple" size={16} color={COLORS.white} />
-              <Text style={styles.storeBadgeText}>App Store</Text>
+        {/* ══════════ CTA SECTION ══════════ */}
+        {!isDesktop && (
+          <View style={[styles.ctaSection, { marginHorizontal: padding }]}>
+            <Text style={styles.ctaTitle}>Tem peças paradas no armário?</Text>
+            <Text style={styles.ctaDesc}>Venda no Largô e ganhe dinheiro com o que você não usa mais</Text>
+            <Pressable style={styles.ctaBtn} onPress={() => navigation.navigate('Sell')}>
+              <Text style={styles.ctaBtnText}>Começar a vender</Text>
             </Pressable>
           </View>
-        </View>
+        )}
 
-        {/* ========== FOOTER ========== */}
-        <View style={[styles.footer, { paddingHorizontal: containerPadding }]}>
-          <View style={styles.footerCols}>
-            <View style={styles.footerCol}>
-              <Text style={styles.footerColTitle}>categorias</Text>
-              <Text style={styles.footerLink}>moda feminina</Text>
-              <Text style={styles.footerLink}>moda masculina</Text>
-              <Text style={styles.footerLink}>infantil</Text>
-            </View>
-            <View style={styles.footerCol}>
-              <Text style={styles.footerColTitle}>utilidades</Text>
-              <Text style={styles.footerLink}>ajuda</Text>
-              <Text style={styles.footerLink}>como vender</Text>
-              <Text style={styles.footerLink}>como comprar</Text>
-            </View>
-            <View style={styles.footerCol}>
-              <Text style={styles.footerColTitle}>minha conta</Text>
-              <Text style={styles.footerLink}>minha loja</Text>
-              <Text style={styles.footerLink}>minhas compras</Text>
-              <Text style={styles.footerLink}>minhas vendas</Text>
-            </View>
+        {/* ══════════ FOOTER ══════════ */}
+        <View style={[styles.footer, { paddingHorizontal: padding }]}>
+          <Text style={styles.footerLogo}>Largô</Text>
+          <Text style={styles.footerTagline}>Moda sustentável para todos</Text>
+          <View style={styles.footerLinks}>
+            <Pressable><Text style={styles.footerLink}>Sobre</Text></Pressable>
+            <Text style={styles.footerDot}>•</Text>
+            <Pressable><Text style={styles.footerLink}>Ajuda</Text></Pressable>
+            <Text style={styles.footerDot}>•</Text>
+            <Pressable><Text style={styles.footerLink}>Termos</Text></Pressable>
           </View>
-          <Text style={styles.footerCopyright}>© 2026 Largô. Todos os direitos reservados.</Text>
+          <Text style={styles.copyright}>© 2024 Largô</Text>
         </View>
       </ScrollView>
+
+      {/* ══════════ MOBILE FAB ══════════ */}
+      {isMobile && (
+        <Pressable style={styles.fab} onPress={() => navigation.navigate('Sell')}>
+          <Ionicons name="add" size={28} color={BRAND.white} />
+        </Pressable>
+      )}
     </View>
   );
 }
 
+// ════════════════════════════════════════════════════════════
+// STYLES
+// ════════════════════════════════════════════════════════════
+
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: BRAND.white,
   },
 
   // Header
   header: {
-    backgroundColor: COLORS.background,
+    backgroundColor: BRAND.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: BRAND.gray200,
+    zIndex: 10,
   },
-  headerInner: {
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     height: 56,
-    alignSelf: 'center',
     width: '100%',
-    gap: 12,
+    alignSelf: 'center',
+    gap: 16,
   },
-  logoWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoText: {
-    fontSize: 20,
+  logo: {
+    fontSize: 26,
     fontWeight: '700',
-    color: COLORS.white,
+    color: BRAND.primary,
+    letterSpacing: -1,
   },
-  searchBar: {
+  searchBox: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    height: 40,
-    maxWidth: 500,
+    backgroundColor: BRAND.gray100,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    height: 44,
+    gap: 10,
+    maxWidth: 480,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  searchBoxFocused: {
+    borderColor: BRAND.primary,
+    backgroundColor: BRAND.white,
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
-    color: COLORS.text,
+    fontSize: 15,
+    color: BRAND.gray900,
   },
-  searchBtn: {
-    padding: 4,
-  },
-  navLinks: {
-    flexDirection: 'row',
-    gap: 20,
-  },
-  navLink: {
-    paddingVertical: 4,
-  },
-  navLinkText: {
-    fontSize: 14,
-    color: COLORS.text,
-  },
-  navLinkActive: {
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  headerActions: {
+  actions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginLeft: 'auto',
+    gap: 4,
   },
-  headerIconBtn: {
-    width: 36,
-    height: 36,
+  iconBtn: {
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 12,
   },
-  loginText: {
-    fontSize: 14,
-    color: COLORS.text,
-    marginRight: 8,
+  badge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    backgroundColor: BRAND.primary,
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
   },
-  sellBtn: {
-    backgroundColor: COLORS.primary,
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: BRAND.white,
+  },
+  sellButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: BRAND.primary,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: 10,
+    gap: 6,
+    marginRight: 8,
   },
-  sellBtnText: {
-    fontSize: 13,
+  sellButtonText: {
+    fontSize: 14,
     fontWeight: '600',
-    color: COLORS.white,
+    color: BRAND.white,
   },
 
   // Scroll
-  scrollView: {
+  scroll: {
     flex: 1,
+  },
+  scrollContent: {
+    alignItems: 'center',
   },
 
   // Hero
-  heroBanner: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 12,
-    marginTop: 16,
-    padding: 24,
+  heroSection: {
+    width: '100%',
+    paddingTop: 20,
+    paddingBottom: 8,
+  },
+  heroCard: {
+    borderRadius: 20,
+    padding: 28,
     flexDirection: 'row',
     overflow: 'hidden',
-    minHeight: 160,
+    minHeight: 180,
   },
   heroContent: {
     flex: 1,
-    zIndex: 1,
+    zIndex: 2,
+  },
+  heroTag: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: BRAND.primary,
+    letterSpacing: 1.5,
+    marginBottom: 8,
   },
   heroTitle: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '800',
-    color: COLORS.white,
-    lineHeight: 36,
+    color: BRAND.white,
+    lineHeight: 34,
+    marginBottom: 8,
   },
-  heroSubtitle: {
+  heroDesc: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    marginTop: 8,
+    color: 'rgba(255,255,255,0.7)',
+    marginBottom: 20,
   },
-  heroBtn: {
-    backgroundColor: COLORS.white,
+  heroCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: BRAND.white,
     paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingVertical: 12,
+    borderRadius: 10,
     alignSelf: 'flex-start',
-    marginTop: 16,
+    gap: 8,
   },
-  heroBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.primary,
+  heroCtaText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: BRAND.black,
   },
-  heroDecor: {
+  heroVisual: {
     position: 'absolute',
-    right: -20,
-    top: -20,
+    right: -40,
+    top: -40,
+    width: 300,
+    height: 300,
   },
-  heroCircle: {
+  heroCircle1: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: BRAND.primary,
+    opacity: 0.3,
+    right: 0,
+    top: 40,
+  },
+  heroCircle2: {
+    position: 'absolute',
     width: 120,
     height: 120,
     borderRadius: 60,
-    opacity: 0.3,
+    backgroundColor: BRAND.primary,
+    opacity: 0.5,
+    right: 80,
+    top: 120,
   },
-  heroCircle2: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginTop: -40,
-    marginLeft: 40,
-    opacity: 0.4,
+  heroCircle3: {
+    position: 'absolute',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: BRAND.white,
+    opacity: 0.2,
+    right: 160,
+    top: 80,
   },
 
-  // Categories (Mobile)
-  categoriesRow: {
-    flexDirection: 'row',
-    gap: 16,
+  // Filters
+  filtersRow: {
     paddingVertical: 16,
+    gap: 8,
   },
-  categoryItem: {
-    alignItems: 'center',
-    gap: 6,
+  filterChip: {
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 100,
+    backgroundColor: BRAND.gray100,
+    borderWidth: 1.5,
+    borderColor: BRAND.gray100,
   },
-  categoryItemActive: {},
-  categoryIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: COLORS.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
+  filterChipActive: {
+    backgroundColor: BRAND.black,
+    borderColor: BRAND.black,
   },
-  categoryIconActive: {
-    backgroundColor: COLORS.primary,
-  },
-  categoryLabel: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
-  },
-  categoryLabelActive: {
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-
-  // Section
-  section: {
-    marginTop: 32,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  sectionSubtitle: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  sectionLink: {
-    fontSize: 13,
-    color: COLORS.primary,
+  filterText: {
+    fontSize: 14,
     fontWeight: '500',
+    color: BRAND.gray600,
+  },
+  filterTextActive: {
+    color: BRAND.white,
   },
 
   // Products
-  productsGrid: {
+  productsSection: {
+    width: '100%',
+    paddingTop: 8,
+  },
+  sectionHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: BRAND.gray900,
+  },
+  seeAll: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: BRAND.primary,
+  },
+  loadingGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  skeleton: {
+    backgroundColor: BRAND.gray100,
+    borderRadius: 12,
+  },
+  grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
-  productCard: {},
-  productImageWrap: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 4,
+  card: {
+    marginBottom: 20,
+  },
+  cardImageWrap: {
+    backgroundColor: BRAND.gray100,
+    borderRadius: 14,
     overflow: 'hidden',
     position: 'relative',
   },
-  productImage: {
+  cardImage: {
     width: '100%',
     height: '100%',
   },
-  cartIconBtn: {
+  favBtn: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    flexDirection: 'row',
+    top: 10,
+    right: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: BRAND.white,
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    justifyContent: 'center',
+    ...Platform.select({
+      web: { boxShadow: '0 2px 8px rgba(0,0,0,0.1)' },
+      default: { elevation: 2 },
+    }),
+  },
+  discountBadge: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    backgroundColor: '#10B981',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
+    borderRadius: 6,
   },
-  cartIconCount: {
+  discountText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: BRAND.white,
+  },
+  cardInfo: {
+    paddingTop: 10,
+  },
+  cardBrand: {
     fontSize: 11,
     fontWeight: '600',
-    color: COLORS.text,
+    color: BRAND.gray400,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  priceBadge: {
-    position: 'absolute',
-    bottom: 8,
-    left: 8,
-    backgroundColor: COLORS.white,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  priceText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  productInfo: {
-    paddingTop: 8,
-    paddingBottom: 8,
-  },
-  productTitle: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-  productMeta: {
-    fontSize: 11,
-    color: COLORS.textMuted,
+  cardTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: BRAND.gray900,
     marginTop: 2,
   },
-
-  // States
-  loadingText: {
-    fontSize: 13,
-    color: COLORS.textMuted,
-    padding: 20,
-  },
-  emptyText: {
-    fontSize: 13,
-    color: COLORS.textMuted,
-    padding: 20,
-  },
-
-  // App Banner
-  appBanner: {
-    backgroundColor: COLORS.tertiary,
-    borderRadius: 12,
-    padding: 32,
-    marginTop: 48,
-    alignItems: 'center',
-  },
-  appBannerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.text,
-    textTransform: 'uppercase',
-  },
-  appBannerSubtitle: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  appBtns: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 20,
-  },
-  storeBadge: {
+  priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: COLORS.text,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
+    marginTop: 4,
   },
-  storeBadgeText: {
+  cardPrice: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: BRAND.gray900,
+  },
+  cardOldPrice: {
     fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.white,
+    color: BRAND.gray400,
+    textDecorationLine: 'line-through',
+  },
+
+  // CTA
+  ctaSection: {
+    backgroundColor: BRAND.gray100,
+    borderRadius: 16,
+    padding: 24,
+    marginTop: 32,
+    alignItems: 'center',
+  },
+  ctaTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: BRAND.gray900,
+    textAlign: 'center',
+  },
+  ctaDesc: {
+    fontSize: 14,
+    color: BRAND.gray500,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20,
+  },
+  ctaBtn: {
+    backgroundColor: BRAND.primary,
+    paddingHorizontal: 28,
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginTop: 20,
+  },
+  ctaBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: BRAND.white,
   },
 
   // Footer
   footer: {
-    marginTop: 48,
-    paddingVertical: 32,
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: 40,
+    marginTop: 40,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: BRAND.gray200,
   },
-  footerCols: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 32,
-  },
-  footerCol: {
-    minWidth: 140,
-  },
-  footerColTitle: {
-    fontSize: 12,
+  footerLogo: {
+    fontSize: 22,
     fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 12,
+    color: BRAND.primary,
+  },
+  footerTagline: {
+    fontSize: 13,
+    color: BRAND.gray500,
+    marginTop: 4,
+  },
+  footerLinks: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    gap: 8,
   },
   footerLink: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginBottom: 8,
+    fontSize: 13,
+    color: BRAND.gray600,
+    fontWeight: '500',
   },
-  footerCopyright: {
-    fontSize: 11,
-    color: COLORS.textMuted,
-    marginTop: 32,
+  footerDot: {
+    color: BRAND.gray400,
+  },
+  copyright: {
+    fontSize: 12,
+    color: BRAND.gray400,
+    marginTop: 16,
+  },
+
+  // FAB
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: BRAND.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      web: { boxShadow: '0 4px 20px rgba(199, 92, 58, 0.4)' },
+      default: { elevation: 8 },
+    }),
   },
 });
 
