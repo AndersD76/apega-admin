@@ -5,6 +5,9 @@
     "buildCommand": "cd apega-backend && npm install"
   },
   "deploy": {
-    "startCommand": "cd apega-backend && node src/server.js"
+    "startCommand": "cd apega-backend && npm start",
+    "healthcheckPath": "/api/health",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
   }
 }
