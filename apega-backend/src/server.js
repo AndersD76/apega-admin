@@ -170,7 +170,7 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), service: 'apega-backend' });
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), service: 'largo-api', version: '2.0.0' });
 });
 
 // Rota do Admin Panel
@@ -227,7 +227,7 @@ app.use((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
+  console.log(`🚀 Largô API rodando na porta ${PORT}`);
   console.log(`📦 API disponível em http://localhost:${PORT}/api`);
   console.log(`🔌 WebSocket disponível em ws://localhost:${PORT}`);
 });
