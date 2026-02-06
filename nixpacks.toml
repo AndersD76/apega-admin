@@ -9,9 +9,11 @@ cmds = [
 
 [phases.build]
 cmds = [
+  "mkdir -p /tmp/static-pages && cp apega-backend/public/*.html /tmp/static-pages/ 2>/dev/null || true",
   "rm -rf apega-mobile/dist apega-mobile/.expo apega-backend/public",
   "cd apega-mobile && npx expo export --platform web",
-  "cp -r apega-mobile/dist apega-backend/public"
+  "cp -r apega-mobile/dist apega-backend/public",
+  "cp /tmp/static-pages/*.html apega-backend/public/ 2>/dev/null || true"
 ]
 
 [start]
