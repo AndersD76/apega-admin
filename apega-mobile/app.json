@@ -27,7 +27,12 @@
       "versionCode": 3
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "name": "Largô - Moda Sustentável",
+      "shortName": "Largô",
+      "description": "Marketplace de moda sustentável - compre e venda roupas seminovas",
+      "themeColor": "#C75C3A",
+      "backgroundColor": "#FFF8F0"
     },
     "plugins": [
       [
