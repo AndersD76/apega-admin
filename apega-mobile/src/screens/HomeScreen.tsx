@@ -29,14 +29,14 @@ import { LookCard, Look } from '../components/LookCard';
 import { LOOK_DISCOUNT_PERCENT } from '../constants/looks';
 import { ProductListSkeleton } from '../components/ProductListSkeleton';
 
-// Categories with emoji icons (more universal than images)
+// Categories with professional Ionicons
 const CATEGORIES = [
-  { id: 'feminino', name: 'Feminino', emoji: '👗', color: '#FF6B6B', bg: '#FFF0F0' },
-  { id: 'masculino', name: 'Masculino', emoji: '👔', color: '#4A90A4', bg: '#F0F7FA' },
-  { id: 'infantil', name: 'Infantil', emoji: '🧸', color: '#F2C94C', bg: '#FFFBEB' },
-  { id: 'acessorios', name: 'Acessórios', emoji: '👜', color: '#8B6AAE', bg: '#F8F0FF' },
-  { id: 'calcados', name: 'Calçados', emoji: '👠', color: '#5B8C5A', bg: '#F0F8F0' },
-  { id: 'joias', name: 'Joias', emoji: '💍', color: '#D4A574', bg: '#FDF6EE' },
+  { id: 'feminino', name: 'Feminino', icon: 'woman-outline' as const, color: colors.catFeminino, bg: colors.catFemininoBg },
+  { id: 'masculino', name: 'Masculino', icon: 'man-outline' as const, color: colors.catMasculino, bg: colors.catMasculinoBg },
+  { id: 'infantil', name: 'Infantil', icon: 'happy-outline' as const, color: colors.catInfantil, bg: colors.catInfantilBg },
+  { id: 'acessorios', name: 'Acessórios', icon: 'bag-handle-outline' as const, color: colors.catAcessorios, bg: colors.catAcessoriosBg },
+  { id: 'calcados', name: 'Calçados', icon: 'footsteps-outline' as const, color: colors.dourado, bg: colors.douradoLight },
+  { id: 'joias', name: 'Joias', icon: 'diamond-outline' as const, color: colors.lilas, bg: colors.lilasLight },
 ];
 
 // Featured collections for desktop sidebar
@@ -390,8 +390,8 @@ export function HomeScreen({ navigation }: any) {
                   style={styles.categoryCard}
                   onPress={() => navigation.navigate('Search', { categoryId: cat.id, categoryName: cat.name })}
                 >
-                  <View style={[styles.categoryIconWrap, { backgroundColor: cat.bg }]}>
-                    <Text style={styles.categoryEmoji}>{cat.emoji}</Text>
+                  <View style={[styles.categoryIconWrap, { backgroundColor: cat.bg, borderColor: cat.color }]}>
+                    <Ionicons name={cat.icon} size={26} color={cat.color} />
                   </View>
                   <Text style={[styles.categoryName, { color: themeColors.text }]}>{cat.name}</Text>
                 </Pressable>
@@ -426,32 +426,50 @@ export function HomeScreen({ navigation }: any) {
             ))}
           </ScrollView>
 
-          {/* Featured Banner - Mobile only */}
-          {isMobile && (
-            <Pressable
-              style={[styles.featuredBanner, { marginHorizontal: horizontalPadding }]}
-              onPress={() => navigation.navigate('Search', { showOffers: true })}
+          {/* Banner Principal - Linguagem Largô */}
+          <Pressable
+            style={[styles.heroBanner, { marginHorizontal: horizontalPadding }]}
+            onPress={() => navigation.navigate('Search', { showOffers: true })}
+          >
+            <LinearGradient
+              colors={[colors.primary, colors.primaryDark]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.heroBannerGrad}
             >
-              <LinearGradient
-                colors={[colors.primary, colors.primaryDark]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.featuredBannerGrad}
-              >
-                <View style={styles.featuredBannerContent}>
-                  <View style={styles.featuredBannerTag}>
-                    <Ionicons name="flash" size={12} color={colors.primary} />
-                    <Text style={styles.featuredBannerTagText}>OFERTAS</Text>
-                  </View>
-                  <Text style={styles.featuredBannerTitle}>Até 70% OFF</Text>
-                  <Text style={styles.featuredBannerSubtitle}>Em peças selecionadas</Text>
-                </View>
-                <View style={styles.featuredBannerAction}>
-                  <Ionicons name="arrow-forward" size={20} color="#fff" />
-                </View>
-              </LinearGradient>
-            </Pressable>
-          )}
+              <View style={styles.heroBannerContent}>
+                <Text style={styles.heroBannerTitle}>Largou?</Text>
+                <Text style={styles.heroBannerTitleAccent}>Pegou!</Text>
+                <Text style={styles.heroBannerSubtitle}>Peças únicas com até 80% off</Text>
+              </View>
+              <View style={styles.heroBannerBadge}>
+                <Ionicons name="pricetag" size={16} color={colors.primary} />
+                <Text style={styles.heroBannerBadgeText}>ATÉ 80% OFF</Text>
+              </View>
+            </LinearGradient>
+          </Pressable>
+
+          {/* Modo Garimpeiro - Novidades */}
+          <Pressable
+            style={[styles.garimpeiroCard, { marginHorizontal: horizontalPadding }]}
+            onPress={() => navigation.navigate('Search', { garimpeiro: true })}
+          >
+            <LinearGradient
+              colors={[colors.dourado, '#C99A5E']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.garimpeiroGrad}
+            >
+              <View style={styles.garimpeiroIcon}>
+                <Ionicons name="time" size={22} color="#fff" />
+              </View>
+              <View style={styles.garimpeiroText}>
+                <Text style={styles.garimpeiroTitle}>Modo Garimpeiro</Text>
+                <Text style={styles.garimpeiroSubtitle}>Acabaram de largar!</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#fff" />
+            </LinearGradient>
+          </Pressable>
 
           {/* Looks Section - Compact */}
           {looks.length > 0 && !isMobile && (
@@ -591,28 +609,27 @@ export function HomeScreen({ navigation }: any) {
             )}
           </View>
 
-          {/* Sell CTA - Mobile only */}
-          {isMobile && (
-            <Pressable
-              style={[styles.sellCta, { marginHorizontal: horizontalPadding }]}
-              onPress={() => navigation.navigate('Sell')}
-            >
-              <LinearGradient
-                colors={[colors.primary, colors.primaryDark]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.sellCtaGrad}
-              >
-                <View style={styles.sellCtaContent}>
-                  <Text style={styles.sellCtaTitle}>Largue suas peças</Text>
-                  <Text style={styles.sellCtaSubtitle}>Transforme em dinheiro</Text>
-                </View>
-                <View style={styles.sellCtaIcon}>
-                  <Ionicons name="camera-outline" size={24} color="#fff" />
-                </View>
-              </LinearGradient>
-            </Pressable>
-          )}
+          {/* CTA Largar Peça */}
+          <Pressable
+            style={[styles.sellCta, { marginHorizontal: horizontalPadding, maxWidth: isDesktop ? 600 : undefined }]}
+            onPress={() => navigation.navigate('Sell')}
+          >
+            <View style={styles.sellCtaCard}>
+              <View style={styles.sellCtaIconWrap}>
+                <Ionicons name="camera" size={28} color={colors.primary} />
+              </View>
+              <View style={styles.sellCtaContent}>
+                <Text style={[styles.sellCtaTitle, { color: themeColors.text }]}>Largue suas peças</Text>
+                <Text style={[styles.sellCtaSubtitle, { color: themeColors.textSecondary }]}>
+                  Tire foto e transforme em dinheiro
+                </Text>
+              </View>
+              <View style={styles.sellCtaBtn}>
+                <Text style={styles.sellCtaBtnText}>Largar</Text>
+                <Ionicons name="add" size={16} color="#fff" />
+              </View>
+            </View>
+          </Pressable>
 
           {/* Simple Footer */}
           <View style={[styles.footer, { backgroundColor: themeColors.surface, borderTopColor: themeColors.border }]}>
@@ -860,18 +877,16 @@ const styles = StyleSheet.create({
   },
   categoryCard: {
     alignItems: 'center',
-    width: 72,
+    width: 76,
   },
   categoryIconWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.xs,
-  },
-  categoryEmoji: {
-    fontSize: 28,
+    marginBottom: spacing.sm,
+    borderWidth: 2,
   },
   categoryName: {
     fontSize: 12,
@@ -947,54 +962,88 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 
-  // Featured Banner
-  featuredBanner: {
+  // Hero Banner - Largô Style
+  heroBanner: {
     marginTop: spacing.lg,
     borderRadius: radius.xl,
     overflow: 'hidden',
+    ...shadows.md,
   },
-  featuredBannerGrad: {
+  heroBannerGrad: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: spacing.lg,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
   },
-  featuredBannerContent: {
+  heroBannerContent: {
     flex: 1,
   },
-  featuredBannerTag: {
+  heroBannerTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#fff',
+    lineHeight: 32,
+  },
+  heroBannerTitleAccent: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFE4B5',
+    lineHeight: 32,
+  },
+  heroBannerSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.9)',
+    marginTop: spacing.sm,
+  },
+  heroBannerBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
     backgroundColor: '#fff',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: radius.full,
-    alignSelf: 'flex-start',
-    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.lg,
   },
-  featuredBannerTagText: {
-    fontSize: 10,
-    fontWeight: '700',
+  heroBannerBadgeText: {
+    fontSize: 12,
+    fontWeight: '800',
     color: colors.primary,
   },
-  featuredBannerTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#fff',
+
+  // Garimpeiro Card
+  garimpeiroCard: {
+    marginTop: spacing.md,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    ...shadows.sm,
   },
-  featuredBannerSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.9)',
-    marginTop: 2,
+  garimpeiroGrad: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.md,
   },
-  featuredBannerAction: {
+  garimpeiroIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  garimpeiroText: {
+    flex: 1,
+  },
+  garimpeiroTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  garimpeiroSubtitle: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.85)',
   },
 
   // Looks
@@ -1121,15 +1170,25 @@ const styles = StyleSheet.create({
   // Sell CTA
   sellCta: {
     marginTop: spacing['2xl'],
-    borderRadius: radius.xl,
-    overflow: 'hidden',
   },
-  sellCtaGrad: {
+  sellCtaCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xl,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    borderWidth: 2,
+    borderColor: colors.primaryMuted,
+    borderStyle: 'dashed',
+    gap: spacing.md,
+  },
+  sellCtaIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: colors.primaryMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sellCtaContent: {
     flex: 1,
@@ -1137,20 +1196,24 @@ const styles = StyleSheet.create({
   sellCtaTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#fff',
   },
   sellCtaSubtitle: {
     fontSize: 13,
-    color: 'rgba(255,255,255,0.85)',
     marginTop: 2,
   },
-  sellCtaIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+  sellCtaBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.lg,
+  },
+  sellCtaBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
   },
 
   // Footer
