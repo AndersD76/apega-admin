@@ -252,6 +252,50 @@ export function HomeScreen({ navigation }: any) {
           </LinearGradient>
         </View>
 
+        {/* ══════════ QUARTA DO DESAPEGO PROMO ══════════ */}
+        <Pressable
+          style={[styles.quartaPromo, { marginHorizontal: padding, maxWidth: maxW - padding * 2 }]}
+          onPress={() => navigation.navigate('QuartaDesapego')}
+        >
+          <LinearGradient
+            colors={['#7C3AED', '#9333EA', '#A855F7']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.quartaGradient}
+          >
+            <View style={styles.quartaContent}>
+              <View style={styles.quartaTag}>
+                <Ionicons name="flash" size={12} color="#FDE047" />
+                <Text style={styles.quartaTagText}>TODA QUARTA</Text>
+              </View>
+              <Text style={styles.quartaTitle}>Quarta do Largô</Text>
+              <Text style={styles.quartaDesc}>Leilão semanal com até 50% OFF</Text>
+              <View style={styles.quartaCta}>
+                <Text style={styles.quartaCtaText}>Participar</Text>
+                <Ionicons name="arrow-forward" size={14} color={BRAND.white} />
+              </View>
+            </View>
+            <View style={styles.quartaVisual}>
+              <Ionicons name="pricetags" size={48} color="rgba(255,255,255,0.3)" />
+            </View>
+          </LinearGradient>
+        </Pressable>
+
+        {/* ══════════ OFFERS PROMO ══════════ */}
+        <Pressable
+          style={[styles.offersPromo, { marginHorizontal: padding, maxWidth: maxW - padding * 2 }]}
+          onPress={() => navigation.navigate('Offers')}
+        >
+          <View style={styles.offersIcon}>
+            <Ionicons name="cash-outline" size={24} color={BRAND.primary} />
+          </View>
+          <View style={styles.offersContent}>
+            <Text style={styles.offersTitle}>Faça ofertas!</Text>
+            <Text style={styles.offersDesc}>Negocie direto com vendedores</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={BRAND.gray400} />
+        </Pressable>
+
         {/* ══════════ FILTERS ══════════ */}
         <View style={[styles.filtersWrapper, { maxWidth: maxW, paddingHorizontal: padding }]}>
           <ScrollView
@@ -679,6 +723,106 @@ const styles = StyleSheet.create({
     opacity: 0.2,
     right: 160,
     top: 80,
+  },
+
+  // Quarta do Largô Promo
+  quartaPromo: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginTop: 16,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  quartaGradient: {
+    flexDirection: 'row',
+    padding: 20,
+    alignItems: 'center',
+  },
+  quartaContent: {
+    flex: 1,
+    zIndex: 2,
+  },
+  quartaTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    gap: 4,
+    marginBottom: 8,
+  },
+  quartaTagText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FDE047',
+    letterSpacing: 0.5,
+  },
+  quartaTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: BRAND.white,
+    marginBottom: 4,
+  },
+  quartaDesc: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.9)',
+    marginBottom: 12,
+  },
+  quartaCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    gap: 6,
+  },
+  quartaCtaText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: BRAND.white,
+  },
+  quartaVisual: {
+    marginLeft: 16,
+  },
+
+  // Offers Promo
+  offersPromo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: BRAND.white,
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 12,
+    alignSelf: 'center',
+    width: '100%',
+    borderWidth: 1,
+    borderColor: BRAND.gray200,
+  },
+  offersIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  offersContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  offersTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: BRAND.gray900,
+  },
+  offersDesc: {
+    fontSize: 13,
+    color: BRAND.gray500,
+    marginTop: 2,
   },
 
   // Filters

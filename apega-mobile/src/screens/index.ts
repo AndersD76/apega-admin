@@ -26,6 +26,7 @@ export { MyProductsScreen } from './MyProductsScreen';
 export { OrdersScreen } from './OrdersScreen';
 export { MessagesScreen } from './MessagesScreen';
 export { ChatScreen } from './ChatScreen';
+export { OffersScreen } from './OffersScreen';
 export { SettingsScreen } from './SettingsScreen';
 export { EditProfileScreen } from './EditProfileScreen';
 export { AddressesScreen } from './AddressesScreen';
@@ -35,3 +36,6 @@ export { HelpScreen } from './HelpScreen';
 export { SellerProfileScreen } from './SellerProfileScreen';
 export { PoliciesScreen } from './PoliciesScreen';
 export { PremiumScreen } from './PremiumScreen';
+
+// Special Features
+export { QuartaLargoScreen } from './QuartaLargoScreen';
