@@ -188,7 +188,7 @@ function AppContent() {
         <Stack.Screen name="Messages" component={MessagesScreen} />
         <Stack.Screen name="Chat" component={ChatScreen} />
         <Stack.Screen name="Offers" component={OffersScreen} />
-        <Stack.Screen name="QuartaDesapego" component={QuartaLargoScreen} />
+        <Stack.Screen name="QuartaLargo" component={QuartaLargoScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen name="EditProfile" component={EditProfileScreen} />
         <Stack.Screen name="Addresses" component={AddressesScreen} />

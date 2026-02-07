@@ -90,7 +90,7 @@ export function ProfileScreen({ navigation }: any) {
     { icon: 'trending-up-outline', title: 'Minhas Vendas', subtitle: 'Acompanhe suas vendas', screen: 'Orders', params: { type: 'sales' } },
     { icon: 'bag-outline', title: 'Minhas Compras', subtitle: 'Histórico de compras', screen: 'Orders', params: { type: 'purchases' } },
     { icon: 'heart-outline', title: 'Quero!', subtitle: 'Peças que você curtiu', screen: 'Favorites', params: {} },
-    { icon: 'chatbubble-outline', title: 'Mensagens', subtitle: 'Conversas', screen: 'Messages', params: {} },
+    { icon: 'cash-outline', title: 'Minhas Ofertas', subtitle: 'Negociações', screen: 'Offers', params: {} },
     { icon: 'wallet-outline', title: 'Carteira', subtitle: 'Saldo e saques', screen: 'Wallet', params: {} },
     { icon: 'location-outline', title: 'Endereços', subtitle: 'Endereços de entrega', screen: 'Addresses', params: {} },
     { icon: 'settings-outline', title: 'Configurações', subtitle: 'Preferências', screen: 'Settings', params: {} },

@@ -8,6 +8,10 @@ import {
   useWindowDimensions,
   Alert,
   Share,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,6 +36,9 @@ export function ProductDetailScreen({ route, navigation }: any) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [showOfferModal, setShowOfferModal] = useState(false);
+  const [offerValue, setOfferValue] = useState('');
+  const [sendingOffer, setSendingOffer] = useState(false);
 
   useEffect(() => {
     fetchProduct();
@@ -88,24 +95,45 @@ export function ProductDetailScreen({ route, navigation }: any) {
     });
   };
 
-  const handleMessage = () => {
+  const handleOpenOffer = () => {
     if (!isAuthenticated) {
       navigation.navigate('Login');
       return;
     }
-    // Obter URL da primeira imagem (pode ser string ou objeto)
-    const firstImage = product.images?.[0];
-    const productImageUrl = typeof firstImage === 'string' ? firstImage : (firstImage?.image_url || product.image_url);
+    setOfferValue('');
+    setShowOfferModal(true);
+  };
 
-    navigation.navigate('Chat', {
-      sellerId: product.seller?.id || product.seller_id,
-      sellerName: product.seller?.name || product.seller_name || 'Vendedor',
-      sellerAvatar: product.seller?.avatar || product.seller_avatar,
-      productId: product.id,
-      productTitle: product.title,
-      productImage: productImageUrl,
-      productPrice: product.price,
-    });
+  const handleSendOffer = async () => {
+    const numericValue = parseInt(offerValue.replace(/[^0-9]/g, ''), 10);
+    if (!numericValue || numericValue <= 0) {
+      Alert.alert('Valor inválido', 'Digite um valor válido para sua oferta.');
+      return;
+    }
+
+    setSendingOffer(true);
+    try {
+      // TODO: Implement API call to send offer
+      // await offersService.createOffer({ productId: product.id, amount: numericValue });
+
+      setShowOfferModal(false);
+      Alert.alert(
+        'Oferta enviada!',
+        `Sua oferta de R$ ${formatPrice(numericValue)} foi enviada ao vendedor.`,
+        [{ text: 'Ver minhas ofertas', onPress: () => navigation.navigate('Offers') }]
+      );
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível enviar sua oferta. Tente novamente.');
+    } finally {
+      setSendingOffer(false);
+    }
+  };
+
+  const formatInputValue = (value: string) => {
+    const numericValue = value.replace(/[^0-9]/g, '');
+    if (!numericValue) return '';
+    const num = parseInt(numericValue, 10);
+    return num.toLocaleString('pt-BR');
   };
 
   const handleSellerPress = () => {
@@ -366,8 +394,9 @@ export function ProductDetailScreen({ route, navigation }: any) {
 
       {/* Bottom Actions */}
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
-        <Pressable style={styles.chatBtn} onPress={handleMessage}>
-          <Ionicons name="chatbubble-outline" size={22} color={colors.primary} />
+        <Pressable style={styles.offerBtn} onPress={handleOpenOffer}>
+          <Ionicons name="cash-outline" size={20} color={colors.primary} />
+          <Text style={styles.offerBtnText}>Fazer oferta</Text>
         </Pressable>
         <Pressable
           style={[styles.cartBtn, addingToCart && styles.cartBtnDisabled]}
@@ -384,6 +413,61 @@ export function ProductDetailScreen({ route, navigation }: any) {
           </LinearGradient>
         </Pressable>
       </View>
+
+      {/* Offer Modal */}
+      <Modal
+        visible={showOfferModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowOfferModal(false)}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <Pressable style={styles.modalBackdrop} onPress={() => setShowOfferModal(false)} />
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Fazer oferta</Text>
+              <Pressable style={styles.modalCloseBtn} onPress={() => setShowOfferModal(false)}>
+                <Ionicons name="close" size={24} color="#374151" />
+              </Pressable>
+            </View>
+
+            <Text style={styles.modalProductTitle} numberOfLines={2}>{product?.title}</Text>
+            <Text style={styles.modalProductPrice}>Preço atual: R$ {formatPrice(product?.price || 0)}</Text>
+
+            <View style={styles.modalInputContainer}>
+              <Text style={styles.modalCurrencyPrefix}>R$</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="0"
+                placeholderTextColor="#A1A1AA"
+                keyboardType="numeric"
+                value={formatInputValue(offerValue)}
+                onChangeText={(text) => setOfferValue(text.replace(/[^0-9]/g, ''))}
+                maxLength={10}
+                autoFocus
+              />
+            </View>
+
+            <Text style={styles.modalHint}>
+              Dica: Ofertas entre 70-90% do valor original têm mais chances de serem aceitas
+            </Text>
+
+            <Pressable
+              style={[styles.modalSubmitBtn, (!offerValue || sendingOffer) && styles.modalSubmitBtnDisabled]}
+              onPress={handleSendOffer}
+              disabled={!offerValue || sendingOffer}
+            >
+              <Ionicons name="send" size={18} color="#fff" />
+              <Text style={styles.modalSubmitBtnText}>
+                {sendingOffer ? 'Enviando...' : 'Enviar oferta'}
+              </Text>
+            </Pressable>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
@@ -456,14 +540,31 @@ const styles = StyleSheet.create({
 
   // Bottom Bar
   bottomBar: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: 12, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#F5F5F5' },
-  chatBtn: { alignItems: 'center', justifyContent: 'center', width: 48, height: 48, borderRadius: 24, borderWidth: 1.5, borderColor: colors.primary, backgroundColor: '#fff' },
-  chatBtnText: { fontSize: 14, fontWeight: '600', color: colors.primary },
-  cartBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 48, paddingHorizontal: 16, borderRadius: 24, borderWidth: 1.5, borderColor: colors.primary, backgroundColor: '#fff' },
-  cartBtnText: { fontSize: 14, fontWeight: '600', color: colors.primary },
+  offerBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 48, paddingHorizontal: 14, borderRadius: 24, borderWidth: 1.5, borderColor: colors.primary, backgroundColor: '#FEE2E2' },
+  offerBtnText: { fontSize: 13, fontWeight: '600', color: colors.primary },
+  cartBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 48, paddingHorizontal: 14, borderRadius: 24, borderWidth: 1.5, borderColor: colors.primary, backgroundColor: '#fff' },
+  cartBtnText: { fontSize: 13, fontWeight: '600', color: colors.primary },
   cartBtnDisabled: { opacity: 0.6 },
   buyBtn: { flex: 1, height: 48 },
   buyBtnGrad: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 24 },
   buyBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+
+  // Offer Modal
+  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
+  modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
+  modalContainer: { backgroundColor: '#FEFCF9', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: Platform.OS === 'ios' ? 40 : 24 },
+  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
+  modalTitle: { fontSize: 20, fontWeight: '700', color: '#18181B' },
+  modalCloseBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F4F4F5', alignItems: 'center', justifyContent: 'center' },
+  modalProductTitle: { fontSize: 15, fontWeight: '500', color: '#52525B', marginBottom: 4 },
+  modalProductPrice: { fontSize: 14, color: '#A1A1AA', marginBottom: 20 },
+  modalInputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 16, borderWidth: 2, borderColor: '#E4E4E7', paddingHorizontal: 16, paddingVertical: 12, marginBottom: 12 },
+  modalCurrencyPrefix: { fontSize: 20, fontWeight: '700', color: '#18181B', marginRight: 8 },
+  modalInput: { flex: 1, fontSize: 28, fontWeight: '700', color: '#18181B', padding: 0 },
+  modalHint: { fontSize: 12, color: '#71717A', marginBottom: 20, lineHeight: 18 },
+  modalSubmitBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary, borderRadius: 16, paddingVertical: 16, gap: 8 },
+  modalSubmitBtnDisabled: { backgroundColor: '#A1A1AA' },
+  modalSubmitBtnText: { fontSize: 16, fontWeight: '700', color: '#fff' },
 });
 
 export default ProductDetailScreen;

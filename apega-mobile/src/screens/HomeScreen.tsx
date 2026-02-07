@@ -41,11 +41,14 @@ const BRAND = {
 };
 
 const FILTERS = [
-  { id: 'all', label: 'Tudo' },
-  { id: 'feminino', label: 'Feminino' },
-  { id: 'masculino', label: 'Masculino' },
-  { id: 'infantil', label: 'Infantil' },
-  { id: 'acessorios', label: 'Acessórios' },
+  { id: 'all', label: 'Tudo', icon: 'grid-outline' },
+  { id: 'feminino', label: 'Feminino', icon: 'woman-outline' },
+  { id: 'masculino', label: 'Masculino', icon: 'man-outline' },
+  { id: 'infantil', label: 'Infantil', icon: 'happy-outline' },
+  { id: 'acessorios', label: 'Acessórios', icon: 'glasses-outline' },
+  { id: 'calcados', label: 'Calçados', icon: 'footsteps-outline' },
+  { id: 'bolsas', label: 'Bolsas', icon: 'bag-handle-outline' },
+  { id: 'vintage', label: 'Vintage', icon: 'time-outline' },
 ];
 
 export function HomeScreen({ navigation }: any) {
@@ -150,10 +153,13 @@ export function HomeScreen({ navigation }: any) {
   const filtered = products.filter(p => {
     if (filter === 'all') return true;
     const keywords: Record<string, string[]> = {
-      feminino: ['vestido', 'saia', 'blusa', 'feminino'],
-      masculino: ['camisa', 'calça', 'blazer', 'masculino'],
-      infantil: ['infantil', 'kids', 'bebê'],
-      acessorios: ['bolsa', 'cinto', 'relógio', 'acessório'],
+      feminino: ['vestido', 'saia', 'blusa', 'feminino', 'moda feminina'],
+      masculino: ['camisa', 'calça', 'blazer', 'masculino', 'moda masculina'],
+      infantil: ['infantil', 'kids', 'bebê', 'criança'],
+      acessorios: ['cinto', 'relógio', 'acessório', 'bijuteria', 'joia'],
+      calcados: ['sapato', 'tênis', 'sandália', 'bota', 'calçado', 'chinelo'],
+      bolsas: ['bolsa', 'mochila', 'carteira', 'clutch', 'necessaire'],
+      vintage: ['vintage', 'retrô', 'antigo', 'anos 80', 'anos 90'],
     };
     return (keywords[filter] || []).some(k => p.title?.toLowerCase().includes(k));
   });
@@ -252,10 +258,10 @@ export function HomeScreen({ navigation }: any) {
           </LinearGradient>
         </View>
 
-        {/* ══════════ QUARTA DO DESAPEGO PROMO ══════════ */}
+        {/* ══════════ QUARTA DO LARGÔ PROMO ══════════ */}
         <Pressable
           style={[styles.quartaPromo, { marginHorizontal: padding, maxWidth: maxW - padding * 2 }]}
-          onPress={() => navigation.navigate('QuartaDesapego')}
+          onPress={() => navigation.navigate('QuartaLargo')}
         >
           <LinearGradient
             colors={['#7C3AED', '#9333EA', '#A855F7']}
@@ -314,6 +320,12 @@ export function HomeScreen({ navigation }: any) {
                 ]}
                 onPress={() => setFilter(f.id)}
               >
+                <Ionicons
+                  name={f.icon as any}
+                  size={16}
+                  color={filter === f.id ? BRAND.white : BRAND.gray600}
+                  style={{ marginRight: 6 }}
+                />
                 <Text style={[styles.filterText, filter === f.id && styles.filterTextActive]}>
                   {f.label}
                 </Text>
@@ -838,8 +850,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   filterChip: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderRadius: 100,
     backgroundColor: BRAND.gray100,
     borderWidth: 1.5,
