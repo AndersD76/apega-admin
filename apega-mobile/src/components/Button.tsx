@@ -9,7 +9,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, radius, shadows } from '../theme';
+import { colors, spacing, radius, shadows, componentSizes, getColors } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 
 interface ButtonProps {
   title: string;
@@ -38,14 +39,28 @@ export function Button({
   style,
   textStyle,
 }: ButtonProps) {
+  const { isDark } = useTheme();
+  const themeColors = getColors(isDark);
   const isDisabled = disabled || loading;
+
+  // Use componentSizes for consistent button heights
+  const buttonHeight = {
+    sm: componentSizes.button.sm,
+    md: componentSizes.button.md,
+    lg: componentSizes.button.lg,
+  }[size];
 
   const buttonStyles = [
     styles.button,
+    { height: buttonHeight },
     styles[`button_${size}`],
     styles[`button_${variant}`],
+    variant === 'primary' && { backgroundColor: themeColors.primary },
+    variant === 'secondary' && { backgroundColor: themeColors.primaryMuted },
+    variant === 'outline' && { borderColor: themeColors.primary },
+    variant === 'danger' && { backgroundColor: themeColors.error },
     fullWidth && styles.fullWidth,
-    isDisabled && styles.buttonDisabled,
+    isDisabled && { backgroundColor: themeColors.gray200 },
     style,
   ];
 
@@ -53,19 +68,23 @@ export function Button({
     styles.text,
     styles[`text_${size}`],
     styles[`text_${variant}`],
-    isDisabled && styles.textDisabled,
+    variant === 'secondary' && { color: themeColors.primary },
+    variant === 'outline' && { color: themeColors.primary },
+    variant === 'ghost' && { color: themeColors.primary },
+    isDisabled && { color: themeColors.gray400 },
     textStyle,
   ];
 
-  const iconSize = size === 'sm' ? 16 : size === 'lg' ? 22 : 18;
-  const iconColor = variant === 'primary' || variant === 'danger' ? colors.white : colors.primary;
+  // Use componentSizes for icon sizes
+  const iconSize = size === 'sm' ? componentSizes.icon.sm : size === 'lg' ? componentSizes.icon.lg : componentSizes.icon.md;
+  const iconColor = variant === 'primary' || variant === 'danger' ? themeColors.white : themeColors.primary;
 
   const content = (
     <>
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === 'primary' || variant === 'danger' ? colors.white : colors.primary}
+          color={variant === 'primary' || variant === 'danger' ? themeColors.white : themeColors.primary}
         />
       ) : (
         <>
@@ -73,7 +92,7 @@ export function Button({
             <Ionicons
               name={icon}
               size={iconSize}
-              color={isDisabled ? colors.gray400 : iconColor}
+              color={isDisabled ? themeColors.gray400 : iconColor}
               style={styles.iconLeft}
             />
           )}
@@ -82,7 +101,7 @@ export function Button({
             <Ionicons
               name={icon}
               size={iconSize}
-              color={isDisabled ? colors.gray400 : iconColor}
+              color={isDisabled ? themeColors.gray400 : iconColor}
               style={styles.iconRight}
             />
           )}
@@ -102,7 +121,7 @@ export function Button({
         ]}
       >
         <LinearGradient
-          colors={[colors.primary, colors.primaryLight]}
+          colors={[themeColors.primary, themeColors.primaryLight]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.gradient}
@@ -154,17 +173,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray200,
   },
 
-  // Sizes
+  // Sizes (heights applied dynamically via componentSizes)
   button_sm: {
-    height: 36,
     paddingHorizontal: spacing.md,
   },
   button_md: {
-    height: 48,
     paddingHorizontal: spacing.xl,
   },
   button_lg: {
-    height: 56,
     paddingHorizontal: spacing['2xl'],
   },
 

@@ -4,14 +4,13 @@ import {
   Text,
   StyleSheet,
   Pressable,
-  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, radius, shadows } from '../theme';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+import { colors, spacing, radius, shadows, getColors } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../hooks/useResponsive';
 
 interface PromoBannerProps {
   title: string;
@@ -32,7 +31,27 @@ export function PromoBanner({
   imageUrl,
   variant = 'large',
 }: PromoBannerProps) {
-  const height = variant === 'large' ? 180 : variant === 'medium' ? 140 : 100;
+  const { isDark } = useTheme();
+  const themeColors = getColors(isDark);
+  const { isMobile, isTablet, height: screenHeight, getResponsiveValue } = useResponsive();
+
+  // Responsive height based on screen size and variant
+  const getHeight = () => {
+    const baseHeights = {
+      large: { mobile: 160, tablet: 180, desktop: 200 },
+      medium: { mobile: 120, tablet: 140, desktop: 160 },
+      small: { mobile: 80, tablet: 100, desktop: 120 },
+    };
+    const heights = baseHeights[variant];
+    return getResponsiveValue(heights.mobile, heights.tablet, heights.desktop);
+  };
+
+  const height = getHeight();
+  const titleSize = getResponsiveValue(
+    variant === 'small' ? 16 : 24,
+    variant === 'small' ? 18 : 26,
+    variant === 'small' ? 20 : 28
+  );
 
   return (
     <Pressable style={[styles.container, { height }]} onPress={onPress}>
@@ -52,7 +71,7 @@ export function PromoBanner({
 
         <View style={styles.content}>
           <View style={styles.textContainer}>
-            <Text style={[styles.title, variant === 'small' && styles.titleSmall]}>
+            <Text style={[styles.title, { fontSize: titleSize }]}>
               {title}
             </Text>
             {subtitle && (
@@ -63,9 +82,9 @@ export function PromoBanner({
           </View>
 
           {buttonText && variant !== 'small' && (
-            <View style={styles.button}>
-              <Text style={styles.buttonText}>{buttonText}</Text>
-              <Ionicons name="arrow-forward" size={16} color={colors.primary} />
+            <View style={[styles.button, { backgroundColor: themeColors.white }]}>
+              <Text style={[styles.buttonText, { color: themeColors.primary }]}>{buttonText}</Text>
+              <Ionicons name="arrow-forward" size={16} color={themeColors.primary} />
             </View>
           )}
         </View>
@@ -83,18 +102,28 @@ interface HeroBannerProps {
 }
 
 export function HeroBanner({ onSellPress }: HeroBannerProps) {
+  const { isDark } = useTheme();
+  const themeColors = getColors(isDark);
+  const { getResponsiveValue } = useResponsive();
+
+  const heroTitleSize = getResponsiveValue(28, 32, 36);
+  const heroSubtitleSize = getResponsiveValue(14, 15, 16);
+  const verticalPadding = getResponsiveValue(spacing['2xl'], spacing['3xl'], spacing['4xl']);
+
   return (
     <View style={styles.heroContainer}>
       <LinearGradient
-        colors={[colors.primary, colors.primaryDark]}
+        colors={[themeColors.primary, themeColors.primaryDark]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.heroGradient}
+        style={[styles.heroGradient, { paddingVertical: verticalPadding }]}
       >
         <View style={styles.heroContent}>
           <View style={styles.heroText}>
-            <Text style={styles.heroTitle}>Largou?{'\n'}Pegou!</Text>
-            <Text style={styles.heroSubtitle}>
+            <Text style={[styles.heroTitle, { fontSize: heroTitleSize, lineHeight: heroTitleSize * 1.2 }]}>
+              Largou?{'\n'}Pegou!
+            </Text>
+            <Text style={[styles.heroSubtitle, { fontSize: heroSubtitleSize }]}>
               Moda circular para um mundo melhor
             </Text>
             <Pressable style={styles.heroButton} onPress={onSellPress}>
@@ -144,13 +173,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 28,
     fontWeight: '800',
     color: colors.white,
     marginBottom: spacing.xs,
-  },
-  titleSmall: {
-    fontSize: 18,
   },
   subtitle: {
     fontSize: 14,
@@ -200,7 +225,6 @@ const styles = StyleSheet.create({
     ...shadows.xl,
   },
   heroGradient: {
-    paddingVertical: spacing['3xl'],
     paddingHorizontal: spacing.xl,
     position: 'relative',
     overflow: 'hidden',
@@ -214,14 +238,11 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   heroTitle: {
-    fontSize: 32,
     fontWeight: '800',
     color: colors.white,
-    lineHeight: 38,
     marginBottom: spacing.sm,
   },
   heroSubtitle: {
-    fontSize: 15,
     color: 'rgba(255,255,255,0.85)',
     marginBottom: spacing.xl,
     lineHeight: 22,

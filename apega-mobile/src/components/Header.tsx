@@ -8,7 +8,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, radius } from '../theme';
+import { colors, spacing, radius, componentSizes, getColors } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+import { useResponsive } from '../hooks/useResponsive';
 import { MICROCOPY } from '../constants';
 
 interface HeaderProps {
@@ -27,32 +29,50 @@ export function Header({
   cartCount = 0,
 }: HeaderProps) {
   const insets = useSafeAreaInsets();
+  const { isDark } = useTheme();
+  const themeColors = getColors(isDark);
+  const { isMobile, getResponsiveValue } = useResponsive();
+
+  const iconSize = getResponsiveValue(componentSizes.icon.md, componentSizes.icon.md, componentSizes.icon.lg);
+  const buttonSize = getResponsiveValue(componentSizes.button.sm, componentSizes.button.md, componentSizes.button.md);
+  const logoSize = getResponsiveValue(22, 24, 26);
+  const horizontalPadding = getResponsiveValue(spacing.md, spacing.lg, spacing.xl);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + spacing.sm }]}>
+    <View style={[styles.container, {
+      paddingTop: insets.top + spacing.sm,
+      paddingHorizontal: horizontalPadding,
+      backgroundColor: themeColors.surface,
+      borderBottomColor: themeColors.border,
+    }]}>
       {/* Logo */}
       <View style={styles.logoContainer}>
-        <Text style={styles.logo}>{MICROCOPY.appName}</Text>
+        <Text style={[styles.logo, { fontSize: logoSize, color: themeColors.primary }]}>{MICROCOPY.appName}</Text>
       </View>
 
       {/* Search Bar */}
       {showSearch && (
-        <Pressable style={styles.searchContainer} onPress={onSearchPress}>
-          <Ionicons name="search" size={18} color={colors.textMuted} />
-          <Text style={styles.searchPlaceholder}>Buscar produtos, marcas...</Text>
+        <Pressable style={[styles.searchContainer, {
+          backgroundColor: themeColors.background,
+          borderColor: themeColors.border,
+        }]} onPress={onSearchPress}>
+          <Ionicons name="search" size={18} color={themeColors.textMuted} />
+          <Text style={[styles.searchPlaceholder, { color: themeColors.textMuted }]}>
+            {isMobile ? 'Buscar...' : 'Buscar produtos, marcas...'}
+          </Text>
         </Pressable>
       )}
 
       {/* Actions */}
       <View style={styles.actions}>
-        <Pressable style={styles.iconButton} onPress={onNotificationPress}>
-          <Ionicons name="notifications-outline" size={24} color={colors.text} />
+        <Pressable style={[styles.iconButton, { width: buttonSize, height: buttonSize }]} onPress={onNotificationPress}>
+          <Ionicons name="notifications-outline" size={iconSize} color={themeColors.text} />
         </Pressable>
 
-        <Pressable style={styles.iconButton} onPress={onCartPress}>
-          <Ionicons name="bag-outline" size={24} color={colors.text} />
+        <Pressable style={[styles.iconButton, { width: buttonSize, height: buttonSize }]} onPress={onCartPress}>
+          <Ionicons name="bag-outline" size={iconSize} color={themeColors.text} />
           {cartCount > 0 && (
-            <View style={styles.badge}>
+            <View style={[styles.badge, { backgroundColor: themeColors.primary }]}>
               <Text style={styles.badgeText}>{cartCount > 9 ? '9+' : cartCount}</Text>
             </View>
           )}
@@ -64,40 +84,33 @@ export function Header({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing.lg,
     paddingBottom: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   logoContainer: {
     flexDirection: 'row',
     alignItems: 'baseline',
   },
   logo: {
-    fontSize: 24,
     fontWeight: '800',
-    color: colors.primary,
     fontFamily: 'Nunito_800ExtraBold',
   },
   searchContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.background,
     borderRadius: radius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.border,
+    minHeight: componentSizes.button.md,
   },
   searchPlaceholder: {
     fontSize: 14,
-    color: colors.textMuted,
   },
   actions: {
     flexDirection: 'row',
@@ -105,17 +118,15 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   iconButton: {
-    width: 40,
-    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+    borderRadius: radius.md,
   },
   badge: {
     position: 'absolute',
     top: 2,
     right: 2,
-    backgroundColor: colors.primary,
     minWidth: 18,
     height: 18,
     borderRadius: 9,

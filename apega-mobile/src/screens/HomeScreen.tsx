@@ -7,7 +7,6 @@ import {
   RefreshControl,
   Pressable,
   TextInput,
-  useWindowDimensions,
   StatusBar,
   Platform,
   Modal,
@@ -21,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { productsService, cartService, favoritesService } from '../api';
 import { formatPrice } from '../utils/format';
 import { useAuth } from '../context/AuthContext';
+import { useResponsive } from '../hooks/useResponsive';
 
 // ════════════════════════════════════════════════════════════
 // DESIGN SYSTEM — Clean & Modern Marketplace
@@ -52,19 +52,25 @@ const FILTERS = [
 ];
 
 export function HomeScreen({ navigation }: any) {
-  const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { isAuthenticated } = useAuth();
 
-  // Responsive breakpoints
-  const isMobile = width < 640;
-  const isTablet = width >= 640 && width < 1024;
-  const isDesktop = width >= 1024;
+  // Use responsive hook for consistent breakpoints
+  const {
+    width,
+    isMobile,
+    isTablet,
+    isDesktop,
+    gridColumns,
+    productWidth,
+    gridGap,
+    getResponsiveValue
+  } = useResponsive();
 
-  // Grid configuration
-  const cols = isDesktop ? 5 : isTablet ? 3 : 2;
-  const padding = isMobile ? 16 : 24;
-  const gap = isMobile ? 12 : 16;
+  // Grid configuration - HomeScreen uses 5 columns on large desktop
+  const cols = width >= 1200 ? 5 : gridColumns;
+  const padding = getResponsiveValue(16, 24, 32);
+  const gap = gridGap;
   const maxW = 1400;
   const containerW = Math.min(width, maxW);
   const cardW = (containerW - padding * 2 - gap * (cols - 1)) / cols;
