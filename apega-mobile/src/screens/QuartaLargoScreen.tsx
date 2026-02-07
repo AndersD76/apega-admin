@@ -90,8 +90,7 @@ export function QuartaLargoScreen({ navigation }: any) {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [cartTotal, setCartTotal] = useState(0);
-  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [addingToCart, setAddingToCart] = useState<string | null>(null);
 
   const isMobile = width < 640;
   const isTablet = width >= 640 && width < 1024;
@@ -105,7 +104,7 @@ export function QuartaLargoScreen({ navigation }: any) {
   const isActive = isWednesday();
   const nextWed = getNextWednesday();
   const countdown = useCountdown(nextWed);
-  const MIN_PURCHASE = 200;
+  const AUCTION_DURATION_HOURS = 1; // Leilão dura 1 hora máximo por peça
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -136,21 +135,23 @@ export function QuartaLargoScreen({ navigation }: any) {
     fetchProducts();
   };
 
-  const toggleSelect = (id: string, price: number) => {
-    setSelectedItems(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-        setCartTotal(t => t - price);
-      } else {
-        newSet.add(id);
-        setCartTotal(t => t + price);
-      }
-      return newSet;
-    });
-  };
+  // Adicionar ao carrinho com preço do leilão
+  const handleAddToCart = async (product: any) => {
+    if (addingToCart) return;
 
-  const canCheckout = cartTotal >= MIN_PURCHASE;
+    setAddingToCart(product.id);
+    try {
+      // TODO: Chamar API do carrinho com preço do leilão
+      // await cartService.addToCart(product.id, { auctionPrice: product.price });
+
+      // Por enquanto, navegar para detalhes
+      navigation.navigate('ProductDetail', { productId: product.id });
+    } catch (error) {
+      console.error('Erro ao adicionar ao carrinho:', error);
+    } finally {
+      setAddingToCart(null);
+    }
+  };
 
   return (
     <View style={styles.root}>
@@ -199,8 +200,8 @@ export function QuartaLargoScreen({ navigation }: any) {
             </Text>
 
             <Text style={styles.heroDesc}>
-              Peças selecionadas com até 50% OFF.{'\n'}
-              Compra mínima: R$ {MIN_PURCHASE}
+              Peças selecionadas com 30% OFF.{'\n'}
+              Cada peça fica disponível por apenas 1 hora!
             </Text>
 
             {/* Countdown */}
@@ -265,21 +266,21 @@ export function QuartaLargoScreen({ navigation }: any) {
 
             <View style={styles.ruleItem}>
               <View style={styles.ruleIcon}>
-                <Ionicons name="cart" size={20} color={BRAND.primary} />
+                <Ionicons name="time" size={20} color={BRAND.primary} />
               </View>
               <View style={styles.ruleContent}>
-                <Text style={styles.ruleTitle}>Compra mínima R$ {MIN_PURCHASE}</Text>
-                <Text style={styles.ruleDesc}>Adicione itens até atingir o mínimo</Text>
+                <Text style={styles.ruleTitle}>1 hora por peça</Text>
+                <Text style={styles.ruleDesc}>Cada peça fica disponível por 1 hora máximo</Text>
               </View>
             </View>
 
             <View style={styles.ruleItem}>
               <View style={styles.ruleIcon}>
-                <Ionicons name="flash" size={20} color={BRAND.primary} />
+                <Ionicons name="cart" size={20} color={BRAND.primary} />
               </View>
               <View style={styles.ruleContent}>
-                <Text style={styles.ruleTitle}>Corra!</Text>
-                <Text style={styles.ruleDesc}>Estoque limitado, preços únicos</Text>
+                <Text style={styles.ruleTitle}>Adicione ao carrinho</Text>
+                <Text style={styles.ruleDesc}>Clique em "Pegar" e finalize no checkout</Text>
               </View>
             </View>
           </View>
@@ -299,18 +300,12 @@ export function QuartaLargoScreen({ navigation }: any) {
           ) : (
             <View style={[styles.grid, { gap }]}>
               {products.map((item) => {
-                const isSelected = selectedItems.has(item.id);
+                const isAdding = addingToCart === item.id;
                 return (
                   <Pressable
                     key={item.id}
-                    style={[styles.card, { width: cardW }, isSelected && styles.cardSelected]}
-                    onPress={() => {
-                      if (isActive) {
-                        toggleSelect(item.id, item.price);
-                      } else {
-                        navigation.navigate('ProductDetail', { productId: item.id });
-                      }
-                    }}
+                    style={[styles.card, { width: cardW }]}
+                    onPress={() => navigation.navigate('ProductDetail', { productId: item.id })}
                   >
                     <View style={[styles.cardImageWrap, { height: cardW * 1.3 }]}>
                       <Image
@@ -325,14 +320,11 @@ export function QuartaLargoScreen({ navigation }: any) {
                         <Text style={styles.discountText}>-{item.quartaDiscount}%</Text>
                       </View>
 
-                      {/* Selection indicator */}
+                      {/* Timer Badge - 1 hora */}
                       {isActive && (
-                        <View style={[styles.selectIndicator, isSelected && styles.selectIndicatorActive]}>
-                          <Ionicons
-                            name={isSelected ? 'checkmark-circle' : 'add-circle-outline'}
-                            size={28}
-                            color={isSelected ? BRAND.success : BRAND.white}
-                          />
+                        <View style={styles.timerBadge}>
+                          <Ionicons name="time-outline" size={12} color={BRAND.white} />
+                          <Text style={styles.timerText}>1h</Text>
                         </View>
                       )}
                     </View>
@@ -346,6 +338,23 @@ export function QuartaLargoScreen({ navigation }: any) {
                         <Text style={styles.cardPrice}>R$ {formatPrice(item.price)}</Text>
                         <Text style={styles.cardOldPrice}>R$ {formatPrice(item.originalPrice)}</Text>
                       </View>
+
+                      {/* Botão Pegar */}
+                      {isActive && (
+                        <Pressable
+                          style={[styles.addToCartBtn, isAdding && styles.addToCartBtnDisabled]}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            handleAddToCart(item);
+                          }}
+                          disabled={isAdding}
+                        >
+                          <Ionicons name="bag-add-outline" size={16} color={BRAND.white} />
+                          <Text style={styles.addToCartText}>
+                            {isAdding ? 'Adicionando...' : 'Pegar'}
+                          </Text>
+                        </Pressable>
+                      )}
                     </View>
                   </Pressable>
                 );
@@ -354,35 +363,9 @@ export function QuartaLargoScreen({ navigation }: any) {
           )}
         </View>
 
-        {/* Spacer for bottom bar */}
-        <View style={{ height: 100 }} />
+        {/* Spacer */}
+        <View style={{ height: 40 }} />
       </ScrollView>
-
-      {/* Bottom Cart Bar */}
-      {isActive && selectedItems.size > 0 && (
-        <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
-          <View style={[styles.bottomBarContent, { maxWidth: maxW, paddingHorizontal: padding }]}>
-            <View style={styles.cartInfo}>
-              <Text style={styles.cartItems}>{selectedItems.size} {selectedItems.size === 1 ? 'item' : 'itens'}</Text>
-              <Text style={styles.cartTotal}>R$ {formatPrice(cartTotal)}</Text>
-              {!canCheckout && (
-                <Text style={styles.minWarning}>
-                  Faltam R$ {formatPrice(MIN_PURCHASE - cartTotal)} para o mínimo
-                </Text>
-              )}
-            </View>
-
-            <Pressable
-              style={[styles.checkoutBtn, !canCheckout && styles.checkoutBtnDisabled]}
-              disabled={!canCheckout}
-              onPress={() => navigation.navigate('Checkout', { quartaDesapego: true })}
-            >
-              <Ionicons name="bag-check-outline" size={20} color={BRAND.white} />
-              <Text style={styles.checkoutBtnText}>Finalizar</Text>
-            </Pressable>
-          </View>
-        </View>
-      )}
     </View>
   );
 }
@@ -652,19 +635,22 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: BRAND.white,
   },
-  selectIndicator: {
+  timerBadge: {
     position: 'absolute',
     top: 8,
     right: 8,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    gap: 4,
   },
-  selectIndicatorActive: {
-    backgroundColor: BRAND.white,
+  timerText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: BRAND.white,
   },
   cardInfo: {
     padding: 12,
@@ -698,61 +684,22 @@ const styles = StyleSheet.create({
     color: BRAND.gray400,
     textDecorationLine: 'line-through',
   },
-
-  // Bottom Bar
-  bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: BRAND.white,
-    borderTopWidth: 1,
-    borderTopColor: BRAND.gray200,
-    paddingTop: 16,
-    ...Platform.select({
-      web: { boxShadow: '0 -4px 20px rgba(0,0,0,0.1)' },
-      default: { elevation: 10 },
-    }),
-  },
-  bottomBarContent: {
+  addToCartBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    alignSelf: 'center',
+    justifyContent: 'center',
+    backgroundColor: BRAND.primary,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 10,
+    gap: 6,
   },
-  cartInfo: {
-    flex: 1,
+  addToCartBtnDisabled: {
+    opacity: 0.6,
   },
-  cartItems: {
+  addToCartText: {
     fontSize: 13,
-    color: BRAND.gray500,
-  },
-  cartTotal: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: BRAND.gray900,
-  },
-  minWarning: {
-    fontSize: 11,
-    color: BRAND.primary,
-    marginTop: 2,
-  },
-  checkoutBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: BRAND.success,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 8,
-  },
-  checkoutBtnDisabled: {
-    backgroundColor: BRAND.gray400,
-  },
-  checkoutBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
     color: BRAND.white,
   },
 });

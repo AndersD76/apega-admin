@@ -57,6 +57,8 @@ export function SellScreen({ navigation }: any) {
   const [userProductCount, setUserProductCount] = useState(0);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [labelImage, setLabelImage] = useState<string | null>(null);
+  const [virtualTryOnUrl, setVirtualTryOnUrl] = useState<string | null>(null);
+  const [showVirtualTryOn, setShowVirtualTryOn] = useState(false);
 
   // Check user's product count for free users
   useEffect(() => {
@@ -158,6 +160,20 @@ export function SellScreen({ navigation }: any) {
           }
 
           setAiAnalyzing(false);
+
+          // Virtual Try-On automático para Premium
+          if (isPremiumUser && response.imageUrl) {
+            try {
+              const tryOnResult = await aiService.virtualTryOn(response.imageUrl);
+              if (tryOnResult.success && tryOnResult.result?.outputUrl) {
+                setVirtualTryOnUrl(tryOnResult.result.outputUrl);
+                setShowVirtualTryOn(true);
+              }
+            } catch (tryOnError) {
+              console.log('Virtual try-on não disponível:', tryOnError);
+            }
+          }
+
           Alert.alert(
             '✨ IA Aplicada!',
             'Preenchemos automaticamente: título, descrição, marca, categoria, condição, tamanho e preço sugerido.\n\nRevise os dados e edite o que precisar antes de publicar.',
@@ -346,6 +362,8 @@ export function SellScreen({ navigation }: any) {
     setSelectedImageIndex(null);
     setShowAiOptions(false);
     setLabelImage(null);
+    setVirtualTryOnUrl(null);
+    setShowVirtualTryOn(false);
   };
 
   const handleAddLabelImage = async () => {
@@ -1069,6 +1087,61 @@ export function SellScreen({ navigation }: any) {
         </View>
       </Modal>
 
+      {/* Virtual Try-On Modal */}
+      <Modal visible={showVirtualTryOn} transparent animationType="fade">
+        <View style={styles.aiOverlay}>
+          <View style={styles.virtualTryOnCard}>
+            <View style={styles.virtualTryOnHeader}>
+              <Text style={styles.virtualTryOnTitle}>Prova Virtual</Text>
+              <Pressable
+                style={styles.virtualTryOnClose}
+                onPress={() => {
+                  setVirtualTryOnUrl(null);
+                  setShowVirtualTryOn(false);
+                }}
+              >
+                <Ionicons name="close" size={24} color="#1A1A1A" />
+              </Pressable>
+            </View>
+            <Text style={styles.virtualTryOnSubtitle}>
+              Veja como sua peça fica em um modelo
+            </Text>
+            {virtualTryOnUrl && (
+              <Image
+                source={{ uri: virtualTryOnUrl }}
+                style={styles.virtualTryOnImage}
+                contentFit="contain"
+              />
+            )}
+            <View style={styles.virtualTryOnActions}>
+              <Pressable
+                style={styles.virtualTryOnDiscardBtn}
+                onPress={() => {
+                  setVirtualTryOnUrl(null);
+                  setShowVirtualTryOn(false);
+                }}
+              >
+                <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                <Text style={styles.virtualTryOnDiscardText}>Descartar</Text>
+              </Pressable>
+              <Pressable
+                style={styles.virtualTryOnUseBtn}
+                onPress={() => {
+                  // Adicionar imagem do try-on como segunda foto do produto
+                  if (virtualTryOnUrl) {
+                    setImages(prev => [...prev, virtualTryOnUrl]);
+                  }
+                  setShowVirtualTryOn(false);
+                }}
+              >
+                <Ionicons name="add-circle-outline" size={18} color="#fff" />
+                <Text style={styles.virtualTryOnUseText}>Usar como foto</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Product Limit Modal */}
       <Modal visible={showLimitModal} transparent animationType="fade">
         <View style={styles.aiOverlay}>
@@ -1259,6 +1332,19 @@ const styles = StyleSheet.create({
   removeLabelPhotoBtn: { position: 'absolute', top: -8, right: -8, width: 28, height: 28, borderRadius: 14, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', elevation: 4 },
   labelBadge: { position: 'absolute', bottom: 6, left: 6, backgroundColor: '#5B8C5A', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, flexDirection: 'row', alignItems: 'center', gap: 4 },
   labelBadgeText: { fontSize: 10, fontWeight: '600', color: '#fff' },
+
+  // Virtual Try-On Modal
+  virtualTryOnCard: { backgroundColor: '#fff', borderRadius: 20, padding: 20, alignItems: 'center', width: '90%', maxWidth: 360 },
+  virtualTryOnHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 8 },
+  virtualTryOnTitle: { fontSize: 20, fontWeight: '700', color: '#1A1A1A' },
+  virtualTryOnClose: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F5F5F5', alignItems: 'center', justifyContent: 'center' },
+  virtualTryOnSubtitle: { fontSize: 14, color: '#737373', textAlign: 'center', marginBottom: 16 },
+  virtualTryOnImage: { width: '100%', height: 400, borderRadius: 16, marginBottom: 16 },
+  virtualTryOnActions: { flexDirection: 'row', gap: 12, width: '100%' },
+  virtualTryOnDiscardBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#FEE2E2', paddingVertical: 14, borderRadius: 28 },
+  virtualTryOnDiscardText: { fontSize: 14, fontWeight: '600', color: '#EF4444' },
+  virtualTryOnUseBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.primary, paddingVertical: 14, borderRadius: 28 },
+  virtualTryOnUseText: { fontSize: 14, fontWeight: '600', color: '#fff' },
 });
 
 export default SellScreen;

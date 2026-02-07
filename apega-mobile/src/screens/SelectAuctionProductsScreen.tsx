@@ -223,7 +223,7 @@ export function SelectAuctionProductsScreen({ navigation }: any) {
   if (loading) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: themeColors.background }]}>
-        <ActivityIndicator size="large" color="${colors.primary}" />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>
           Carregando suas peças...
         </Text>
@@ -261,7 +261,7 @@ export function SelectAuctionProductsScreen({ navigation }: any) {
 
       {/* Info banner */}
       <View style={[styles.infoBanner, { backgroundColor: colors.primary + '15' }]}>
-        <Ionicons name="information-circle" size={20} color="${colors.primary}" />
+        <Ionicons name="information-circle" size={20} color={colors.primary} />
         <Text style={[styles.infoBannerText, { color: colors.primary }]}>
           Selecione as peças que você quer colocar no leilão. Elas terão 30% de desconto.
         </Text>

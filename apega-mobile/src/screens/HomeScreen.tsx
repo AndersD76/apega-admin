@@ -315,7 +315,7 @@ export function HomeScreen({ navigation }: any) {
 
         {/* ══════════ QUARTA DO LARGÔ PROMO ══════════ */}
         <Pressable
-          style={[styles.quartaPromo, { marginHorizontal: padding, maxWidth: Math.min(600, maxW - padding * 2) }]}
+          style={[styles.quartaPromo, { marginHorizontal: padding }]}
           onPress={() => navigation.navigate('QuartaLargo')}
         >
           <LinearGradient
@@ -814,7 +814,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     marginTop: 16,
-    alignSelf: 'center',
   },
   quartaGradient: {
     padding: 16,

@@ -72,8 +72,8 @@ export interface BackgroundReplacementResult {
 }
 
 export interface VirtualTryOnResult {
-  result_url: string;
-  model_used: string;
+  outputUrl: string;
+  provider: string;
 }
 
 export const aiService = {
@@ -287,14 +287,15 @@ export const aiService = {
 
   /**
    * Generate virtual try-on preview
+   * Uses Replicate Kolors model
    */
   async virtualTryOn(
     clothingImageUrl: string,
     modelImageUrl?: string
   ): Promise<{ success: boolean; result: VirtualTryOnResult }> {
-    const response = await api.post('/ai/virtual-try-on', {
-      clothing_image_url: clothingImageUrl,
-      model_image_url: modelImageUrl,
+    const response = await api.post('/ai/virtual-tryon', {
+      clothingImageUrl,
+      modelImageUrl,
     });
     return response.data;
   },
