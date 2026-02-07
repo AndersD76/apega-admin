@@ -164,11 +164,11 @@ export function HomeScreen({ navigation }: any) {
 
       {/* ══════════ HEADER ══════════ */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <View style={[styles.headerContent, { maxWidth: maxW, paddingHorizontal: padding }]}>
+        <View style={[styles.headerContent, { maxWidth: maxW, paddingHorizontal: padding, gap: isMobile ? 8 : 16 }]}>
 
           {/* Logo */}
           <Pressable onPress={() => navigation.navigate('Home')}>
-            <Text style={styles.logo}>Largô</Text>
+            <Text style={[styles.logo, isMobile && { fontSize: 22 }]}>Largô</Text>
           </Pressable>
 
           {/* Search */}
@@ -176,7 +176,7 @@ export function HomeScreen({ navigation }: any) {
             <Ionicons name="search" size={18} color={BRAND.gray400} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Buscar marcas, peças..."
+              placeholder={isMobile ? "Buscar..." : "Buscar marcas, peças..."}
               placeholderTextColor={BRAND.gray400}
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
@@ -185,20 +185,23 @@ export function HomeScreen({ navigation }: any) {
           </View>
 
           {/* Actions */}
-          <View style={styles.actions}>
+          <View style={[styles.actions, { gap: isMobile ? 0 : 4 }]}>
             {isDesktop && (
               <Pressable style={styles.sellButton} onPress={() => navigation.navigate('Sell')}>
-                <Ionicons name="add" size={18} color={BRAND.white} />
+                <Ionicons name="pricetag" size={16} color={BRAND.white} />
                 <Text style={styles.sellButtonText}>Vender</Text>
               </Pressable>
             )}
 
-            <Pressable style={styles.iconBtn} onPress={() => navigation.navigate('Favorites')}>
-              <Ionicons name="heart-outline" size={22} color={BRAND.gray900} />
-            </Pressable>
+            {/* Hide favorites on mobile - it's in tab bar */}
+            {!isMobile && (
+              <Pressable style={styles.iconBtn} onPress={() => navigation.navigate('Favorites')}>
+                <Ionicons name="heart-outline" size={22} color={BRAND.gray900} />
+              </Pressable>
+            )}
 
-            <Pressable style={styles.iconBtn} onPress={() => navigation.navigate('Cart')}>
-              <Ionicons name="bag-outline" size={22} color={BRAND.gray900} />
+            <Pressable style={[styles.iconBtn, isMobile && { width: 40, height: 40 }]} onPress={() => navigation.navigate('Cart')}>
+              <Ionicons name="bag-outline" size={isMobile ? 20 : 22} color={BRAND.gray900} />
               {cartCount > 0 && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{cartCount}</Text>
@@ -207,10 +210,10 @@ export function HomeScreen({ navigation }: any) {
             </Pressable>
 
             <Pressable
-              style={styles.iconBtn}
+              style={[styles.iconBtn, isMobile && { width: 40, height: 40 }]}
               onPress={() => navigation.navigate(isAuthenticated ? 'Profile' : 'Login')}
             >
-              <Ionicons name="person-outline" size={22} color={BRAND.gray900} />
+              <Ionicons name="person-outline" size={isMobile ? 20 : 22} color={BRAND.gray900} />
             </Pressable>
           </View>
         </View>
@@ -422,12 +425,7 @@ export function HomeScreen({ navigation }: any) {
         </View>
       </ScrollView>
 
-      {/* ══════════ MOBILE FAB ══════════ */}
-      {isMobile && (
-        <Pressable style={styles.fab} onPress={() => navigation.navigate('Sell')}>
-          <Ionicons name="add" size={28} color={BRAND.white} />
-        </Pressable>
-      )}
+{/* FAB removed - using tab bar "Largar" button instead */}
 
       {/* ══════════ WELCOME MODAL (Enjoei style) ══════════ */}
       <Modal

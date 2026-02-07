@@ -109,7 +109,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
           return (
             <Pressable key={route.key} onPress={onPress} style={styles.sellTab}>
               <View style={sellButtonStyles}>
-                <Ionicons name="add" size={28} color={isDark ? themeColors.background : '#fff'} />
+                <Ionicons name="pricetag" size={24} color={isDark ? themeColors.background : '#fff'} />
               </View>
               <Text style={[styles.sellLabel, { color: themeColors.primary }]}>Largar</Text>
             </Pressable>
