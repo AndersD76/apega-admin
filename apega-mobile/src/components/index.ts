@@ -27,3 +27,21 @@ export { ProductGrid, useProductGrid } from './ProductGrid';
 
 // Auction
 export { AuctionInviteModal } from './AuctionInviteModal';
+
+// Animated Banners
+export { AnimatedQuartaBanner } from './AnimatedQuartaBanner';
+export { AnimatedHeroBanner } from './AnimatedHeroBanner';
+export { AnimatedOffersBanner } from './AnimatedOffersBanner';
+
+// Custom Icons
+export {
+  HangerIcon,
+  PriceTagIcon,
+  RecycleIcon,
+  DressIcon,
+  ShoppingBagIcon,
+  HeartClothesIcon,
+  FlashSaleIcon,
+  DiscountIcon,
+  TimerIcon,
+} from './CustomIcons';

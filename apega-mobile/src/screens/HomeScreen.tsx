@@ -21,7 +21,16 @@ import { productsService, cartService, favoritesService, auctionsService } from 
 import { formatPrice } from '../utils/format';
 import { useAuth } from '../context/AuthContext';
 import { useResponsive } from '../hooks/useResponsive';
-import { AuctionInviteModal } from '../components';
+import {
+  AuctionInviteModal,
+  AnimatedQuartaBanner,
+  AnimatedHeroBanner,
+  AnimatedOffersBanner,
+  HangerIcon,
+  RecycleIcon,
+  DressIcon,
+  ShoppingBagIcon,
+} from '../components';
 
 // ════════════════════════════════════════════════════════════
 // DESIGN SYSTEM — Clean & Modern Marketplace
@@ -42,14 +51,14 @@ const BRAND = {
 };
 
 const FILTERS = [
-  { id: 'all', label: 'Tudo', icon: 'grid-outline' },
-  { id: 'feminino', label: 'Feminino', icon: 'woman-outline' },
-  { id: 'masculino', label: 'Masculino', icon: 'man-outline' },
-  { id: 'infantil', label: 'Infantil', icon: 'happy-outline' },
-  { id: 'acessorios', label: 'Acessórios', icon: 'glasses-outline' },
-  { id: 'calcados', label: 'Calçados', icon: 'footsteps-outline' },
-  { id: 'bolsas', label: 'Bolsas', icon: 'bag-handle-outline' },
-  { id: 'vintage', label: 'Vintage', icon: 'time-outline' },
+  { id: 'all', label: 'Tudo', icon: 'grid-outline', custom: null },
+  { id: 'feminino', label: 'Feminino', icon: 'woman-outline', custom: 'dress' },
+  { id: 'masculino', label: 'Masculino', icon: 'man-outline', custom: null },
+  { id: 'infantil', label: 'Infantil', icon: 'happy-outline', custom: null },
+  { id: 'acessorios', label: 'Acessórios', icon: 'glasses-outline', custom: 'hanger' },
+  { id: 'calcados', label: 'Calçados', icon: 'footsteps-outline', custom: null },
+  { id: 'bolsas', label: 'Bolsas', icon: 'bag-handle-outline', custom: 'bag' },
+  { id: 'vintage', label: 'Vintage', icon: 'time-outline', custom: 'recycle' },
 ];
 
 export function HomeScreen({ navigation }: any) {
@@ -288,87 +297,20 @@ export function HomeScreen({ navigation }: any) {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={BRAND.primary} />
         }
       >
-        {/* ══════════ HERO ══════════ */}
+        {/* ══════════ HERO (Animated) ══════════ */}
         <View style={[styles.heroSection, { paddingHorizontal: padding, maxWidth: maxW }]}>
-          <LinearGradient
-            colors={['#1A1A1A', '#2D2D2D']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.heroCard}
-          >
-            <View style={styles.heroContent}>
-              <Text style={styles.heroTag}>MODA CIRCULAR</Text>
-              <Text style={styles.heroTitle}>Peças únicas,{'\n'}preços incríveis</Text>
-              <Text style={styles.heroDesc}>Compre e venda moda com até 90% off</Text>
-              <Pressable style={styles.heroCta} onPress={() => navigation.navigate('Search')}>
-                <Text style={styles.heroCtaText}>Explorar</Text>
-                <Ionicons name="arrow-forward" size={16} color={BRAND.black} />
-              </Pressable>
-            </View>
-            <View style={styles.heroVisual}>
-              <View style={styles.heroCircle1} />
-              <View style={styles.heroCircle2} />
-              <View style={styles.heroCircle3} />
-            </View>
-          </LinearGradient>
+          <AnimatedHeroBanner onExplore={() => navigation.navigate('Search')} />
         </View>
 
-        {/* ══════════ QUARTA DO LARGÔ PROMO ══════════ */}
-        <Pressable
-          style={[styles.quartaPromo, { marginHorizontal: padding }]}
-          onPress={() => navigation.navigate('QuartaLargo')}
-        >
-          <LinearGradient
-            colors={[BRAND.primary, BRAND.primaryDark]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.quartaGradient}
-          >
-            {/* Decorative elements */}
-            <View style={styles.quartaDecor1} />
-            <View style={styles.quartaDecor2} />
+        {/* ══════════ QUARTA DO LARGÔ PROMO (Animated) ══════════ */}
+        <View style={{ paddingHorizontal: padding, maxWidth: maxW, width: '100%' }}>
+          <AnimatedQuartaBanner onPress={() => navigation.navigate('QuartaLargo')} />
+        </View>
 
-            <View style={styles.quartaRow}>
-              {/* Left: Icon */}
-              <View style={styles.quartaIconWrap}>
-                <Ionicons name="flash" size={28} color="#FDE047" />
-              </View>
-
-              {/* Center: Text */}
-              <View style={styles.quartaTextContent}>
-                <View style={styles.quartaTag}>
-                  <Ionicons name="time-outline" size={10} color={BRAND.white} />
-                  <Text style={styles.quartaTagText}>TODA QUARTA</Text>
-                </View>
-                <Text style={styles.quartaTitle}>Quarta do Largô</Text>
-                <Text style={styles.quartaDesc}>Peças com até 30% OFF • 1h por peça</Text>
-              </View>
-
-              {/* Right: CTA */}
-              <View style={styles.quartaCtaWrap}>
-                <View style={styles.quartaCta}>
-                  <Text style={styles.quartaCtaText}>Ver</Text>
-                  <Ionicons name="arrow-forward" size={14} color={BRAND.primary} />
-                </View>
-              </View>
-            </View>
-          </LinearGradient>
-        </Pressable>
-
-        {/* ══════════ OFFERS PROMO ══════════ */}
-        <Pressable
-          style={[styles.offersPromo, { marginHorizontal: padding, maxWidth: maxW - padding * 2 }]}
-          onPress={() => navigation.navigate('Offers')}
-        >
-          <View style={styles.offersIcon}>
-            <Ionicons name="cash-outline" size={24} color={BRAND.primary} />
-          </View>
-          <View style={styles.offersContent}>
-            <Text style={styles.offersTitle}>Faça ofertas!</Text>
-            <Text style={styles.offersDesc}>Negocie direto com vendedores</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={BRAND.gray400} />
-        </Pressable>
+        {/* ══════════ OFFERS PROMO (Animated) ══════════ */}
+        <View style={{ paddingHorizontal: padding, maxWidth: maxW, width: '100%', marginTop: 12 }}>
+          <AnimatedOffersBanner onPress={() => navigation.navigate('Offers')} />
+        </View>
 
         {/* ══════════ FILTERS ══════════ */}
         <View style={[styles.filtersWrapper, { maxWidth: maxW, paddingHorizontal: padding }]}>
@@ -378,27 +320,46 @@ export function HomeScreen({ navigation }: any) {
             contentContainerStyle={styles.filtersRow}
             style={styles.filtersScroll}
           >
-            {FILTERS.map((f, index) => (
-              <Pressable
-                key={f.id}
-                style={[
-                  styles.filterChip,
-                  filter === f.id && styles.filterChipActive,
-                  index > 0 && { marginLeft: 8 }
-                ]}
-                onPress={() => setFilter(f.id)}
-              >
-                <Ionicons
-                  name={f.icon as any}
-                  size={16}
-                  color={filter === f.id ? BRAND.white : BRAND.gray600}
-                  style={{ marginRight: 6 }}
-                />
-                <Text style={[styles.filterText, filter === f.id && styles.filterTextActive]}>
-                  {f.label}
-                </Text>
-              </Pressable>
-            ))}
+            {FILTERS.map((f, index) => {
+              const isActive = filter === f.id;
+              const iconColor = isActive ? BRAND.white : BRAND.gray600;
+              const iconSize = 16;
+
+              // Render custom icon or Ionicons based on filter type
+              const renderIcon = () => {
+                switch (f.custom) {
+                  case 'dress':
+                    return <DressIcon size={iconSize} color={iconColor} />;
+                  case 'hanger':
+                    return <HangerIcon size={iconSize} color={iconColor} />;
+                  case 'bag':
+                    return <ShoppingBagIcon size={iconSize} color={iconColor} />;
+                  case 'recycle':
+                    return <RecycleIcon size={iconSize} color={iconColor} />;
+                  default:
+                    return <Ionicons name={f.icon as any} size={iconSize} color={iconColor} />;
+                }
+              };
+
+              return (
+                <Pressable
+                  key={f.id}
+                  style={[
+                    styles.filterChip,
+                    isActive && styles.filterChipActive,
+                    index > 0 && { marginLeft: 8 }
+                  ]}
+                  onPress={() => setFilter(f.id)}
+                >
+                  <View style={{ marginRight: 6 }}>
+                    {renderIcon()}
+                  </View>
+                  <Text style={[styles.filterText, isActive && styles.filterTextActive]}>
+                    {f.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </ScrollView>
         </View>
 
@@ -737,214 +698,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // Hero
+  // Hero Section (container only - animation is in AnimatedHeroBanner)
   heroSection: {
     width: '100%',
     paddingTop: 20,
     paddingBottom: 8,
-  },
-  heroCard: {
-    borderRadius: 20,
-    padding: 28,
-    flexDirection: 'row',
-    overflow: 'hidden',
-    minHeight: 180,
-  },
-  heroContent: {
-    flex: 1,
-    zIndex: 2,
-  },
-  heroTag: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: BRAND.primary,
-    letterSpacing: 2,
-    marginBottom: 10,
-  },
-  heroTitle: {
-    fontSize: 36,
-    fontWeight: '800',
-    color: BRAND.white,
-    lineHeight: 42,
-    marginBottom: 12,
-  },
-  heroDesc: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.8)',
-    marginBottom: 24,
-  },
-  heroCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: BRAND.white,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignSelf: 'flex-start',
-    gap: 8,
-  },
-  heroCtaText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: BRAND.black,
-  },
-  heroVisual: {
-    position: 'absolute',
-    right: -40,
-    top: -40,
-    width: 300,
-    height: 300,
-  },
-  heroCircle1: {
-    position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: BRAND.primary,
-    opacity: 0.3,
-    right: 0,
-    top: 40,
-  },
-  heroCircle2: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: BRAND.primary,
-    opacity: 0.5,
-    right: 80,
-    top: 120,
-  },
-  heroCircle3: {
-    position: 'absolute',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: BRAND.white,
-    opacity: 0.2,
-    right: 160,
-    top: 80,
-  },
-
-  // Quarta do Largô Promo
-  quartaPromo: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginTop: 16,
-  },
-  quartaGradient: {
-    padding: 18,
-    position: 'relative',
-  },
-  quartaDecor1: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    top: -40,
-    right: -20,
-  },
-  quartaDecor2: {
-    position: 'absolute',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    bottom: -30,
-    left: 40,
-  },
-  quartaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 2,
-  },
-  quartaIconWrap: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
-  },
-  quartaTextContent: {
-    flex: 1,
-  },
-  quartaTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 4,
-  },
-  quartaTagText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.9)',
-    letterSpacing: 1,
-  },
-  quartaTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: BRAND.white,
-    marginBottom: 2,
-  },
-  quartaDesc: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.8)',
-  },
-  quartaCtaWrap: {
-    marginLeft: 12,
-  },
-  quartaCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: BRAND.white,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
-    gap: 6,
-  },
-  quartaCtaText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: BRAND.primary,
-  },
-
-  // Offers Promo
-  offersPromo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: BRAND.white,
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 12,
-    alignSelf: 'center',
-    width: '100%',
-    borderWidth: 1,
-    borderColor: BRAND.gray200,
-  },
-  offersIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#FEE2E2',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  offersContent: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  offersTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: BRAND.gray900,
-  },
-  offersDesc: {
-    fontSize: 13,
-    color: BRAND.gray500,
-    marginTop: 2,
   },
 
   // Filters
