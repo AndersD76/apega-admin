@@ -24,6 +24,7 @@ import { formatPrice } from '../utils/format';
 const BRAND = {
   primary: '#C75C3A',
   primaryDark: '#A84B2E',
+  primaryLight: '#D4816A',
   black: '#0F0F0F',
   white: '#FFFFFF',
   gray50: '#FAFAFA',
@@ -35,8 +36,9 @@ const BRAND = {
   gray900: '#18181B',
   success: '#22C55E',
   successLight: '#DCFCE7',
-  purple: '#7C3AED',
-  purpleLight: '#EDE9FE',
+  // Using terracotta brand colors instead of purple
+  accent: '#C75C3A',
+  accentLight: '#F5E6E1',
 };
 
 // Check if today is Wednesday
@@ -154,7 +156,7 @@ export function QuartaLargoScreen({ navigation }: any) {
     <View style={styles.root}>
       {/* Header */}
       <LinearGradient
-        colors={['#7C3AED', '#9333EA']}
+        colors={[BRAND.primary, BRAND.primaryDark]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[styles.header, { paddingTop: insets.top + 8 }]}
@@ -176,12 +178,12 @@ export function QuartaLargoScreen({ navigation }: any) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={BRAND.purple} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={BRAND.primary} />
         }
       >
         {/* Hero Banner */}
         <LinearGradient
-          colors={['#7C3AED', '#A855F7', '#C084FC']}
+          colors={[BRAND.primary, BRAND.primaryLight]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={[styles.heroBanner, { marginHorizontal: padding }]}
@@ -243,7 +245,7 @@ export function QuartaLargoScreen({ navigation }: any) {
           <View style={styles.rulesList}>
             <View style={styles.ruleItem}>
               <View style={styles.ruleIcon}>
-                <Ionicons name="calendar" size={20} color={BRAND.purple} />
+                <Ionicons name="calendar" size={20} color={BRAND.primary} />
               </View>
               <View style={styles.ruleContent}>
                 <Text style={styles.ruleTitle}>Toda quarta-feira</Text>
@@ -253,7 +255,7 @@ export function QuartaLargoScreen({ navigation }: any) {
 
             <View style={styles.ruleItem}>
               <View style={styles.ruleIcon}>
-                <Ionicons name="pricetag" size={20} color={BRAND.purple} />
+                <Ionicons name="pricetag" size={20} color={BRAND.primary} />
               </View>
               <View style={styles.ruleContent}>
                 <Text style={styles.ruleTitle}>Descontos exclusivos</Text>
@@ -263,7 +265,7 @@ export function QuartaLargoScreen({ navigation }: any) {
 
             <View style={styles.ruleItem}>
               <View style={styles.ruleIcon}>
-                <Ionicons name="cart" size={20} color={BRAND.purple} />
+                <Ionicons name="cart" size={20} color={BRAND.primary} />
               </View>
               <View style={styles.ruleContent}>
                 <Text style={styles.ruleTitle}>Compra mínima R$ {MIN_PURCHASE}</Text>
@@ -273,7 +275,7 @@ export function QuartaLargoScreen({ navigation }: any) {
 
             <View style={styles.ruleItem}>
               <View style={styles.ruleIcon}>
-                <Ionicons name="flash" size={20} color={BRAND.purple} />
+                <Ionicons name="flash" size={20} color={BRAND.primary} />
               </View>
               <View style={styles.ruleContent}>
                 <Text style={styles.ruleTitle}>Corra!</Text>
@@ -292,7 +294,7 @@ export function QuartaLargoScreen({ navigation }: any) {
 
           {loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={BRAND.purple} />
+              <ActivityIndicator size="large" color={BRAND.primary} />
             </View>
           ) : (
             <View style={[styles.grid, { gap }]}>
@@ -571,7 +573,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: BRAND.purpleLight,
+    backgroundColor: BRAND.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -640,7 +642,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: BRAND.purple,
+    backgroundColor: BRAND.primary,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
@@ -689,7 +691,7 @@ const styles = StyleSheet.create({
   cardPrice: {
     fontSize: 16,
     fontWeight: '700',
-    color: BRAND.purple,
+    color: BRAND.primary,
   },
   cardOldPrice: {
     fontSize: 12,

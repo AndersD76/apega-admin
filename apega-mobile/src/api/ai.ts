@@ -34,6 +34,43 @@ export interface BackgroundRemovalResult {
   original_url: string;
 }
 
+// Background replacement options
+export type BackgroundType = 'clean_white' | 'gradient_soft' | 'studio_gray';
+
+export interface BackgroundOptionInfo {
+  id: BackgroundType;
+  name: string;
+  description: string;
+  previewColors: string[];
+}
+
+export const BACKGROUND_OPTIONS: BackgroundOptionInfo[] = [
+  {
+    id: 'clean_white',
+    name: 'Branco Limpo',
+    description: 'Fundo branco profissional para e-commerce',
+    previewColors: ['#FFFFFF', '#FAFAFA'],
+  },
+  {
+    id: 'gradient_soft',
+    name: 'Degradê Elegante',
+    description: 'Degradê suave cinza para destaque do produto',
+    previewColors: ['#F5F5F5', '#E0E0E0'],
+  },
+  {
+    id: 'studio_gray',
+    name: 'Estúdio Profissional',
+    description: 'Cinza neutro estilo fotografia de moda',
+    previewColors: ['#E8E8E8', '#D0D0D0'],
+  },
+];
+
+export interface BackgroundReplacementResult {
+  processed_url: string;
+  original_url: string;
+  background_type: BackgroundType;
+}
+
 export interface VirtualTryOnResult {
   result_url: string;
   model_used: string;
@@ -198,6 +235,53 @@ export const aiService = {
 
     // URL remota
     const response = await api.post('/ai/remove-background', { imageUrl: imageUri });
+    return response.data;
+  },
+
+  /**
+   * Replace background with a professional background option
+   * Supports local file URI or remote URL
+   */
+  async replaceBackground(
+    imageUri: string,
+    backgroundType: BackgroundType = 'clean_white'
+  ): Promise<{ success: boolean; result: BackgroundReplacementResult }> {
+    const isWeb = typeof document !== 'undefined';
+
+    // Se for uma URI local, fazer upload via FormData
+    if (!isWeb && (imageUri.startsWith('file://') || imageUri.startsWith('content://'))) {
+      const formData = new FormData();
+      const filename = imageUri.split('/').pop() || 'photo.jpg';
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+      // @ts-ignore
+      formData.append('image', { uri: imageUri, name: filename, type });
+      formData.append('background_type', backgroundType);
+      const response = await api.post('/ai/replace-background', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data;
+    }
+
+    // Web com blob:
+    if (isWeb && imageUri.startsWith('blob:')) {
+      const blobResponse = await fetch(imageUri);
+      const blob = await blobResponse.blob();
+      const file = new File([blob], 'photo.jpg', { type: blob.type || 'image/jpeg' });
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('background_type', backgroundType);
+      const response = await api.post('/ai/replace-background', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data;
+    }
+
+    // URL remota
+    const response = await api.post('/ai/replace-background', {
+      imageUrl: imageUri,
+      background_type: backgroundType,
+    });
     return response.data;
   },
 

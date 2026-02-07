@@ -39,3 +39,4 @@ export { PremiumScreen } from './PremiumScreen';
 
 // Special Features
 export { QuartaLargoScreen } from './QuartaLargoScreen';
+export { SelectAuctionProductsScreen } from './SelectAuctionProductsScreen';

@@ -17,10 +17,11 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { productsService, cartService, favoritesService } from '../api';
+import { productsService, cartService, favoritesService, auctionsService } from '../api';
 import { formatPrice } from '../utils/format';
 import { useAuth } from '../context/AuthContext';
 import { useResponsive } from '../hooks/useResponsive';
+import { AuctionInviteModal } from '../components';
 
 // ════════════════════════════════════════════════════════════
 // DESIGN SYSTEM — Clean & Modern Marketplace
@@ -84,6 +85,8 @@ export function HomeScreen({ navigation }: any) {
   const [cartCount, setCartCount] = useState(0);
   const [searchFocused, setSearchFocused] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showAuctionInvite, setShowAuctionInvite] = useState(false);
+  const [sellerProductsCount, setSellerProductsCount] = useState(0);
 
   // Check if first visit to show welcome modal
   useEffect(() => {
@@ -106,6 +109,52 @@ export function HomeScreen({ navigation }: any) {
       }
     };
     checkFirstVisit();
+  }, [isAuthenticated]);
+
+  // Check if seller should see auction invite
+  useEffect(() => {
+    const checkAuctionInvite = async () => {
+      if (!isAuthenticated) return;
+
+      try {
+        // Check if user has active products (is a seller)
+        const myProducts = await productsService.getMyProducts('active');
+        const activeCount = myProducts.products?.length || 0;
+        setSellerProductsCount(activeCount);
+
+        if (activeCount === 0) return;
+
+        // Check day of week (show invite on Sunday, Monday, Tuesday before auction)
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const showDays = [0, 1, 2]; // Sun, Mon, Tue
+
+        if (!showDays.includes(dayOfWeek)) return;
+
+        // Check if already dismissed this week
+        const dismissedKey = 'auction_invite_dismissed';
+        let lastDismissed: string | null = null;
+
+        if (Platform.OS === 'web') {
+          lastDismissed = localStorage.getItem(dismissedKey);
+        } else {
+          lastDismissed = await AsyncStorage.getItem(dismissedKey);
+        }
+
+        if (lastDismissed) {
+          const dismissedDate = new Date(lastDismissed);
+          const daysSinceDismissed = Math.floor((now.getTime() - dismissedDate.getTime()) / (1000 * 60 * 60 * 24));
+          if (daysSinceDismissed < 7) return;
+        }
+
+        // Show the invite after a delay
+        setTimeout(() => setShowAuctionInvite(true), 2000);
+      } catch (error) {
+        console.error('Error checking auction invite:', error);
+      }
+    };
+
+    checkAuctionInvite();
   }, [isAuthenticated]);
 
   // Data fetching
@@ -266,29 +315,25 @@ export function HomeScreen({ navigation }: any) {
 
         {/* ══════════ QUARTA DO LARGÔ PROMO ══════════ */}
         <Pressable
-          style={[styles.quartaPromo, { marginHorizontal: padding, maxWidth: maxW - padding * 2 }]}
+          style={[styles.quartaPromo, { marginHorizontal: padding, maxWidth: Math.min(600, maxW - padding * 2) }]}
           onPress={() => navigation.navigate('QuartaLargo')}
         >
           <LinearGradient
-            colors={['#7C3AED', '#9333EA', '#A855F7']}
+            colors={[BRAND.primary, BRAND.primaryDark]}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+            end={{ x: 1, y: 0 }}
             style={styles.quartaGradient}
           >
             <View style={styles.quartaContent}>
               <View style={styles.quartaTag}>
-                <Ionicons name="flash" size={12} color="#FDE047" />
                 <Text style={styles.quartaTagText}>TODA QUARTA</Text>
               </View>
               <Text style={styles.quartaTitle}>Quarta do Largô</Text>
-              <Text style={styles.quartaDesc}>Leilão semanal com até 50% OFF</Text>
+              <Text style={styles.quartaDesc}>Ofertas especiais toda semana</Text>
               <View style={styles.quartaCta}>
-                <Text style={styles.quartaCtaText}>Participar</Text>
-                <Ionicons name="arrow-forward" size={14} color={BRAND.white} />
+                <Text style={styles.quartaCtaText}>Ver ofertas</Text>
+                <Ionicons name="chevron-forward" size={14} color={BRAND.white} />
               </View>
-            </View>
-            <View style={styles.quartaVisual}>
-              <Ionicons name="pricetags" size={48} color="rgba(255,255,255,0.3)" />
             </View>
           </LinearGradient>
         </Pressable>
@@ -544,6 +589,27 @@ export function HomeScreen({ navigation }: any) {
           </View>
         </View>
       </Modal>
+
+      {/* ══════════ AUCTION INVITE MODAL ══════════ */}
+      <AuctionInviteModal
+        visible={showAuctionInvite}
+        onClose={async () => {
+          setShowAuctionInvite(false);
+          // Save dismissed date
+          const dismissedKey = 'auction_invite_dismissed';
+          const now = new Date().toISOString();
+          if (Platform.OS === 'web') {
+            localStorage.setItem(dismissedKey, now);
+          } else {
+            await AsyncStorage.setItem(dismissedKey, now);
+          }
+        }}
+        onParticipate={() => {
+          setShowAuctionInvite(false);
+          navigation.navigate('SelectAuctionProducts');
+        }}
+        productsCount={sellerProductsCount}
+      />
     </View>
   );
 }
@@ -745,66 +811,56 @@ const styles = StyleSheet.create({
 
   // Quarta do Largô Promo
   quartaPromo: {
-    borderRadius: 16,
+    borderRadius: 12,
     overflow: 'hidden',
     marginTop: 16,
     alignSelf: 'center',
-    width: '100%',
   },
   quartaGradient: {
-    flexDirection: 'row',
-    padding: 20,
-    alignItems: 'center',
+    padding: 16,
   },
   quartaContent: {
-    flex: 1,
     zIndex: 2,
   },
   quartaTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
     alignSelf: 'flex-start',
-    gap: 4,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   quartaTagText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#FDE047',
+    fontSize: 9,
+    fontWeight: '600',
+    color: BRAND.white,
     letterSpacing: 0.5,
   },
   quartaTitle: {
-    fontSize: 20,
-    fontWeight: '800',
+    fontSize: 18,
+    fontWeight: '700',
     color: BRAND.white,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   quartaDesc: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.9)',
-    marginBottom: 12,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.85)',
+    marginBottom: 10,
   },
   quartaCta: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
+    backgroundColor: BRAND.white,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
     alignSelf: 'flex-start',
-    gap: 6,
+    gap: 4,
   },
   quartaCtaText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
-    color: BRAND.white,
-  },
-  quartaVisual: {
-    marginLeft: 16,
+    color: BRAND.primary,
   },
 
   // Offers Promo

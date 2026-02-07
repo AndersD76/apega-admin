@@ -30,6 +30,11 @@ export interface Product {
   is_favorited?: boolean;
   status: 'active' | 'sold' | 'reserved' | 'deleted';
   created_at: string;
+  // Auction fields
+  in_auction?: boolean;
+  auction_discount?: number;
+  auction_price?: number;
+  auction_enrolled_at?: string;
 }
 
 export interface ProductFilters {

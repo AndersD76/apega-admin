@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { HomeScreen, LoginScreen, ProfileScreen, DiscoveryFeedScreen, CreateLookScreen, LookDetailScreen } from '../screens';
+import { HomeScreen, LoginScreen, ProfileScreen, DiscoveryFeedScreen, CreateLookScreen, LookDetailScreen, SelectAuctionProductsScreen } from '../screens';
 import { colors } from '../theme';
 
 export type RootStackParamList = {
@@ -25,6 +25,8 @@ export type RootStackParamList = {
   Help: undefined;
   CreateLook: { productId?: string };
   LookDetail: { lookId: string };
+  SelectAuctionProducts: undefined;
+  QuartaLargo: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -68,6 +70,12 @@ export function AppNavigator() {
         <Stack.Screen name="Help" component={PlaceholderScreen} />
         <Stack.Screen name="CreateLook" component={CreateLookScreen} />
         <Stack.Screen name="LookDetail" component={LookDetailScreen} />
+        <Stack.Screen
+          name="SelectAuctionProducts"
+          component={SelectAuctionProductsScreen}
+          options={{ animation: 'slide_from_bottom' }}
+        />
+        <Stack.Screen name="QuartaLargo" component={PlaceholderScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

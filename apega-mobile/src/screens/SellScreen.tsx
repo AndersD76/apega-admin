@@ -18,7 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../context/AuthContext';
-import { productsService, aiService, tagsService, Tag } from '../api';
+import { productsService, aiService, tagsService, Tag, BACKGROUND_OPTIONS, BackgroundType } from '../api';
 import { formatPrice } from '../utils/format';
 import { colors } from '../theme';
 import { CATEGORIES, CONDITIONS, getSizesForSubcategory, MICROCOPY } from '../constants';
@@ -52,6 +52,7 @@ export function SellScreen({ navigation }: any) {
   const [aiProcessing, setAiProcessing] = useState<{ type: string; index: number } | null>(null);
   const [uploadedImageUrls, setUploadedImageUrls] = useState<{ [index: number]: string }>({});
   const [showAiOptions, setShowAiOptions] = useState(false);
+  const [showBackgroundOptions, setShowBackgroundOptions] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [userProductCount, setUserProductCount] = useState(0);
   const [showLimitModal, setShowLimitModal] = useState(false);
@@ -222,48 +223,38 @@ export function SellScreen({ navigation }: any) {
     }
   };
 
-  // Remover fundo da imagem
-  const handleRemoveBackground = async () => {
+  // Mostrar opcoes de fundo
+  const handleShowBackgroundOptions = () => {
+    setShowAiOptions(false);
+    setShowBackgroundOptions(true);
+  };
+
+  // Substituir fundo da imagem com opcao selecionada
+  const handleReplaceBackground = async (backgroundType: BackgroundType) => {
     if (selectedImageIndex === null) return;
 
-    setShowAiOptions(false);
+    setShowBackgroundOptions(false);
     setAiProcessing({ type: 'background', index: selectedImageIndex });
 
     try {
       const imageUri = images[selectedImageIndex];
 
-      // Primeiro fazer upload para Cloudinary
-      const formData = new FormData();
-      const isWeb = typeof document !== 'undefined';
-
-      if (isWeb && imageUri.startsWith('blob:')) {
-        const blobResponse = await fetch(imageUri);
-        const blob = await blobResponse.blob();
-        const file = new File([blob], 'photo.jpg', { type: blob.type || 'image/jpeg' });
-        formData.append('image', file);
-      } else {
-        const filename = imageUri.split('/').pop() || 'photo.jpg';
-        const match = /\.(\w+)$/.exec(filename);
-        const type = match ? `image/${match[1]}` : 'image/jpeg';
-        // @ts-ignore
-        formData.append('image', { uri: imageUri, name: filename, type });
-      }
-
-      // Chamar API de remocao de fundo
-      const response = await aiService.removeBackground(imageUri);
+      // Chamar API de substituicao de fundo
+      const response = await aiService.replaceBackground(imageUri, backgroundType);
 
       if (response.success && response.result?.processed_url) {
-        // Atualizar imagem com versao sem fundo
+        // Atualizar imagem com versao com novo fundo
         const newImages = [...images];
         newImages[selectedImageIndex] = response.result.processed_url;
         setImages(newImages);
 
-        Alert.alert('Sucesso!', 'Fundo removido com sucesso!');
+        const bgOption = BACKGROUND_OPTIONS.find(opt => opt.id === backgroundType);
+        Alert.alert('Sucesso!', `Fundo "${bgOption?.name}" aplicado com sucesso!`);
       } else {
-        Alert.alert('Erro', 'Nao foi possivel remover o fundo');
+        Alert.alert('Erro', 'Não foi possível processar a imagem');
       }
     } catch (error: any) {
-      console.error('Error removing background:', error);
+      console.error('Error replacing background:', error);
       Alert.alert('Erro', error?.response?.data?.message || 'Erro ao processar imagem');
     } finally {
       setAiProcessing(null);
@@ -997,13 +988,13 @@ export function SellScreen({ navigation }: any) {
             <Text style={styles.aiOptionsTitle}>Editar com IA</Text>
             <Text style={styles.aiOptionsSubtitle}>Escolha uma opcao para melhorar sua foto</Text>
 
-            <Pressable style={styles.aiOptionBtn} onPress={handleRemoveBackground}>
+            <Pressable style={styles.aiOptionBtn} onPress={handleShowBackgroundOptions}>
               <View style={[styles.aiOptionIcon, { backgroundColor: colors.primaryMuted }]}>
-                <Ionicons name="cut-outline" size={24} color={colors.primary} />
+                <Ionicons name="image-outline" size={24} color={colors.primary} />
               </View>
               <View style={styles.aiOptionInfo}>
-                <Text style={styles.aiOptionName}>Remover Fundo</Text>
-                <Text style={styles.aiOptionDesc}>Remove o fundo deixando apenas o produto</Text>
+                <Text style={styles.aiOptionName}>Trocar Fundo</Text>
+                <Text style={styles.aiOptionDesc}>Substitui o fundo por um fundo profissional</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#A3A3A3" />
             </Pressable>
@@ -1020,6 +1011,41 @@ export function SellScreen({ navigation }: any) {
             </Pressable>
 
             <Pressable style={styles.aiOptionCancelBtn} onPress={() => setShowAiOptions(false)}>
+              <Text style={styles.aiOptionCancelText}>Cancelar</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
+
+      {/* Background Options Modal */}
+      <Modal visible={showBackgroundOptions} transparent animationType="slide">
+        <Pressable style={styles.aiOptionsOverlay} onPress={() => setShowBackgroundOptions(false)}>
+          <View style={styles.aiOptionsCard}>
+            <View style={styles.aiOptionsHandle} />
+            <Text style={styles.aiOptionsTitle}>Escolha o Fundo</Text>
+            <Text style={styles.aiOptionsSubtitle}>Selecione um fundo profissional para sua foto</Text>
+
+            {BACKGROUND_OPTIONS.map((option) => (
+              <Pressable
+                key={option.id}
+                style={styles.aiOptionBtn}
+                onPress={() => handleReplaceBackground(option.id)}
+              >
+                <LinearGradient
+                  colors={option.previewColors as [string, string]}
+                  style={styles.bgOptionPreview}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                />
+                <View style={styles.aiOptionInfo}>
+                  <Text style={styles.aiOptionName}>{option.name}</Text>
+                  <Text style={styles.aiOptionDesc}>{option.description}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#A3A3A3" />
+              </Pressable>
+            ))}
+
+            <Pressable style={styles.aiOptionCancelBtn} onPress={() => setShowBackgroundOptions(false)}>
               <Text style={styles.aiOptionCancelText}>Cancelar</Text>
             </Pressable>
           </View>
@@ -1198,6 +1224,7 @@ const styles = StyleSheet.create({
   aiOptionsSubtitle: { fontSize: 14, color: '#737373', textAlign: 'center', marginTop: 4, marginBottom: 24 },
   aiOptionBtn: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, backgroundColor: '#F5F5F5', borderRadius: 14, marginBottom: 12 },
   aiOptionIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+  bgOptionPreview: { width: 48, height: 48, borderRadius: 12, borderWidth: 1, borderColor: '#E8E8E8' },
   aiOptionInfo: { flex: 1 },
   aiOptionName: { fontSize: 16, fontWeight: '600', color: '#1A1A1A' },
   aiOptionDesc: { fontSize: 13, color: '#737373', marginTop: 2 },

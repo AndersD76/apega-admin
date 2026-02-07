@@ -24,3 +24,6 @@ export type { Look, LookProduct } from './LookCard';
 
 // Grid
 export { ProductGrid, useProductGrid } from './ProductGrid';
+
+// Auction
+export { AuctionInviteModal } from './AuctionInviteModal';
