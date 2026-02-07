@@ -224,23 +224,30 @@ export function HomeScreen({ navigation }: any) {
         </View>
 
         {/* ══════════ FILTERS ══════════ */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={[styles.filtersRow, { paddingHorizontal: padding }]}
-        >
-          {FILTERS.map(f => (
-            <Pressable
-              key={f.id}
-              style={[styles.filterChip, filter === f.id && styles.filterChipActive]}
-              onPress={() => setFilter(f.id)}
-            >
-              <Text style={[styles.filterText, filter === f.id && styles.filterTextActive]}>
-                {f.label}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
+        <View style={[styles.filtersWrapper, { maxWidth: maxW, paddingHorizontal: padding }]}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filtersRow}
+            style={styles.filtersScroll}
+          >
+            {FILTERS.map((f, index) => (
+              <Pressable
+                key={f.id}
+                style={[
+                  styles.filterChip,
+                  filter === f.id && styles.filterChipActive,
+                  index > 0 && { marginLeft: 8 }
+                ]}
+                onPress={() => setFilter(f.id)}
+              >
+                <Text style={[styles.filterText, filter === f.id && styles.filterTextActive]}>
+                  {f.label}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
 
         {/* ══════════ PRODUCTS ══════════ */}
         <View style={[styles.productsSection, { paddingHorizontal: padding, maxWidth: maxW }]}>
@@ -313,29 +320,79 @@ export function HomeScreen({ navigation }: any) {
           )}
         </View>
 
-        {/* ══════════ CTA SECTION ══════════ */}
-        {!isDesktop && (
-          <View style={[styles.ctaSection, { marginHorizontal: padding }]}>
-            <Text style={styles.ctaTitle}>Tem peças paradas no armário?</Text>
-            <Text style={styles.ctaDesc}>Venda no Largô e ganhe dinheiro com o que você não usa mais</Text>
-            <Pressable style={styles.ctaBtn} onPress={() => navigation.navigate('Sell')}>
-              <Text style={styles.ctaBtnText}>Começar a vender</Text>
-            </Pressable>
+        {/* ══════════ APP DOWNLOAD BANNER (Enjoei style) ══════════ */}
+        <View style={styles.appBanner}>
+          <View style={[styles.appBannerInner, { maxWidth: maxW, paddingHorizontal: padding }]}>
+            <View style={styles.appBannerContent}>
+              <Text style={styles.appBannerTitle}>BAIXE O APP DO LARGÔ</Text>
+              <Text style={styles.appBannerSubtitle}>
+                altas tendências em preços de oportunidade.{'\n'}
+                tudo o que realmente importa na vida do brecheiro.
+              </Text>
+              <View style={styles.storeBadges}>
+                <Pressable style={styles.storeBadge}>
+                  <Ionicons name="logo-google-playstore" size={20} color={BRAND.white} />
+                  <View>
+                    <Text style={styles.storeSmall}>DISPONÍVEL NO</Text>
+                    <Text style={styles.storeName}>Google Play</Text>
+                  </View>
+                </Pressable>
+                <Pressable style={styles.storeBadge}>
+                  <Ionicons name="logo-apple" size={22} color={BRAND.white} />
+                  <View>
+                    <Text style={styles.storeSmall}>Baixar na</Text>
+                    <Text style={styles.storeName}>App Store</Text>
+                  </View>
+                </Pressable>
+              </View>
+            </View>
           </View>
-        )}
+        </View>
 
-        {/* ══════════ FOOTER ══════════ */}
-        <View style={[styles.footer, { paddingHorizontal: padding }]}>
-          <Text style={styles.footerLogo}>Largô</Text>
-          <Text style={styles.footerTagline}>Moda sustentável para todos</Text>
-          <View style={styles.footerLinks}>
-            <Pressable><Text style={styles.footerLink}>Sobre</Text></Pressable>
-            <Text style={styles.footerDot}>•</Text>
-            <Pressable><Text style={styles.footerLink}>Ajuda</Text></Pressable>
-            <Text style={styles.footerDot}>•</Text>
-            <Pressable><Text style={styles.footerLink}>Termos</Text></Pressable>
+        {/* ══════════ FOOTER (Enjoei style) ══════════ */}
+        <View style={[styles.footer, { maxWidth: maxW, paddingHorizontal: padding }]}>
+          <View style={styles.footerColumns}>
+            <View style={styles.footerCol}>
+              <Text style={styles.footerColTitle}>categorias</Text>
+              <Pressable><Text style={styles.footerLink}>moda feminina</Text></Pressable>
+              <Pressable><Text style={styles.footerLink}>moda masculina</Text></Pressable>
+              <Pressable><Text style={styles.footerLink}>infantil</Text></Pressable>
+              <Pressable><Text style={styles.footerLink}>acessórios</Text></Pressable>
+              <Pressable><Text style={styles.footerLink}>calçados</Text></Pressable>
+            </View>
+            <View style={styles.footerCol}>
+              <Text style={styles.footerColTitle}>destaques</Text>
+              <Pressable><Text style={styles.footerLink}>novidades</Text></Pressable>
+              <Pressable><Text style={styles.footerLink}>promoções</Text></Pressable>
+              <Pressable><Text style={styles.footerLink}>marcas famosas</Text></Pressable>
+              <Pressable><Text style={styles.footerLink}>ver tudo</Text></Pressable>
+            </View>
+            <View style={styles.footerCol}>
+              <Text style={styles.footerColTitle}>utilidades</Text>
+              <Pressable><Text style={styles.footerLink}>ajuda</Text></Pressable>
+              <Pressable><Text style={styles.footerLink}>como vender</Text></Pressable>
+              <Pressable><Text style={styles.footerLink}>como comprar</Text></Pressable>
+              <Pressable><Text style={styles.footerLink}>termos de uso</Text></Pressable>
+              <Pressable><Text style={styles.footerLink}>privacidade</Text></Pressable>
+            </View>
+            <View style={styles.footerCol}>
+              <Text style={styles.footerColTitle}>minha conta</Text>
+              <Pressable><Text style={styles.footerLink}>minha loja</Text></Pressable>
+              <Pressable><Text style={styles.footerLink}>minhas vendas</Text></Pressable>
+              <Pressable><Text style={styles.footerLink}>minhas compras</Text></Pressable>
+              <Pressable><Text style={styles.footerLink}>configurações</Text></Pressable>
+            </View>
+            <View style={styles.footerCol}>
+              <Text style={styles.footerColTitle}>siga a gente</Text>
+              <Pressable><Text style={styles.footerLink}>instagram</Text></Pressable>
+              <Pressable><Text style={styles.footerLink}>facebook</Text></Pressable>
+              <Pressable><Text style={styles.footerLink}>tiktok</Text></Pressable>
+            </View>
           </View>
-          <Text style={styles.copyright}>© 2024 Largô</Text>
+          <View style={styles.footerBottom}>
+            <Text style={styles.footerLogo}>Largô</Text>
+            <Text style={styles.copyright}>© 2024 Largô - Moda Sustentável</Text>
+          </View>
         </View>
       </ScrollView>
 
@@ -473,23 +530,23 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   heroTag: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     color: BRAND.primary,
-    letterSpacing: 1.5,
-    marginBottom: 8,
+    letterSpacing: 2,
+    marginBottom: 10,
   },
   heroTitle: {
-    fontSize: 28,
+    fontSize: 36,
     fontWeight: '800',
     color: BRAND.white,
-    lineHeight: 34,
-    marginBottom: 8,
+    lineHeight: 42,
+    marginBottom: 12,
   },
   heroDesc: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.7)',
-    marginBottom: 20,
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.8)',
+    marginBottom: 24,
   },
   heroCta: {
     flexDirection: 'row',
@@ -545,13 +602,20 @@ const styles = StyleSheet.create({
   },
 
   // Filters
-  filtersRow: {
+  filtersWrapper: {
+    width: '100%',
     paddingVertical: 16,
-    gap: 8,
+  },
+  filtersScroll: {
+    flexGrow: 0,
+  },
+  filtersRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   filterChip: {
-    paddingHorizontal: 18,
-    paddingVertical: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     borderRadius: 100,
     backgroundColor: BRAND.gray100,
     borderWidth: 1.5,
@@ -562,7 +626,7 @@ const styles = StyleSheet.create({
     borderColor: BRAND.black,
   },
   filterText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '500',
     color: BRAND.gray600,
   },
@@ -582,12 +646,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 28,
     fontWeight: '700',
     color: BRAND.gray900,
   },
   seeAll: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: BRAND.primary,
   },
@@ -650,106 +714,130 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   cardBrand: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
     color: BRAND.gray400,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   cardTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '500',
     color: BRAND.gray900,
-    marginTop: 2,
+    marginTop: 4,
   },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginTop: 4,
+    gap: 8,
+    marginTop: 6,
   },
   cardPrice: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
     color: BRAND.gray900,
   },
   cardOldPrice: {
-    fontSize: 12,
+    fontSize: 14,
     color: BRAND.gray400,
     textDecorationLine: 'line-through',
   },
 
-  // CTA
-  ctaSection: {
-    backgroundColor: BRAND.gray100,
-    borderRadius: 16,
-    padding: 24,
-    marginTop: 32,
+  // App Banner (Enjoei style - lilás)
+  appBanner: {
+    width: '100%',
+    backgroundColor: '#E8D4F0', // Lilás Enjoei
+    marginTop: 48,
+    paddingVertical: 48,
+  },
+  appBannerInner: {
+    width: '100%',
+    alignSelf: 'center',
+  },
+  appBannerContent: {
+    maxWidth: 600,
+  },
+  appBannerTitle: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#4A1942', // Roxo escuro
+    letterSpacing: -0.5,
+    marginBottom: 12,
+  },
+  appBannerSubtitle: {
+    fontSize: 16,
+    color: '#6B4D68',
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  storeBadges: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  storeBadge: {
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#1A1A1A',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    gap: 10,
   },
-  ctaTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: BRAND.gray900,
-    textAlign: 'center',
+  storeSmall: {
+    fontSize: 9,
+    color: BRAND.gray400,
+    textTransform: 'uppercase',
   },
-  ctaDesc: {
-    fontSize: 14,
-    color: BRAND.gray500,
-    textAlign: 'center',
-    marginTop: 8,
-    lineHeight: 20,
-  },
-  ctaBtn: {
-    backgroundColor: BRAND.primary,
-    paddingHorizontal: 28,
-    paddingVertical: 14,
-    borderRadius: 12,
-    marginTop: 20,
-  },
-  ctaBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
+  storeName: {
+    fontSize: 16,
+    fontWeight: '600',
     color: BRAND.white,
   },
 
-  // Footer
+  // Footer (Enjoei style - multi column)
   footer: {
     width: '100%',
+    alignSelf: 'center',
+    paddingVertical: 48,
+    borderTopWidth: 1,
+    borderTopColor: BRAND.gray200,
+  },
+  footerColumns: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 32,
+    marginBottom: 40,
+  },
+  footerCol: {
+    minWidth: 140,
+  },
+  footerColTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: BRAND.gray900,
+    marginBottom: 16,
+  },
+  footerLink: {
+    fontSize: 14,
+    color: BRAND.gray600,
+    marginBottom: 10,
+  },
+  footerBottom: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 40,
-    marginTop: 40,
+    justifyContent: 'space-between',
+    paddingTop: 24,
     borderTopWidth: 1,
     borderTopColor: BRAND.gray200,
   },
   footerLogo: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '700',
     color: BRAND.primary,
   },
-  footerTagline: {
+  copyright: {
     fontSize: 13,
     color: BRAND.gray500,
-    marginTop: 4,
-  },
-  footerLinks: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 16,
-    gap: 8,
-  },
-  footerLink: {
-    fontSize: 13,
-    color: BRAND.gray600,
-    fontWeight: '500',
-  },
-  footerDot: {
-    color: BRAND.gray400,
-  },
-  copyright: {
-    fontSize: 12,
-    color: BRAND.gray400,
-    marginTop: 16,
   },
 
   // FAB

@@ -4,7 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, StyleSheet, Pressable, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Platform, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import {
   useFonts,
@@ -52,10 +52,16 @@ import {
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Custom Tab Bar - Largo Design
+// Custom Tab Bar - Largo Design (only visible on mobile)
 function CustomTabBar({ state, descriptors, navigation }: any) {
+  const { width } = useWindowDimensions();
   const { isDark } = useTheme();
   const themeColors = getColors(isDark);
+
+  // Hide tab bar on desktop/web (width >= 768px)
+  if (width >= 768) {
+    return null;
+  }
 
   const icons: Record<string, { active: string; inactive: string }> = {
     Home: { active: 'home', inactive: 'home-outline' },
