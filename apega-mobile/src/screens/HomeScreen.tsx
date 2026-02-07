@@ -10,7 +10,9 @@ import {
   useWindowDimensions,
   StatusBar,
   Platform,
+  Modal,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -72,6 +74,30 @@ export function HomeScreen({ navigation }: any) {
   const [filter, setFilter] = useState('all');
   const [cartCount, setCartCount] = useState(0);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  // Check if first visit to show welcome modal
+  useEffect(() => {
+    const checkFirstVisit = async () => {
+      try {
+        const hasVisited = await AsyncStorage.getItem('largo_visited');
+        if (!hasVisited && !isAuthenticated) {
+          setTimeout(() => setShowWelcome(true), 1000);
+          await AsyncStorage.setItem('largo_visited', 'true');
+        }
+      } catch {
+        // Web fallback
+        if (Platform.OS === 'web') {
+          const hasVisited = localStorage.getItem('largo_visited');
+          if (!hasVisited && !isAuthenticated) {
+            setTimeout(() => setShowWelcome(true), 1000);
+            localStorage.setItem('largo_visited', 'true');
+          }
+        }
+      }
+    };
+    checkFirstVisit();
+  }, [isAuthenticated]);
 
   // Data fetching
   const fetchProducts = useCallback(async () => {
@@ -402,6 +428,62 @@ export function HomeScreen({ navigation }: any) {
           <Ionicons name="add" size={28} color={BRAND.white} />
         </Pressable>
       )}
+
+      {/* ══════════ WELCOME MODAL (Enjoei style) ══════════ */}
+      <Modal
+        visible={showWelcome}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowWelcome(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {/* Close button */}
+            <Pressable style={styles.modalClose} onPress={() => setShowWelcome(false)}>
+              <Ionicons name="close" size={24} color={BRAND.gray600} />
+            </Pressable>
+
+            {/* Logo */}
+            <Text style={styles.modalLogo}>Largô</Text>
+
+            {/* Promo Banner */}
+            <LinearGradient
+              colors={['#E8D4F0', '#D4E8D0']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.modalPromo}
+            >
+              <Text style={styles.promoTitle}>20% OFF</Text>
+              <Text style={styles.promoSubtitle}>NA 1ª COMPRA COM O CUPOM:</Text>
+              <View style={styles.promoCoupon}>
+                <Text style={styles.promoCouponText}>LARGOU20</Text>
+              </View>
+              <Text style={styles.promoNote}>em produtos selecionados</Text>
+            </LinearGradient>
+
+            {/* CTA */}
+            <Text style={styles.modalTitle}>chegue chegando</Text>
+            <Text style={styles.modalSubtitle}>compre agora com desconto</Text>
+
+            <Pressable
+              style={styles.modalBtn}
+              onPress={() => { setShowWelcome(false); navigation.navigate('Register'); }}
+            >
+              <Text style={styles.modalBtnText}>criar conta</Text>
+            </Pressable>
+
+            <Text style={styles.modalTerms}>
+              ao criar uma conta, você está de acordo com os{' '}
+              <Text style={styles.modalLink}>termos de serviço</Text> e a{' '}
+              <Text style={styles.modalLink}>política de privacidade</Text> do Largô.
+            </Text>
+
+            <Pressable onPress={() => setShowWelcome(false)}>
+              <Text style={styles.modalSkip}>continuar sem conta</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -855,6 +937,117 @@ const styles = StyleSheet.create({
       web: { boxShadow: '0 4px 20px rgba(199, 92, 58, 0.4)' },
       default: { elevation: 8 },
     }),
+  },
+
+  // Welcome Modal (Enjoei style)
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: BRAND.white,
+    borderRadius: 16,
+    padding: 32,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  modalClose: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalLogo: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: BRAND.primary,
+    marginBottom: 24,
+  },
+  modalPromo: {
+    width: '100%',
+    borderRadius: 12,
+    padding: 24,
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  promoTitle: {
+    fontSize: 36,
+    fontWeight: '900',
+    color: '#4A1942',
+    marginBottom: 4,
+  },
+  promoSubtitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4A1942',
+    marginBottom: 12,
+  },
+  promoCoupon: {
+    backgroundColor: BRAND.white,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#4A1942',
+    borderStyle: 'dashed',
+  },
+  promoCouponText: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#4A1942',
+    letterSpacing: 2,
+  },
+  promoNote: {
+    fontSize: 12,
+    color: '#6B4D68',
+    marginTop: 12,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: BRAND.gray900,
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: BRAND.gray500,
+    marginBottom: 20,
+  },
+  modalBtn: {
+    backgroundColor: BRAND.primary,
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: 30,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: BRAND.white,
+  },
+  modalTerms: {
+    fontSize: 12,
+    color: BRAND.gray500,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+  modalLink: {
+    color: BRAND.primary,
+    textDecorationLine: 'underline',
+  },
+  modalSkip: {
+    fontSize: 14,
+    color: BRAND.gray500,
+    textDecorationLine: 'underline',
   },
 });
 
