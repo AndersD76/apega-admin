@@ -321,18 +321,35 @@ export function HomeScreen({ navigation }: any) {
           <LinearGradient
             colors={[BRAND.primary, BRAND.primaryDark]}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={styles.quartaGradient}
           >
-            <View style={styles.quartaContent}>
-              <View style={styles.quartaTag}>
-                <Text style={styles.quartaTagText}>TODA QUARTA</Text>
+            {/* Decorative elements */}
+            <View style={styles.quartaDecor1} />
+            <View style={styles.quartaDecor2} />
+
+            <View style={styles.quartaRow}>
+              {/* Left: Icon */}
+              <View style={styles.quartaIconWrap}>
+                <Ionicons name="flash" size={28} color="#FDE047" />
               </View>
-              <Text style={styles.quartaTitle}>Quarta do Largô</Text>
-              <Text style={styles.quartaDesc}>Ofertas especiais toda semana</Text>
-              <View style={styles.quartaCta}>
-                <Text style={styles.quartaCtaText}>Ver ofertas</Text>
-                <Ionicons name="chevron-forward" size={14} color={BRAND.white} />
+
+              {/* Center: Text */}
+              <View style={styles.quartaTextContent}>
+                <View style={styles.quartaTag}>
+                  <Ionicons name="time-outline" size={10} color={BRAND.white} />
+                  <Text style={styles.quartaTagText}>TODA QUARTA</Text>
+                </View>
+                <Text style={styles.quartaTitle}>Quarta do Largô</Text>
+                <Text style={styles.quartaDesc}>Peças com até 30% OFF • 1h por peça</Text>
+              </View>
+
+              {/* Right: CTA */}
+              <View style={styles.quartaCtaWrap}>
+                <View style={styles.quartaCta}>
+                  <Text style={styles.quartaCtaText}>Ver</Text>
+                  <Ionicons name="arrow-forward" size={14} color={BRAND.primary} />
+                </View>
               </View>
             </View>
           </LinearGradient>
@@ -811,54 +828,86 @@ const styles = StyleSheet.create({
 
   // Quarta do Largô Promo
   quartaPromo: {
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
     marginTop: 16,
   },
   quartaGradient: {
-    padding: 16,
+    padding: 18,
+    position: 'relative',
   },
-  quartaContent: {
+  quartaDecor1: {
+    position: 'absolute',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    top: -40,
+    right: -20,
+  },
+  quartaDecor2: {
+    position: 'absolute',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    bottom: -30,
+    left: 40,
+  },
+  quartaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     zIndex: 2,
   },
+  quartaIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  quartaTextContent: {
+    flex: 1,
+  },
   quartaTag: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-    alignSelf: 'flex-start',
-    marginBottom: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 4,
   },
   quartaTagText: {
-    fontSize: 9,
-    fontWeight: '600',
-    color: BRAND.white,
-    letterSpacing: 0.5,
+    fontSize: 10,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.9)',
+    letterSpacing: 1,
   },
   quartaTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     color: BRAND.white,
     marginBottom: 2,
   },
   quartaDesc: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.85)',
-    marginBottom: 10,
+    color: 'rgba(255,255,255,0.8)',
+  },
+  quartaCtaWrap: {
+    marginLeft: 12,
   },
   quartaCta: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: BRAND.white,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-    gap: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    gap: 6,
   },
   quartaCtaText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
     color: BRAND.primary,
   },
 
