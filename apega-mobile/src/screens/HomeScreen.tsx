@@ -463,49 +463,95 @@ export function HomeScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* ══════════ FOOTER (Enjoei style) ══════════ */}
+        {/* ══════════ FOOTER ══════════ */}
         <View style={[styles.footer, { maxWidth: maxW, paddingHorizontal: padding }]}>
           <View style={styles.footerColumns}>
             <View style={styles.footerCol}>
               <Text style={styles.footerColTitle}>categorias</Text>
-              <Pressable><Text style={styles.footerLink}>moda feminina</Text></Pressable>
-              <Pressable><Text style={styles.footerLink}>moda masculina</Text></Pressable>
-              <Pressable><Text style={styles.footerLink}>infantil</Text></Pressable>
-              <Pressable><Text style={styles.footerLink}>acessórios</Text></Pressable>
-              <Pressable><Text style={styles.footerLink}>calçados</Text></Pressable>
+              <Pressable onPress={() => navigation.navigate('Search', { category: 'feminino' })}>
+                <Text style={styles.footerLink}>moda feminina</Text>
+              </Pressable>
+              <Pressable onPress={() => navigation.navigate('Search', { category: 'masculino' })}>
+                <Text style={styles.footerLink}>moda masculina</Text>
+              </Pressable>
+              <Pressable onPress={() => navigation.navigate('Search', { category: 'infantil' })}>
+                <Text style={styles.footerLink}>infantil</Text>
+              </Pressable>
+              <Pressable onPress={() => navigation.navigate('Search', { category: 'acessorios' })}>
+                <Text style={styles.footerLink}>acessórios</Text>
+              </Pressable>
+              <Pressable onPress={() => navigation.navigate('Search', { category: 'calcados' })}>
+                <Text style={styles.footerLink}>calçados</Text>
+              </Pressable>
             </View>
             <View style={styles.footerCol}>
               <Text style={styles.footerColTitle}>destaques</Text>
-              <Pressable><Text style={styles.footerLink}>novidades</Text></Pressable>
-              <Pressable><Text style={styles.footerLink}>promoções</Text></Pressable>
-              <Pressable><Text style={styles.footerLink}>marcas famosas</Text></Pressable>
-              <Pressable><Text style={styles.footerLink}>ver tudo</Text></Pressable>
+              <Pressable onPress={() => navigation.navigate('Search', { sort: 'newest' })}>
+                <Text style={styles.footerLink}>novidades</Text>
+              </Pressable>
+              <Pressable onPress={() => navigation.navigate('QuartaLargo')}>
+                <Text style={styles.footerLink}>promoções</Text>
+              </Pressable>
+              <Pressable onPress={() => navigation.navigate('Search', { query: 'marca' })}>
+                <Text style={styles.footerLink}>marcas famosas</Text>
+              </Pressable>
+              <Pressable onPress={() => navigation.navigate('Search')}>
+                <Text style={styles.footerLink}>ver tudo</Text>
+              </Pressable>
             </View>
             <View style={styles.footerCol}>
               <Text style={styles.footerColTitle}>utilidades</Text>
-              <Pressable><Text style={styles.footerLink}>ajuda</Text></Pressable>
-              <Pressable><Text style={styles.footerLink}>como vender</Text></Pressable>
-              <Pressable><Text style={styles.footerLink}>como comprar</Text></Pressable>
-              <Pressable><Text style={styles.footerLink}>termos de uso</Text></Pressable>
-              <Pressable><Text style={styles.footerLink}>privacidade</Text></Pressable>
+              <Pressable onPress={() => navigation.navigate('Help')}>
+                <Text style={styles.footerLink}>ajuda</Text>
+              </Pressable>
+              <Pressable onPress={() => navigation.navigate('HowToSell')}>
+                <Text style={styles.footerLink}>como vender</Text>
+              </Pressable>
+              <Pressable onPress={() => navigation.navigate('HowToBuy')}>
+                <Text style={styles.footerLink}>como comprar</Text>
+              </Pressable>
+              <Pressable onPress={() => navigation.navigate('Terms')}>
+                <Text style={styles.footerLink}>termos de uso</Text>
+              </Pressable>
+              <Pressable onPress={() => navigation.navigate('Privacy')}>
+                <Text style={styles.footerLink}>privacidade</Text>
+              </Pressable>
             </View>
             <View style={styles.footerCol}>
               <Text style={styles.footerColTitle}>minha conta</Text>
-              <Pressable><Text style={styles.footerLink}>minha loja</Text></Pressable>
-              <Pressable><Text style={styles.footerLink}>minhas vendas</Text></Pressable>
-              <Pressable><Text style={styles.footerLink}>minhas compras</Text></Pressable>
-              <Pressable><Text style={styles.footerLink}>configurações</Text></Pressable>
+              <Pressable onPress={() => navigation.navigate(isAuthenticated ? 'MyProducts' : 'Login')}>
+                <Text style={styles.footerLink}>minha loja</Text>
+              </Pressable>
+              <Pressable onPress={() => navigation.navigate(isAuthenticated ? 'MySales' : 'Login')}>
+                <Text style={styles.footerLink}>minhas vendas</Text>
+              </Pressable>
+              <Pressable onPress={() => navigation.navigate(isAuthenticated ? 'MyPurchases' : 'Login')}>
+                <Text style={styles.footerLink}>minhas compras</Text>
+              </Pressable>
+              <Pressable onPress={() => navigation.navigate(isAuthenticated ? 'Settings' : 'Login')}>
+                <Text style={styles.footerLink}>configurações</Text>
+              </Pressable>
             </View>
             <View style={styles.footerCol}>
               <Text style={styles.footerColTitle}>siga a gente</Text>
-              <Pressable><Text style={styles.footerLink}>instagram</Text></Pressable>
-              <Pressable><Text style={styles.footerLink}>facebook</Text></Pressable>
-              <Pressable><Text style={styles.footerLink}>tiktok</Text></Pressable>
+              <Pressable onPress={() => {
+                if (Platform.OS === 'web') {
+                  window.open('https://instagram.com/largo.moda', '_blank');
+                }
+              }}>
+                <View style={styles.footerSocialLink}>
+                  <Ionicons name="logo-instagram" size={16} color={BRAND.gray600} />
+                  <Text style={styles.footerLink}>instagram</Text>
+                </View>
+              </Pressable>
             </View>
           </View>
           <View style={styles.footerBottom}>
-            <Text style={styles.footerLogo}>Largô</Text>
-            <Text style={styles.copyright}>© 2024 Largô - Moda Sustentável</Text>
+            <View style={styles.footerLogoWrap}>
+              <Text style={styles.footerLogo}>Largô</Text>
+              <View style={styles.footerLogoDot} />
+            </View>
+            <Text style={styles.copyright}>© 2025 Largô - Moda Sustentável</Text>
           </View>
         </View>
       </ScrollView>
@@ -928,6 +974,12 @@ const styles = StyleSheet.create({
     color: BRAND.gray600,
     marginBottom: 10,
   },
+  footerSocialLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
   footerBottom: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -936,10 +988,24 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: BRAND.gray200,
   },
+  footerLogoWrap: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+  },
   footerLogo: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '800',
     color: BRAND.primary,
+    letterSpacing: -1,
+    fontStyle: 'italic',
+  },
+  footerLogoDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#10B981',
+    marginLeft: 2,
+    marginBottom: 6,
   },
   copyright: {
     fontSize: 13,

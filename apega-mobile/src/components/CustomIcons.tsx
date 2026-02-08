@@ -1,658 +1,292 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withTiming,
-  withDelay,
-  Easing,
-  withSpring,
-} from 'react-native-reanimated';
+import Svg, { Path, Circle, Rect, G } from 'react-native-svg';
 
 // ═══════════════════════════════════════════════════════════════════
-// CUSTOM ANIMATED ICONS FOR LARGÔ APP
-// Unique icons themed for sustainable fashion/thrift store
+// CUSTOM SVG ICONS FOR LARGÔ APP
+// Simple, clean SVG icons themed for sustainable fashion/thrift store
 // ═══════════════════════════════════════════════════════════════════
-
-const BRAND = {
-  primary: '#C75C3A',
-  primaryDark: '#A84B2E',
-  primaryLight: '#D4816A',
-  white: '#FFFFFF',
-  yellow: '#FDE047',
-  orange: '#FB923C',
-  green: '#10B981',
-  gray: '#6B7280',
-};
 
 interface IconProps {
   size?: number;
   color?: string;
-  animated?: boolean;
   style?: ViewStyle;
 }
 
 // ═══════════════════════════════════════════════════════════════════
 // HANGER ICON - Cabide (símbolo de moda)
 // ═══════════════════════════════════════════════════════════════════
-export function HangerIcon({ size = 24, color = BRAND.primary, animated = false, style }: IconProps) {
-  const rotation = useSharedValue(0);
-  const scale = useSharedValue(1);
-
-  useEffect(() => {
-    if (animated) {
-      rotation.value = withRepeat(
-        withSequence(
-          withTiming(5, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
-          withTiming(-5, { duration: 1000, easing: Easing.inOut(Easing.ease) })
-        ),
-        -1,
-        true
-      );
-      scale.value = withRepeat(
-        withSequence(
-          withTiming(1.05, { duration: 1500 }),
-          withTiming(1, { duration: 1500 })
-        ),
-        -1,
-        true
-      );
-    }
-  }, [animated]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { rotate: `${rotation.value}deg` },
-      { scale: scale.value }
-    ],
-  }));
-
-  const hookSize = size * 0.3;
-  const armWidth = size * 0.35;
-
+export function HangerIcon({ size = 24, color = '#C75C3A', style }: IconProps) {
   return (
-    <Animated.View style={[{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }, style, animated && animatedStyle]}>
-      {/* Hook */}
-      <View style={{
-        width: hookSize,
-        height: hookSize,
-        borderWidth: size * 0.08,
-        borderColor: color,
-        borderRadius: hookSize / 2,
-        borderBottomWidth: 0,
-        marginBottom: -size * 0.05,
-      }} />
-      {/* Arms */}
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-        <View style={{
-          width: armWidth,
-          height: size * 0.08,
-          backgroundColor: color,
-          transform: [{ rotate: '25deg' }],
-          borderRadius: size * 0.04,
-          marginRight: -size * 0.05,
-        }} />
-        <View style={{
-          width: armWidth,
-          height: size * 0.08,
-          backgroundColor: color,
-          transform: [{ rotate: '-25deg' }],
-          borderRadius: size * 0.04,
-          marginLeft: -size * 0.05,
-        }} />
-      </View>
-    </Animated.View>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// TAG ICON - Etiqueta de Preço
-// ═══════════════════════════════════════════════════════════════════
-export function PriceTagIcon({ size = 24, color = BRAND.primary, animated = false, style }: IconProps) {
-  const swing = useSharedValue(0);
-
-  useEffect(() => {
-    if (animated) {
-      swing.value = withRepeat(
-        withSequence(
-          withTiming(10, { duration: 800, easing: Easing.inOut(Easing.ease) }),
-          withTiming(-10, { duration: 800, easing: Easing.inOut(Easing.ease) })
-        ),
-        -1,
-        true
-      );
-    }
-  }, [animated]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${swing.value}deg` }],
-  }));
-
-  return (
-    <Animated.View style={[{ width: size, height: size }, style, animated && animatedStyle]}>
-      {/* Tag body */}
-      <View style={{
-        width: size * 0.7,
-        height: size * 0.85,
-        backgroundColor: color,
-        borderRadius: size * 0.1,
-        marginLeft: size * 0.15,
-        marginTop: size * 0.1,
-      }}>
-        {/* Hole */}
-        <View style={{
-          position: 'absolute',
-          top: size * 0.12,
-          left: '50%',
-          marginLeft: -size * 0.08,
-          width: size * 0.16,
-          height: size * 0.16,
-          borderRadius: size * 0.08,
-          backgroundColor: BRAND.white,
-        }} />
-        {/* Lines */}
-        <View style={{
-          position: 'absolute',
-          top: size * 0.35,
-          left: size * 0.12,
-          right: size * 0.12,
-          height: size * 0.06,
-          backgroundColor: 'rgba(255,255,255,0.6)',
-          borderRadius: size * 0.03,
-        }} />
-        <View style={{
-          position: 'absolute',
-          top: size * 0.48,
-          left: size * 0.12,
-          right: size * 0.2,
-          height: size * 0.06,
-          backgroundColor: 'rgba(255,255,255,0.4)',
-          borderRadius: size * 0.03,
-        }} />
-      </View>
-      {/* String */}
-      <View style={{
-        position: 'absolute',
-        top: 0,
-        left: size * 0.4,
-        width: size * 0.04,
-        height: size * 0.15,
-        backgroundColor: color,
-      }} />
-    </Animated.View>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// RECYCLE FASHION ICON - Moda Circular/Sustentável
-// ═══════════════════════════════════════════════════════════════════
-export function RecycleIcon({ size = 24, color = BRAND.green, animated = false, style }: IconProps) {
-  const rotation = useSharedValue(0);
-
-  useEffect(() => {
-    if (animated) {
-      rotation.value = withRepeat(
-        withTiming(360, { duration: 3000, easing: Easing.linear }),
-        -1,
-        false
-      );
-    }
-  }, [animated]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotation.value}deg` }],
-  }));
-
-  const arrowSize = size * 0.25;
-
-  return (
-    <Animated.View style={[{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }, style, animated && animatedStyle]}>
-      {/* Circular path */}
-      <View style={{
-        width: size * 0.7,
-        height: size * 0.7,
-        borderWidth: size * 0.08,
-        borderColor: color,
-        borderRadius: size * 0.35,
-        borderRightColor: 'transparent',
-        transform: [{ rotate: '45deg' }],
-      }} />
-      {/* Arrow heads */}
-      <View style={{
-        position: 'absolute',
-        top: size * 0.08,
-        right: size * 0.25,
-        width: 0,
-        height: 0,
-        borderLeftWidth: arrowSize * 0.5,
-        borderRightWidth: arrowSize * 0.5,
-        borderBottomWidth: arrowSize,
-        borderLeftColor: 'transparent',
-        borderRightColor: 'transparent',
-        borderBottomColor: color,
-        transform: [{ rotate: '-30deg' }],
-      }} />
-      {/* Leaf in center */}
-      <View style={{
-        position: 'absolute',
-        width: size * 0.2,
-        height: size * 0.3,
-        backgroundColor: color,
-        borderTopLeftRadius: size * 0.15,
-        borderBottomRightRadius: size * 0.15,
-        opacity: 0.7,
-      }} />
-    </Animated.View>
+    <View style={[{ width: size, height: size }, style]}>
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Path
+          d="M12 2C10.9 2 10 2.9 10 4C10 4.74 10.4 5.39 11 5.73V7L3.5 13.5C3.18 13.78 3 14.17 3 14.58V15C3 15.55 3.45 16 4 16H20C20.55 16 21 15.55 21 15V14.58C21 14.17 20.82 13.78 20.5 13.5L13 7V5.73C13.6 5.39 14 4.74 14 4C14 2.9 13.1 2 12 2Z"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+      </Svg>
+    </View>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════
 // DRESS ICON - Vestido
 // ═══════════════════════════════════════════════════════════════════
-export function DressIcon({ size = 24, color = BRAND.primary, animated = false, style }: IconProps) {
-  const sway = useSharedValue(0);
-
-  useEffect(() => {
-    if (animated) {
-      sway.value = withRepeat(
-        withSequence(
-          withTiming(3, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
-          withTiming(-3, { duration: 1200, easing: Easing.inOut(Easing.ease) })
-        ),
-        -1,
-        true
-      );
-    }
-  }, [animated]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${sway.value}deg` }],
-  }));
-
+export function DressIcon({ size = 24, color = '#C75C3A', style }: IconProps) {
   return (
-    <Animated.View style={[{ width: size, height: size, alignItems: 'center' }, style, animated && animatedStyle]}>
-      {/* Collar/straps */}
-      <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: -size * 0.02 }}>
-        <View style={{
-          width: size * 0.1,
-          height: size * 0.2,
-          backgroundColor: color,
-          transform: [{ rotate: '-15deg' }],
-          borderTopLeftRadius: size * 0.05,
-          borderTopRightRadius: size * 0.05,
-          marginRight: size * 0.1,
-        }} />
-        <View style={{
-          width: size * 0.1,
-          height: size * 0.2,
-          backgroundColor: color,
-          transform: [{ rotate: '15deg' }],
-          borderTopLeftRadius: size * 0.05,
-          borderTopRightRadius: size * 0.05,
-        }} />
-      </View>
-      {/* Bodice */}
-      <View style={{
-        width: size * 0.4,
-        height: size * 0.25,
-        backgroundColor: color,
-        borderTopLeftRadius: size * 0.1,
-        borderTopRightRadius: size * 0.1,
-      }} />
-      {/* Skirt */}
-      <View style={{
-        width: 0,
-        height: 0,
-        borderLeftWidth: size * 0.35,
-        borderRightWidth: size * 0.35,
-        borderTopWidth: size * 0.45,
-        borderLeftColor: 'transparent',
-        borderRightColor: 'transparent',
-        borderTopColor: color,
-        marginTop: -size * 0.02,
-      }} />
-    </Animated.View>
+    <View style={[{ width: size, height: size }, style]}>
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Path
+          d="M8 2L6 8L2 22H22L18 8L16 2"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+        <Path
+          d="M8 2C8 2 9 4 12 4C15 4 16 2 16 2"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+        <Path
+          d="M6 8H18"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+        />
+      </Svg>
+    </View>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════
 // SHOPPING BAG ICON - Sacola de Compras
 // ═══════════════════════════════════════════════════════════════════
-export function ShoppingBagIcon({ size = 24, color = BRAND.primary, animated = false, style }: IconProps) {
-  const bounce = useSharedValue(0);
-
-  useEffect(() => {
-    if (animated) {
-      bounce.value = withRepeat(
-        withSequence(
-          withSpring(-3, { damping: 5, stiffness: 200 }),
-          withSpring(0, { damping: 5, stiffness: 200 })
-        ),
-        -1,
-        true
-      );
-    }
-  }, [animated]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: bounce.value }],
-  }));
-
+export function ShoppingBagIcon({ size = 24, color = '#C75C3A', style }: IconProps) {
   return (
-    <Animated.View style={[{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }, style, animated && animatedStyle]}>
-      {/* Handle */}
-      <View style={{
-        width: size * 0.4,
-        height: size * 0.25,
-        borderWidth: size * 0.08,
-        borderColor: color,
-        borderBottomWidth: 0,
-        borderTopLeftRadius: size * 0.2,
-        borderTopRightRadius: size * 0.2,
-        marginBottom: -size * 0.05,
-      }} />
-      {/* Bag body */}
-      <View style={{
-        width: size * 0.7,
-        height: size * 0.55,
-        backgroundColor: color,
-        borderRadius: size * 0.08,
-        borderTopLeftRadius: size * 0.05,
-        borderTopRightRadius: size * 0.05,
-      }}>
-        {/* Shine effect */}
-        <View style={{
-          position: 'absolute',
-          top: size * 0.08,
-          left: size * 0.08,
-          width: size * 0.15,
-          height: size * 0.3,
-          backgroundColor: 'rgba(255,255,255,0.3)',
-          borderRadius: size * 0.02,
-          transform: [{ rotate: '-20deg' }],
-        }} />
-      </View>
-    </Animated.View>
+    <View style={[{ width: size, height: size }, style]}>
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Path
+          d="M6 2L3 6V20C3 20.5304 3.21071 21.0391 3.58579 21.4142C3.96086 21.7893 4.46957 22 5 22H19C19.5304 22 20.0391 21.7893 20.4142 21.4142C20.7893 21.0391 21 20.5304 21 20V6L18 2H6Z"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+        <Path
+          d="M3 6H21"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Path
+          d="M16 10C16 11.0609 15.5786 12.0783 14.8284 12.8284C14.0783 13.5786 13.0609 14 12 14C10.9391 14 9.92172 13.5786 9.17157 12.8284C8.42143 12.0783 8 11.0609 8 10"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+      </Svg>
+    </View>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// HEART WITH CLOTHES ICON - Favoritos de Moda
+// RECYCLE ICON - Moda Circular/Sustentável
 // ═══════════════════════════════════════════════════════════════════
-export function HeartClothesIcon({ size = 24, color = '#EF4444', animated = false, style }: IconProps) {
-  const pulse = useSharedValue(1);
-
-  useEffect(() => {
-    if (animated) {
-      pulse.value = withRepeat(
-        withSequence(
-          withTiming(1.15, { duration: 300 }),
-          withTiming(1, { duration: 300 }),
-          withDelay(800, withTiming(1, { duration: 0 }))
-        ),
-        -1,
-        false
-      );
-    }
-  }, [animated]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulse.value }],
-  }));
-
+export function RecycleIcon({ size = 24, color = '#C75C3A', style }: IconProps) {
   return (
-    <Animated.View style={[{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }, style, animated && animatedStyle]}>
-      {/* Heart shape using circles and triangle */}
-      <View style={{ flexDirection: 'row', marginBottom: -size * 0.15 }}>
-        <View style={{
-          width: size * 0.4,
-          height: size * 0.4,
-          backgroundColor: color,
-          borderRadius: size * 0.2,
-          marginRight: -size * 0.1,
-        }} />
-        <View style={{
-          width: size * 0.4,
-          height: size * 0.4,
-          backgroundColor: color,
-          borderRadius: size * 0.2,
-        }} />
-      </View>
-      <View style={{
-        width: 0,
-        height: 0,
-        borderLeftWidth: size * 0.35,
-        borderRightWidth: size * 0.35,
-        borderTopWidth: size * 0.45,
-        borderLeftColor: 'transparent',
-        borderRightColor: 'transparent',
-        borderTopColor: color,
-        transform: [{ rotate: '180deg' }],
-      }} />
-      {/* Small hanger icon in center */}
-      <View style={{
-        position: 'absolute',
-        top: size * 0.3,
-        width: size * 0.3,
-        height: size * 0.04,
-        backgroundColor: BRAND.white,
-        borderRadius: size * 0.02,
-      }} />
-    </Animated.View>
+    <View style={[{ width: size, height: size }, style]}>
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Path
+          d="M7 19H4.5C3.83696 19 3.20107 18.7366 2.73223 18.2678C2.26339 17.7989 2 17.163 2 16.5V16.5C2 15.837 2.26339 15.2011 2.73223 14.7322C3.20107 14.2634 3.83696 14 4.5 14H7"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Path
+          d="M17 5H19.5C20.163 5 20.7989 5.26339 21.2678 5.73223C21.7366 6.20107 22 6.83696 22 7.5V7.5C22 8.16304 21.7366 8.79893 21.2678 9.26777C20.7989 9.73661 20.163 10 19.5 10H17"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Path
+          d="M12 22V14"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Path
+          d="M12 2V10"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Path
+          d="M9 17L12 14L15 17"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Path
+          d="M9 7L12 10L15 7"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Path
+          d="M4 11L7 14L4 17"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Path
+          d="M20 7L17 10L20 13"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    </View>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PRICE TAG ICON - Etiqueta de Preço
+// ═══════════════════════════════════════════════════════════════════
+export function PriceTagIcon({ size = 24, color = '#C75C3A', style }: IconProps) {
+  return (
+    <View style={[{ width: size, height: size }, style]}>
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Path
+          d="M20.59 13.41L13.42 20.58C13.2343 20.766 13.0137 20.9135 12.7709 21.0141C12.5281 21.1148 12.2678 21.1666 12.005 21.1666C11.7422 21.1666 11.4819 21.1148 11.2391 21.0141C10.9963 20.9135 10.7757 20.766 10.59 20.58L2 12V2H12L20.59 10.59C20.9625 10.9647 21.1716 11.4716 21.1716 12C21.1716 12.5284 20.9625 13.0353 20.59 13.41Z"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+        <Circle cx="7" cy="7" r="1.5" fill={color} />
+      </Svg>
+    </View>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// HEART CLOTHES ICON - Favoritos de Moda
+// ═══════════════════════════════════════════════════════════════════
+export function HeartClothesIcon({ size = 24, color = '#EF4444', style }: IconProps) {
+  return (
+    <View style={[{ width: size, height: size }, style]}>
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Path
+          d="M20.84 4.61C20.3292 4.099 19.7228 3.69364 19.0554 3.41708C18.3879 3.14052 17.6725 2.99817 16.95 2.99817C16.2275 2.99817 15.5121 3.14052 14.8446 3.41708C14.1772 3.69364 13.5708 4.099 13.06 4.61L12 5.67L10.94 4.61C9.9083 3.57831 8.50903 2.99871 7.05 2.99871C5.59096 2.99871 4.19169 3.57831 3.16 4.61C2.1283 5.64169 1.54871 7.04097 1.54871 8.5C1.54871 9.95903 2.1283 11.3583 3.16 12.39L4.22 13.45L12 21.23L19.78 13.45L20.84 12.39C21.351 11.8792 21.7563 11.2728 22.0329 10.6054C22.3095 9.93789 22.4518 9.22249 22.4518 8.5C22.4518 7.77751 22.3095 7.0621 22.0329 6.39464C21.7563 5.72718 21.351 5.12075 20.84 4.61Z"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+        <Path
+          d="M8 12H16"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+        />
+      </Svg>
+    </View>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════
 // FLASH SALE ICON - Raio de Promoção
 // ═══════════════════════════════════════════════════════════════════
-export function FlashSaleIcon({ size = 24, color = BRAND.yellow, animated = false, style }: IconProps) {
-  const scale = useSharedValue(1);
-  const glow = useSharedValue(0.5);
-
-  useEffect(() => {
-    if (animated) {
-      scale.value = withRepeat(
-        withSequence(
-          withTiming(1.2, { duration: 400, easing: Easing.out(Easing.back) }),
-          withTiming(1, { duration: 400, easing: Easing.in(Easing.ease) })
-        ),
-        -1,
-        false
-      );
-      glow.value = withRepeat(
-        withSequence(
-          withTiming(1, { duration: 400 }),
-          withTiming(0.5, { duration: 400 })
-        ),
-        -1,
-        false
-      );
-    }
-  }, [animated]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const glowStyle = useAnimatedStyle(() => ({
-    opacity: glow.value,
-  }));
-
+export function FlashSaleIcon({ size = 24, color = '#FDE047', style }: IconProps) {
   return (
-    <Animated.View style={[{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }, style, animated && animatedStyle]}>
-      {/* Glow circle */}
-      {animated && (
-        <Animated.View style={[{
-          position: 'absolute',
-          width: size * 1.3,
-          height: size * 1.3,
-          borderRadius: size * 0.65,
-          backgroundColor: color,
-        }, glowStyle]} />
-      )}
-      {/* Lightning bolt */}
-      <View style={{
-        width: size * 0.5,
-        height: size * 0.8,
-        alignItems: 'center',
-      }}>
-        {/* Top part */}
-        <View style={{
-          width: 0,
-          height: 0,
-          borderLeftWidth: size * 0.2,
-          borderRightWidth: size * 0.05,
-          borderBottomWidth: size * 0.4,
-          borderLeftColor: 'transparent',
-          borderRightColor: 'transparent',
-          borderBottomColor: animated ? BRAND.white : color,
-        }} />
-        {/* Bottom part */}
-        <View style={{
-          width: 0,
-          height: 0,
-          borderLeftWidth: size * 0.05,
-          borderRightWidth: size * 0.2,
-          borderTopWidth: size * 0.4,
-          borderLeftColor: 'transparent',
-          borderRightColor: 'transparent',
-          borderTopColor: animated ? BRAND.white : color,
-          marginTop: -size * 0.1,
-          marginLeft: size * 0.1,
-        }} />
-      </View>
-    </Animated.View>
+    <View style={[{ width: size, height: size }, style]}>
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Path
+          d="M13 2L3 14H12L11 22L21 10H12L13 2Z"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill={color}
+          fillOpacity={0.2}
+        />
+      </Svg>
+    </View>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// PERCENTAGE DISCOUNT ICON
+// DISCOUNT ICON - Porcentagem de desconto
 // ═══════════════════════════════════════════════════════════════════
-export function DiscountIcon({ size = 24, color = BRAND.green, animated = false, style }: IconProps) {
-  const rotation = useSharedValue(0);
-
-  useEffect(() => {
-    if (animated) {
-      rotation.value = withRepeat(
-        withSequence(
-          withTiming(10, { duration: 500 }),
-          withTiming(-10, { duration: 500 }),
-          withTiming(0, { duration: 500 })
-        ),
-        -1,
-        false
-      );
-    }
-  }, [animated]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotation.value}deg` }],
-  }));
-
+export function DiscountIcon({ size = 24, color = '#10B981', style }: IconProps) {
   return (
-    <Animated.View style={[{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }, style, animated && animatedStyle]}>
-      {/* Circle background */}
-      <View style={{
-        width: size * 0.9,
-        height: size * 0.9,
-        borderRadius: size * 0.45,
-        backgroundColor: color,
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        {/* Percentage slash */}
-        <View style={{
-          width: size * 0.5,
-          height: size * 0.08,
-          backgroundColor: BRAND.white,
-          transform: [{ rotate: '-45deg' }],
-        }} />
-        {/* Top circle */}
-        <View style={{
-          position: 'absolute',
-          top: size * 0.18,
-          left: size * 0.18,
-          width: size * 0.18,
-          height: size * 0.18,
-          borderRadius: size * 0.09,
-          backgroundColor: BRAND.white,
-        }} />
-        {/* Bottom circle */}
-        <View style={{
-          position: 'absolute',
-          bottom: size * 0.18,
-          right: size * 0.18,
-          width: size * 0.18,
-          height: size * 0.18,
-          borderRadius: size * 0.09,
-          backgroundColor: BRAND.white,
-        }} />
-      </View>
-    </Animated.View>
+    <View style={[{ width: size, height: size }, style]}>
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} fill="none" />
+        <Path
+          d="M8 16L16 8"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+        />
+        <Circle cx="9" cy="9" r="2" stroke={color} strokeWidth={2} fill="none" />
+        <Circle cx="15" cy="15" r="2" stroke={color} strokeWidth={2} fill="none" />
+      </Svg>
+    </View>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// TIMER/CLOCK ICON - Para contagem regressiva
+// TIMER ICON - Timer/contagem regressiva
 // ═══════════════════════════════════════════════════════════════════
-export function TimerIcon({ size = 24, color = BRAND.primary, animated = false, style }: IconProps) {
-  const handRotation = useSharedValue(0);
-
-  useEffect(() => {
-    if (animated) {
-      handRotation.value = withRepeat(
-        withTiming(360, { duration: 2000, easing: Easing.linear }),
-        -1,
-        false
-      );
-    }
-  }, [animated]);
-
-  const handStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${handRotation.value}deg` }],
-  }));
-
+export function TimerIcon({ size = 24, color = '#C75C3A', style }: IconProps) {
   return (
-    <View style={[{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }, style]}>
-      {/* Clock face */}
-      <View style={{
-        width: size * 0.85,
-        height: size * 0.85,
-        borderRadius: size * 0.425,
-        borderWidth: size * 0.08,
-        borderColor: color,
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        {/* Center dot */}
-        <View style={{
-          width: size * 0.12,
-          height: size * 0.12,
-          borderRadius: size * 0.06,
-          backgroundColor: color,
-        }} />
-        {/* Animated hand */}
-        <Animated.View style={[{
-          position: 'absolute',
-          width: size * 0.06,
-          height: size * 0.28,
-          backgroundColor: color,
-          borderRadius: size * 0.03,
-          bottom: '50%',
-          transformOrigin: 'bottom',
-        }, animated && handStyle]} />
-        {/* Top button */}
-        <View style={{
-          position: 'absolute',
-          top: -size * 0.12,
-          width: size * 0.15,
-          height: size * 0.1,
-          backgroundColor: color,
-          borderRadius: size * 0.02,
-        }} />
-      </View>
+    <View style={[{ width: size, height: size }, style]}>
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Circle cx="12" cy="13" r="8" stroke={color} strokeWidth={2} fill="none" />
+        <Path
+          d="M12 9V13L15 15"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Path
+          d="M9 2H15"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+        />
+        <Path
+          d="M12 2V4"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+        />
+      </Svg>
     </View>
   );
 }
