@@ -167,9 +167,13 @@ export function HomeScreen({ navigation }: any) {
   }, [isAuthenticated]);
 
   // Data fetching
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async (category?: string) => {
     try {
-      const res = await productsService.getProducts({ limit: 60 });
+      const params: any = { limit: 60 };
+      if (category && category !== 'all') {
+        params.category = category;
+      }
+      const res = await productsService.getProducts(params);
       setProducts(res.products || []);
     } catch (e) {
       console.error(e);
@@ -195,10 +199,10 @@ export function HomeScreen({ navigation }: any) {
     } catch { setCartCount(0); }
   }, [isAuthenticated]);
 
-  useEffect(() => { fetchProducts(); fetchFavorites(); }, []);
+  useEffect(() => { fetchProducts(filter); fetchFavorites(); }, [filter]);
   useFocusEffect(useCallback(() => { fetchCart(); }, [fetchCart]));
 
-  const onRefresh = () => { setRefreshing(true); fetchProducts(); };
+  const onRefresh = () => { setRefreshing(true); fetchProducts(filter); };
 
   const toggleFavorite = async (id: string) => {
     if (!isAuthenticated) return navigation.navigate('Login');
@@ -213,20 +217,7 @@ export function HomeScreen({ navigation }: any) {
     } catch {}
   };
 
-  // Filter products
-  const filtered = products.filter(p => {
-    if (filter === 'all') return true;
-    const keywords: Record<string, string[]> = {
-      feminino: ['vestido', 'saia', 'blusa', 'feminino', 'moda feminina'],
-      masculino: ['camisa', 'calça', 'blazer', 'masculino', 'moda masculina'],
-      infantil: ['infantil', 'kids', 'bebê', 'criança'],
-      acessorios: ['cinto', 'relógio', 'acessório', 'bijuteria', 'joia'],
-      calcados: ['sapato', 'tênis', 'sandália', 'bota', 'calçado', 'chinelo'],
-      bolsas: ['bolsa', 'mochila', 'carteira', 'clutch', 'necessaire'],
-      vintage: ['vintage', 'retrô', 'antigo', 'anos 80', 'anos 90'],
-    };
-    return (keywords[filter] || []).some(k => p.title?.toLowerCase().includes(k));
-  });
+  // Products are now filtered by the API based on the selected filter
 
   return (
     <View style={styles.root}>
@@ -349,7 +340,7 @@ export function HomeScreen({ navigation }: any) {
                     isActive && styles.filterChipActive,
                     index > 0 && { marginLeft: 8 }
                   ]}
-                  onPress={() => setFilter(f.id)}
+                  onPress={() => { setLoading(true); setFilter(f.id); }}
                 >
                   <View style={{ marginRight: 6 }}>
                     {renderIcon()}
@@ -380,7 +371,7 @@ export function HomeScreen({ navigation }: any) {
             </View>
           ) : (
             <View style={[styles.grid, { gap }]}>
-              {filtered.map((item) => (
+              {products.map((item) => (
                 <Pressable
                   key={item.id}
                   style={[styles.card, { width: cardW }]}
