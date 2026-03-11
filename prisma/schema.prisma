@@ -1,0 +1,458 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String    @id @default(uuid()) @db.Uuid
+  email                  String    @unique @db.VarChar(255)
+  password_hash          String?   @db.VarChar(255)
+  name                   String    @db.VarChar(255)
+  phone                  String?   @db.VarChar(20)
+  cpf                    String?   @db.VarChar(14)
+  avatar_url             String?   @db.Text
+  bio                    String?   @db.Text
+  city                   String?   @db.VarChar(100)
+  state                  String?   @db.VarChar(2)
+  subscription_type      String    @default("free") @db.VarChar(50)
+  subscription_expires_at DateTime?
+  balance                Decimal   @default(0) @db.Decimal(10, 2)
+  cashback_balance       Decimal   @default(0) @db.Decimal(10, 2)
+  rating                 Decimal   @default(0) @db.Decimal(2, 1)
+  total_sales            Int       @default(0)
+  total_purchases        Int       @default(0)
+  is_verified            Boolean   @default(false)
+  is_active              Boolean   @default(true)
+  is_admin               Boolean   @default(false)
+  google_id              String?   @db.VarChar(255)
+  apple_id               String?   @db.VarChar(255)
+  push_token             String?   @db.Text
+  last_login_at          DateTime?
+  created_at             DateTime  @default(now())
+  updated_at             DateTime  @default(now()) @updatedAt
+
+  products               Product[]
+  orders_as_buyer        Order[]   @relation("BuyerOrders")
+  orders_as_seller       Order[]   @relation("SellerOrders")
+  cart_items             CartItem[]
+  carts                  Cart[]
+  favorites              Favorite[]
+  following              Follower[] @relation("Following")
+  followers              Follower[] @relation("Followers")
+  sent_messages          Message[] @relation("SentMessages")
+  conversations1         Conversation[] @relation("Participant1")
+  conversations2         Conversation[] @relation("Participant2")
+  notifications          Notification[]
+  addresses              Address[]
+  payment_methods        PaymentMethod[]
+  subscriptions          Subscription[]
+  transactions           Transaction[]
+  reviews_given          Review[] @relation("ReviewsGiven")
+  reviews_received       Review[] @relation("ReviewsReceived")
+  reports_made           Report[] @relation("ReportsMade")
+  product_views          ProductView[]
+
+  @@map("users")
+}
+
+model Product {
+  id             String    @id @default(uuid()) @db.Uuid
+  seller_id      String    @db.Uuid
+  category_id    String?   @db.Uuid
+  title          String    @db.VarChar(255)
+  description    String?   @db.Text
+  brand          String?   @db.VarChar(100)
+  size           String?   @db.VarChar(50)
+  color          String?   @db.VarChar(50)
+  condition      String    @db.VarChar(50)
+  price          Decimal   @db.Decimal(10, 2)
+  original_price Decimal?  @db.Decimal(10, 2)
+  status         String    @default("pending") @db.VarChar(50)
+  is_premium     Boolean   @default(false)
+  is_featured    Boolean   @default(false)
+  views          Int       @default(0)
+  favorites      Int       @default(0)
+  city           String?   @db.VarChar(100)
+  state          String?   @db.VarChar(2)
+  weight         Decimal?  @db.Decimal(5, 2)
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @default(now()) @updatedAt
+  sold_at        DateTime?
+
+  seller         User      @relation(fields: [seller_id], references: [id])
+  category       Category? @relation(fields: [category_id], references: [id])
+  images         ProductImage[]
+  orders         Order[]
+  cart_items     CartItem[]
+  favorites_list Favorite[]
+  product_views  ProductView[]
+
+  @@map("products")
+}
+
+model ProductImage {
+  id          String   @id @default(uuid()) @db.Uuid
+  product_id  String   @db.Uuid
+  url         String   @db.Text
+  is_primary  Boolean  @default(false)
+  sort_order  Int      @default(0)
+  created_at  DateTime @default(now())
+
+  product     Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model Category {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @db.VarChar(100)
+  slug        String    @unique @db.VarChar(100)
+  icon        String?   @db.VarChar(50)
+  parent_id   String?   @db.Uuid
+  sort_order  Int       @default(0)
+  is_active   Boolean   @default(true)
+  created_at  DateTime  @default(now())
+
+  parent      Category? @relation("CategoryHierarchy", fields: [parent_id], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Order {
+  id                String    @id @default(uuid()) @db.Uuid
+  order_number      String    @unique @db.VarChar(50)
+  buyer_id          String    @db.Uuid
+  seller_id         String    @db.Uuid
+  product_id        String    @db.Uuid
+  product_price     Decimal   @db.Decimal(10, 2)
+  shipping_price    Decimal   @default(0) @db.Decimal(10, 2)
+  commission_rate   Decimal   @db.Decimal(5, 2)
+  commission_amount Decimal   @db.Decimal(10, 2)
+  seller_receives   Decimal   @db.Decimal(10, 2)
+  total_amount      Decimal   @db.Decimal(10, 2)
+  status            String    @default("pending") @db.VarChar(50)
+  payment_method    String?   @db.VarChar(50)
+  payment_id        String?   @db.VarChar(255)
+  shipping_code     String?   @db.VarChar(50)
+  shipping_carrier  String?   @db.VarChar(50)
+  shipped_at        DateTime?
+  delivered_at      DateTime?
+  cancelled_at      DateTime?
+  cancel_reason     String?   @db.Text
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @default(now()) @updatedAt
+
+  buyer             User      @relation("BuyerOrders", fields: [buyer_id], references: [id])
+  seller            User      @relation("SellerOrders", fields: [seller_id], references: [id])
+  product           Product   @relation(fields: [product_id], references: [id])
+  reviews           Review[]
+  transactions      Transaction[]
+  carts             Cart[]
+
+  @@map("orders")
+}
+
+model CartItem {
+  id          String   @id @default(uuid()) @db.Uuid
+  user_id     String   @db.Uuid
+  product_id  String   @db.Uuid
+  created_at  DateTime @default(now())
+
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, product_id])
+  @@map("cart_items")
+}
+
+model Cart {
+  id                 String    @id @default(uuid()) @db.Uuid
+  user_id            String    @db.Uuid
+  status             String    @default("active") @db.VarChar(50)
+  total_value        Decimal   @default(0) @db.Decimal(10, 2)
+  items_count        Int       @default(0)
+  last_activity_at   DateTime?
+  abandoned_at       DateTime?
+  recovered_at       DateTime?
+  converted_order_id String?   @db.Uuid
+  reminder_sent_at   DateTime?
+  reminder_count     Int       @default(0)
+  device_type        String?   @db.VarChar(50)
+  created_at         DateTime  @default(now())
+
+  user               User      @relation(fields: [user_id], references: [id])
+  converted_order    Order?    @relation(fields: [converted_order_id], references: [id])
+
+  @@map("carts")
+}
+
+model Favorite {
+  id          String   @id @default(uuid()) @db.Uuid
+  user_id     String   @db.Uuid
+  product_id  String   @db.Uuid
+  created_at  DateTime @default(now())
+
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, product_id])
+  @@map("favorites")
+}
+
+model Follower {
+  id           String   @id @default(uuid()) @db.Uuid
+  follower_id  String   @db.Uuid
+  following_id String   @db.Uuid
+  created_at   DateTime @default(now())
+
+  follower     User     @relation("Following", fields: [follower_id], references: [id], onDelete: Cascade)
+  following    User     @relation("Followers", fields: [following_id], references: [id], onDelete: Cascade)
+
+  @@unique([follower_id, following_id])
+  @@map("followers")
+}
+
+model Message {
+  id              String   @id @default(uuid()) @db.Uuid
+  conversation_id String   @db.Uuid
+  sender_id       String   @db.Uuid
+  content         String   @db.Text
+  is_read         Boolean  @default(false)
+  created_at      DateTime @default(now())
+
+  conversation    Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  sender          User         @relation("SentMessages", fields: [sender_id], references: [id])
+
+  @@map("messages")
+}
+
+model Conversation {
+  id             String    @id @default(uuid()) @db.Uuid
+  participant1_id String   @db.Uuid
+  participant2_id String   @db.Uuid
+  last_message_at DateTime?
+  created_at     DateTime  @default(now())
+
+  participant1   User      @relation("Participant1", fields: [participant1_id], references: [id])
+  participant2   User      @relation("Participant2", fields: [participant2_id], references: [id])
+  messages       Message[]
+
+  @@unique([participant1_id, participant2_id])
+  @@map("conversations")
+}
+
+model Notification {
+  id          String   @id @default(uuid()) @db.Uuid
+  user_id     String   @db.Uuid
+  type        String   @db.VarChar(50)
+  title       String   @db.VarChar(255)
+  body        String   @db.Text
+  data        Json?
+  is_read     Boolean  @default(false)
+  created_at  DateTime @default(now())
+
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Address {
+  id          String   @id @default(uuid()) @db.Uuid
+  user_id     String   @db.Uuid
+  label       String?  @db.VarChar(50)
+  street      String   @db.VarChar(255)
+  number      String   @db.VarChar(20)
+  complement  String?  @db.VarChar(100)
+  neighborhood String  @db.VarChar(100)
+  city        String   @db.VarChar(100)
+  state       String   @db.VarChar(2)
+  zip_code    String   @db.VarChar(10)
+  is_default  Boolean  @default(false)
+  created_at  DateTime @default(now())
+
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
+}
+
+model PaymentMethod {
+  id          String   @id @default(uuid()) @db.Uuid
+  user_id     String   @db.Uuid
+  type        String   @db.VarChar(50)
+  last_digits String?  @db.VarChar(4)
+  brand       String?  @db.VarChar(50)
+  holder_name String?  @db.VarChar(255)
+  token       String?  @db.Text
+  is_default  Boolean  @default(false)
+  created_at  DateTime @default(now())
+
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("payment_methods")
+}
+
+model Subscription {
+  id           String    @id @default(uuid()) @db.Uuid
+  user_id      String    @db.Uuid
+  plan         String    @db.VarChar(50)
+  price        Decimal   @db.Decimal(10, 2)
+  status       String    @default("active") @db.VarChar(50)
+  payment_id   String?   @db.VarChar(255)
+  starts_at    DateTime  @default(now())
+  expires_at   DateTime
+  cancelled_at DateTime?
+  created_at   DateTime  @default(now())
+
+  user         User      @relation(fields: [user_id], references: [id])
+
+  @@map("subscriptions")
+}
+
+model Transaction {
+  id          String   @id @default(uuid()) @db.Uuid
+  user_id     String   @db.Uuid
+  order_id    String?  @db.Uuid
+  type        String   @db.VarChar(50)
+  amount      Decimal  @db.Decimal(10, 2)
+  description String?  @db.Text
+  status      String   @default("completed") @db.VarChar(50)
+  created_at  DateTime @default(now())
+
+  user        User     @relation(fields: [user_id], references: [id])
+  order       Order?   @relation(fields: [order_id], references: [id])
+
+  @@map("transactions")
+}
+
+model Review {
+  id               String   @id @default(uuid()) @db.Uuid
+  order_id         String   @db.Uuid
+  reviewer_id      String   @db.Uuid
+  reviewed_user_id String   @db.Uuid
+  rating           Int
+  comment          String?  @db.Text
+  created_at       DateTime @default(now())
+
+  order            Order    @relation(fields: [order_id], references: [id])
+  reviewer         User     @relation("ReviewsGiven", fields: [reviewer_id], references: [id])
+  reviewed_user    User     @relation("ReviewsReceived", fields: [reviewed_user_id], references: [id])
+
+  @@map("reviews")
+}
+
+model Admin {
+  id            String    @id @default(uuid()) @db.Uuid
+  email         String    @unique @db.VarChar(255)
+  password_hash String    @db.VarChar(255)
+  name          String    @db.VarChar(255)
+  role          String    @default("admin") @db.VarChar(50)
+  is_active     Boolean   @default(true)
+  last_login_at DateTime?
+  created_at    DateTime  @default(now())
+
+  logs          AdminLog[]
+  settings      Setting[]
+  resolved_reports Report[]
+
+  @@map("admins")
+}
+
+model AdminLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  admin_id    String   @db.Uuid
+  action      String   @db.VarChar(100)
+  entity_type String?  @db.VarChar(50)
+  entity_id   String?  @db.Uuid
+  details     Json?
+  ip_address  String?  @db.VarChar(45)
+  created_at  DateTime @default(now())
+
+  admin       Admin    @relation(fields: [admin_id], references: [id])
+
+  @@map("admin_logs")
+}
+
+model Setting {
+  id          String    @id @default(uuid()) @db.Uuid
+  key         String    @unique @db.VarChar(100)
+  value       Json
+  description String?   @db.Text
+  updated_by  String?   @db.Uuid
+  updated_at  DateTime  @default(now()) @updatedAt
+
+  admin       Admin?    @relation(fields: [updated_by], references: [id])
+
+  @@map("settings")
+}
+
+model Report {
+  id              String    @id @default(uuid()) @db.Uuid
+  reporter_id     String    @db.Uuid
+  reported_type   String    @db.VarChar(50)
+  reported_id     String    @db.Uuid
+  reason          String    @db.VarChar(100)
+  description     String?   @db.Text
+  status          String    @default("pending") @db.VarChar(50)
+  resolved_by     String?   @db.Uuid
+  resolved_at     DateTime?
+  resolution_notes String?  @db.Text
+  created_at      DateTime  @default(now())
+
+  reporter        User      @relation("ReportsMade", fields: [reporter_id], references: [id])
+  admin           Admin?    @relation(fields: [resolved_by], references: [id])
+
+  @@map("reports")
+}
+
+model Coupon {
+  id             String    @id @default(uuid()) @db.Uuid
+  code           String    @unique @db.VarChar(50)
+  discount_type  String    @db.VarChar(20)
+  discount_value Decimal   @db.Decimal(10, 2)
+  min_purchase   Decimal?  @db.Decimal(10, 2)
+  max_discount   Decimal?  @db.Decimal(10, 2)
+  usage_limit    Int?
+  usage_count    Int       @default(0)
+  starts_at      DateTime  @default(now())
+  expires_at     DateTime?
+  is_active      Boolean   @default(true)
+  created_at     DateTime  @default(now())
+
+  usages         CouponUsage[]
+
+  @@map("coupons")
+}
+
+model CouponUsage {
+  id         String   @id @default(uuid()) @db.Uuid
+  coupon_id  String   @db.Uuid
+  user_id    String   @db.Uuid
+  order_id   String?  @db.Uuid
+  discount   Decimal  @db.Decimal(10, 2)
+  created_at DateTime @default(now())
+
+  coupon     Coupon   @relation(fields: [coupon_id], references: [id])
+
+  @@map("coupon_usage")
+}
+
+model ProductView {
+  id          String   @id @default(uuid()) @db.Uuid
+  product_id  String   @db.Uuid
+  user_id     String?  @db.Uuid
+  session_id  String?  @db.VarChar(100)
+  device_type String?  @db.VarChar(50)
+  source      String?  @db.VarChar(50)
+  created_at  DateTime @default(now())
+
+  product     Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [user_id], references: [id])
+
+  @@map("product_views")
+}
