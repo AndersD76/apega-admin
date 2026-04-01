@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 
 const distPath = path.join(__dirname, 'dist');
 
@@ -29,6 +29,11 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     distExists: fs.existsSync(distPath)
   });
+});
+
+// Also respond to /api/health (Railway may use root railway.json healthcheckPath)
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
 });
 
 // Servir arquivos estáticos do build - IMPORTANT: before SPA fallback
