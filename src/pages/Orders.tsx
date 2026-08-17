@@ -377,10 +377,20 @@ export default function Orders() {
                         <span className="text-sm">{order.seller_name || '-'}</span>
                       </TableCell>
                       <TableCell>
-                        <span className="font-medium">{formatCurrency(order.total_amount)}</span>
+                        <span className="font-medium">{formatCurrency(order.product_price ?? order.total_amount)}</span>
+                        {order.product_price != null && (
+                          <p className="text-xs text-muted-foreground">
+                            + {formatCurrency(order.shipping_price || 0)} frete
+                          </p>
+                        )}
                       </TableCell>
                       <TableCell>
                         <span className="text-primary font-medium">{formatCurrency(order.commission_amount)}</span>
+                        {order.commission_rate != null && (
+                          <p className="text-xs text-muted-foreground">
+                            {Math.round(Number(order.commission_rate) * 100)}% da peça
+                          </p>
+                        )}
                       </TableCell>
                       <TableCell>
                         {getStatusBadge(order.status)}

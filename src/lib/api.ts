@@ -130,6 +130,8 @@ export interface Order {
   commission_amount: number
   seller_receives: number
   shipping_price: number
+  product_price?: number
+  commission_rate?: number
   shipping_code?: string
   shipping_carrier?: string
   created_at: string
