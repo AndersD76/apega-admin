@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { PeriodFilter, periodPreset, type Period } from '@/components/PeriodFilter'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { formatCurrency, formatNumber } from '@/lib/utils'
@@ -33,9 +34,11 @@ import {
   getSalesByCategory,
   getConversionMetrics,
   getUsersBySubscription,
+  getGA4,
   ConversionMetrics,
   RevenueChartData,
   CategorySalesData,
+  GA4Overview,
 } from '@/lib/api'
 
 interface MetricCardProps {
@@ -77,6 +80,24 @@ export default function Analytics() {
   const [revenueData, setRevenueData] = useState<RevenueChartData[]>([])
   const [categoryData, setCategoryData] = useState<CategorySalesData[]>([])
   const [subscriptionData, setSubscriptionData] = useState<{ subscription_type: string; count: number }[]>([])
+  const [period, setPeriod] = useState<Period>(periodPreset('30d'))
+  const [ga4, setGa4] = useState<GA4Overview | null>(null)
+  const [ga4Error, setGa4Error] = useState<string | null>(null)
+  const [ga4Loading, setGa4Loading] = useState(false)
+
+  const fetchGA4 = async (p: Period) => {
+    setGa4Loading(true)
+    setGa4Error(null)
+    try {
+      const res = await getGA4({ from: p.from, to: p.to })
+      setGa4(res)
+    } catch (err: any) {
+      setGa4(null)
+      setGa4Error(err?.message || 'Erro ao consultar o Google Analytics')
+    } finally {
+      setGa4Loading(false)
+    }
+  }
 
   const fetchData = async () => {
     setLoading(true)
@@ -121,7 +142,9 @@ export default function Analytics() {
 
   useEffect(() => {
     fetchData()
-  }, [])
+    fetchGA4(period)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period.from, period.to])
 
   if (error) {
     return (
@@ -150,6 +173,8 @@ export default function Analytics() {
         <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
         <p className="text-muted-foreground">Metricas do marketplace</p>
       </div>
+
+      <PeriodFilter value={period} onChange={setPeriod} />
 
       <div className="grid gap-4 md:grid-cols-4">
         <MetricCard
@@ -180,7 +205,94 @@ export default function Analytics() {
           <TabsTrigger value="funnel">Funil</TabsTrigger>
           <TabsTrigger value="categories">Categorias</TabsTrigger>
           <TabsTrigger value="subscriptions">Assinaturas</TabsTrigger>
+          <TabsTrigger value="google">Google</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="google" className="mt-6 space-y-4">
+          {ga4Loading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : !ga4 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Google Analytics nao conectado</CardTitle>
+                <CardDescription>
+                  {ga4Error || 'Configure as credenciais para ver os dados do GA4 aqui.'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm text-muted-foreground">
+                <p>1. No Google Cloud Console, crie um <strong>service account</strong> e gere uma chave JSON.</p>
+                <p>2. No GA4: Administrador → Gerenciamento de acesso da propriedade → adicione o e-mail do service account como <strong>Leitor</strong>.</p>
+                <p>3. No Railway, adicione as variaveis <code>GA4_PROPERTY_ID</code>, <code>GOOGLE_SA_EMAIL</code> e <code>GOOGLE_SA_PRIVATE_KEY</code> (private_key do JSON).</p>
+                <p>Detalhes no HANDOFF.md do projeto.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              <div className="grid gap-4 md:grid-cols-3">
+                <MetricCard title="Usuarios ativos" value={formatNumber(ga4.totals.activeUsers)} icon={<Users className="h-6 w-6" />} />
+                <MetricCard title="Sessoes" value={formatNumber(ga4.totals.sessions)} icon={<TrendingUp className="h-6 w-6" />} />
+                <MetricCard title="Pageviews" value={formatNumber(ga4.totals.screenPageViews)} icon={<Eye className="h-6 w-6" />} />
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Usuarios e sessoes por dia</CardTitle>
+                  <CardDescription>Fonte: Google Analytics 4</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-72">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={ga4.daily.map(d => ({ ...d, label: `${d.date.slice(6,8)}/${d.date.slice(4,6)}` }))}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+                        <XAxis dataKey="label" fontSize={12} />
+                        <YAxis fontSize={12} allowDecimals={false} />
+                        <Tooltip />
+                        <Legend />
+                        <Area dataKey="activeUsers" name="Usuarios" stroke="#22c55e" fill="#22c55e" fillOpacity={0.25} />
+                        <Area dataKey="sessions" name="Sessoes" stroke="#0ea5e9" fill="#0ea5e9" fillOpacity={0.15} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Paginas mais vistas</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {ga4.top_pages.map((pg, i) => (
+                        <div key={i} className="flex items-center justify-between border-b pb-1.5 text-sm last:border-0">
+                          <span className="truncate pr-4 text-muted-foreground">{pg.pagePath}</span>
+                          <span className="font-medium whitespace-nowrap">{formatNumber(pg.screenPageViews)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Origens de trafego</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {ga4.sources.map((src, i) => (
+                        <div key={i} className="flex items-center justify-between border-b pb-1.5 text-sm last:border-0">
+                          <span className="truncate pr-4 text-muted-foreground">{src.sessionSource} / {src.sessionMedium}</span>
+                          <span className="font-medium whitespace-nowrap">{formatNumber(src.sessions)} sessoes</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </>
+          )}
+        </TabsContent>
 
         <TabsContent value="revenue" className="mt-6">
           <Card>

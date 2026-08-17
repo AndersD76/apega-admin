@@ -37,8 +37,10 @@ app.get('/api/health', (req, res) => {
 });
 
 // Servir arquivos estáticos do build - IMPORTANT: before SPA fallback
+// Assets têm hash no nome → cache longo. index.html NUNCA pode ser cacheado,
+// senão o navegador continua apontando para bundles antigos após cada deploy.
 app.use(express.static(distPath, {
-  maxAge: 0,
+  maxAge: '30d',
   etag: false,
   index: false // Don't auto-serve index.html for /
 }));
@@ -49,6 +51,7 @@ app.get('*', (req, res) => {
   if (req.path.includes('.') && !req.path.endsWith('.html')) {
     return res.status(404).send('File not found');
   }
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile(path.join(distPath, 'index.html'));
 });
 

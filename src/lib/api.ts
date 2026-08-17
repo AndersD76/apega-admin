@@ -222,8 +222,8 @@ export const checkAdminAuth = async (): Promise<{ success: boolean; user?: any }
 }
 
 // Dashboard
-export const getDashboard = (): Promise<{ success: boolean; data: DashboardData }> =>
-  api.get('/analytics/admin/dashboard')
+export const getDashboard = (params?: { from?: string; to?: string }): Promise<{ success: boolean; data: DashboardData }> =>
+  api.get('/analytics/admin/dashboard', { params })
 
 export const getRevenueChart = (period: string = '6months'): Promise<{ success: boolean; data: RevenueChartData[] }> =>
   api.get(`/analytics/admin/revenue-chart?period=${period}`)
@@ -295,8 +295,24 @@ export const getOrders = (params?: {
   page?: number
   limit?: number
   status?: string
+  from?: string
+  to?: string
 }): Promise<{ success: boolean; orders: Order[]; stats: { pending: number; paid: number; shipped: number; delivered: number; cancelled: number; total_revenue: number; total_commission: number }; pagination: { page: number; limit: number; total: number } }> =>
   api.get('/analytics/admin/orders', { params })
+
+// Google Analytics 4 (Data API via service account no backend)
+export interface GA4Overview {
+  configured: boolean
+  from: string
+  to: string
+  totals: { activeUsers: number; sessions: number; screenPageViews: number }
+  daily: { date: string; activeUsers: number; sessions: number; screenPageViews: number }[]
+  top_pages: { pagePath: string; screenPageViews: number; activeUsers: number }[]
+  sources: { sessionSource: string; sessionMedium: string; sessions: number; activeUsers: number }[]
+}
+
+export const getGA4 = (params?: { from?: string; to?: string }): Promise<{ success: boolean } & GA4Overview> =>
+  api.get('/analytics/admin/ga4', { params })
 
 export const getOrderDetails = (orderId: string): Promise<{ success: boolean; order: Order & { product_images: string[]; street?: string; number?: string; complement?: string; neighborhood?: string; city?: string; state?: string; zipcode?: string; recipient_name?: string } }> =>
   api.get(`/analytics/admin/orders/${orderId}`)

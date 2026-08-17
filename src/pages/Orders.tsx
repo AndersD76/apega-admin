@@ -1,4 +1,5 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import { PeriodFilter, periodPreset, type Period } from '@/components/PeriodFilter'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -145,6 +146,7 @@ export default function Orders() {
   })
   const [selectedOrder, setSelectedOrder] = useState<OrderWithDetails | null>(null)
   const [detailsLoading, setDetailsLoading] = useState(false)
+  const [period, setPeriod] = useState<Period>(periodPreset('12m'))
 
   const fetchOrders = async (page = 1) => {
     setLoading(true)
@@ -155,6 +157,8 @@ export default function Orders() {
         page,
         limit: 20,
         status: activeTab === 'all' ? undefined : activeTab,
+        from: period.from,
+        to: period.to,
       })
 
       if (res.success) {
@@ -176,7 +180,8 @@ export default function Orders() {
 
   useEffect(() => {
     fetchOrders()
-  }, [activeTab])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, period.from, period.to])
 
   const handleSearch = () => {
     fetchOrders(1)
@@ -261,6 +266,9 @@ export default function Orders() {
           </Button>
         </div>
       </div>
+
+      {/* Período */}
+      <PeriodFilter value={period} onChange={setPeriod} />
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">

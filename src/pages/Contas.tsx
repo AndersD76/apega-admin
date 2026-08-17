@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { PeriodFilter, periodPreset, type Period } from '@/components/PeriodFilter'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -149,6 +150,7 @@ export default function Contas() {
   const [statusFilter, setStatusFilter] = useState('todos')
   const [categoryFilter, setCategoryFilter] = useState('todas')
   const [partnerFilter, setPartnerFilter] = useState('todos')
+  const [period, setPeriod] = useState<Period>(periodPreset('mes'))
 
   // Fluxo de caixa
   const [cashflow, setCashflow] = useState<{ realized: FinanceCashflowMonth[]; projected: FinanceCashflowMonth[] } | null>(null)
@@ -181,14 +183,12 @@ export default function Contas() {
 
   const fetchSummary = useCallback(async () => {
     try {
-      const first = new Date()
-      first.setDate(1)
-      const res = await getFinanceSummary({ from: first.toISOString().slice(0, 10), to: today() })
+      const res = await getFinanceSummary({ from: period.from, to: period.to })
       setSummary(res)
     } catch (e) {
       console.error('Erro ao carregar resumo:', e)
     }
-  }, [])
+  }, [period.from, period.to])
 
   const fetchEntries = useCallback(async (kind: 'pagar' | 'receber') => {
     setLoading(true)
@@ -198,6 +198,8 @@ export default function Contas() {
         status: statusFilter !== 'todos' ? statusFilter : undefined,
         category_id: categoryFilter !== 'todas' ? categoryFilter : undefined,
         partner_id: partnerFilter !== 'todos' ? partnerFilter : undefined,
+        from: period.from,
+        to: period.to,
         limit: 100,
       })
       setEntries(res.entries || [])
@@ -207,7 +209,7 @@ export default function Contas() {
     } finally {
       setLoading(false)
     }
-  }, [statusFilter, categoryFilter, partnerFilter])
+  }, [statusFilter, categoryFilter, partnerFilter, period.from, period.to])
 
   const fetchCashflow = useCallback(async () => {
     try {
@@ -576,6 +578,9 @@ export default function Contas() {
         <h1 className="text-3xl font-bold tracking-tight">Contas</h1>
         <p className="text-muted-foreground">Contas a pagar, contas a receber e fluxo de caixa</p>
       </div>
+
+      {/* Período (vale para Resumo e para os vencimentos das listas) */}
+      <PeriodFilter value={period} onChange={setPeriod} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { PeriodFilter, periodPreset, type Period } from '@/components/PeriodFilter'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -204,6 +205,7 @@ export default function Finance() {
   const [entriesPage, setEntriesPage] = useState(1)
   const [entriesTotal, setEntriesTotal] = useState(0)
   const [entriesLoading, setEntriesLoading] = useState(false)
+  const [period, setPeriod] = useState<Period>(periodPreset('mes'))
 
   // ─── Data fetching ──────────────────────────────────────
 
@@ -247,6 +249,8 @@ export default function Finance() {
         limit: 15,
         status: receivablesFilter.status || undefined,
         billingType: receivablesFilter.billingType || undefined,
+        startDate: period.from,
+        endDate: period.to,
       })
       if (res.success) {
         setReceivables(res.payments)
@@ -256,7 +260,7 @@ export default function Finance() {
     } catch { /* silent */ } finally {
       setReceivablesLoading(false)
     }
-  }, [receivablesFilter])
+  }, [receivablesFilter, period.from, period.to])
 
   const fetchPayables = useCallback(async (page = 1) => {
     setPayablesLoading(true)
@@ -288,7 +292,7 @@ export default function Finance() {
   const fetchEntries = useCallback(async (page = 1) => {
     setEntriesLoading(true)
     try {
-      const res = await getFinancialStatements({ page, limit: 20 })
+      const res = await getFinancialStatements({ page, limit: 20, startDate: period.from, finishDate: period.to })
       if (res.success) {
         setEntries(res.entries)
         setEntriesTotal(res.pagination.total)
@@ -297,7 +301,7 @@ export default function Finance() {
     } catch { /* silent */ } finally {
       setEntriesLoading(false)
     }
-  }, [])
+  }, [period.from, period.to])
 
   useEffect(() => {
     fetchOverview()
@@ -308,7 +312,8 @@ export default function Finance() {
     if (activeTab === 'payables') fetchPayables(1)
     if (activeTab === 'cashflow') fetchCashFlow()
     if (activeTab === 'entries') fetchEntries(1)
-  }, [activeTab])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, period.from, period.to])
 
   const handleWithdrawal = async (transactionId: string, action: 'approve' | 'reject') => {
     try {
@@ -347,6 +352,11 @@ export default function Finance() {
             Atualizar
           </Button>
         </div>
+      </div>
+
+      {/* Período (cobranças e extrato) */}
+      <div>
+        <PeriodFilter value={period} onChange={setPeriod} />
       </div>
 
       {/* Main tabs */}

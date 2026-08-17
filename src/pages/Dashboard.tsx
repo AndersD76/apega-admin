@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { PeriodFilter, periodPreset, type Period } from '@/components/PeriodFilter'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
@@ -94,7 +95,7 @@ function StatCard({ title, value, change, icon, description, loading }: StatCard
                 <span className={isPositive ? 'text-green-500' : 'text-red-500'}>
                   {Math.abs(change)}%
                 </span>
-                <span className="text-muted-foreground">{description || 'vs. mes anterior'}</span>
+                <span className="text-muted-foreground">{description || 'vs. período anterior'}</span>
               </div>
             )}
           </>
@@ -136,6 +137,7 @@ export default function Dashboard() {
   const [recentOrders, setRecentOrders] = useState<Order[]>([])
   const [topProducts, setTopProducts] = useState<Product[]>([])
   const [conversionMetrics, setConversionMetrics] = useState<ConversionMetrics | null>(null)
+  const [period, setPeriod] = useState<Period>(periodPreset('mes'))
 
   const fetchData = async () => {
     setLoading(true)
@@ -151,7 +153,7 @@ export default function Dashboard() {
         productsRes,
         conversionRes,
       ] = await Promise.all([
-        getDashboard(),
+        getDashboard({ from: period.from, to: period.to }),
         getRevenueChart('6months'),
         getSalesByCategory(),
         getOrdersByStatus(),
@@ -219,7 +221,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchData()
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period.from, period.to])
 
   if (error) {
     return (
@@ -251,17 +254,20 @@ export default function Dashboard() {
         </Button>
       </div>
 
+      {/* Período dos cards */}
+      <PeriodFilter value={period} onChange={setPeriod} />
+
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Receita do Mes"
+          title="Receita no Período"
           value={formatCurrency(dashboardData?.revenue.thisMonth || 0)}
           change={dashboardData?.revenue.growth}
           icon={<DollarSign className="h-5 w-5" />}
           loading={loading}
         />
         <StatCard
-          title="Pedidos do Mes"
+          title="Pedidos no Período"
           value={formatNumber(dashboardData?.orders.thisMonth || 0)}
           change={dashboardData?.orders.growth}
           icon={<Package className="h-5 w-5" />}
