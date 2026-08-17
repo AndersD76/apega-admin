@@ -13,11 +13,13 @@ import Orders from '@/pages/Orders'
 import Carts from '@/pages/Carts'
 import Shipping from '@/pages/Shipping'
 import Finance from '@/pages/Finance'
+import Contas from '@/pages/Contas'
 import Analytics from '@/pages/Analytics'
 import Simulator from '@/pages/Simulator'
 import Communications from '@/pages/Communications'
 import Reports from '@/pages/Reports'
 import Settings from '@/pages/Settings'
+import Support from '@/pages/Support'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
@@ -56,10 +58,12 @@ function AppRoutes() {
         <Route path="carrinhos" element={<Carts />} />
         <Route path="envios" element={<Shipping />} />
         <Route path="financeiro" element={<Finance />} />
+        <Route path="contas" element={<Contas />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="simulador" element={<Simulator />} />
         <Route path="comunicacoes" element={<Communications />} />
         <Route path="denuncias" element={<Reports />} />
+        <Route path="suporte" element={<Support />} />
         <Route path="configuracoes" element={<Settings />} />
       </Route>
     </Routes>

@@ -16,8 +16,10 @@ import {
   ShoppingCart,
   Calculator,
   AlertTriangle,
+  Headphones,
   LogOut,
   Heart,
+  Wallet,
 } from 'lucide-react'
 
 interface NavItem {
@@ -67,6 +69,11 @@ const secondaryNavItems: NavItem[] = [
     icon: <DollarSign className="h-5 w-5" />,
   },
   {
+    title: 'Contas',
+    href: '/contas',
+    icon: <Wallet className="h-5 w-5" />,
+  },
+  {
     title: 'Analytics',
     href: '/analytics',
     icon: <BarChart3 className="h-5 w-5" />,
@@ -83,6 +90,11 @@ const managementNavItems: NavItem[] = [
     title: 'Comunicações',
     href: '/comunicacoes',
     icon: <MessageSquare className="h-5 w-5" />,
+  },
+  {
+    title: 'Suporte',
+    href: '/suporte',
+    icon: <Headphones className="h-5 w-5" />,
   },
   {
     title: 'Denúncias',

@@ -13,6 +13,8 @@ import {
   Shield,
   Save,
   Crown,
+  Store,
+  Truck,
   CreditCard,
   Loader2,
   RefreshCw,
@@ -26,8 +28,13 @@ export default function Settings() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [settings, setSettings] = useState<SettingsType>({
-    commission_free: 12,
-    commission_premium: 8,
+    // Placeholders ate o fetch responder — alinhados com o settings do banco
+    // para que uma falha de rede nao exiba taxa errada na tela.
+    commission_free: 20,
+    commission_premium: 10,
+    commission_outlet: 5,
+    commission_outlet_premium: 3,
+    first_purchase_shipping_discount: 20,
     pix_fee: 0.99,
     card_fee_percent: 3.99,
     card_fee_fixed: 0.39,
@@ -75,11 +82,14 @@ export default function Settings() {
         updates.push(
           { key: 'commission_free', value: settings.commission_free },
           { key: 'commission_premium', value: settings.commission_premium },
+          { key: 'commission_outlet', value: settings.commission_outlet },
+          { key: 'commission_outlet_premium', value: settings.commission_outlet_premium },
           { key: 'pix_fee', value: settings.pix_fee },
           { key: 'card_fee_percent', value: settings.card_fee_percent },
           { key: 'card_fee_fixed', value: settings.card_fee_fixed },
           { key: 'boleto_fee', value: settings.boleto_fee },
           { key: 'withdrawal_fee', value: settings.withdrawal_fee },
+          { key: 'first_purchase_shipping_discount', value: settings.first_purchase_shipping_discount },
         )
       } else if (section === 'financial') {
         updates.push(
@@ -193,6 +203,64 @@ export default function Settings() {
                     <span className="absolute right-3 top-2.5 text-muted-foreground">%</span>
                   </div>
                   <p className="text-xs text-muted-foreground">Taxa para assinantes premium</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-medium">
+                    <Store className="h-4 w-4 text-primary" />
+                    Comissao Lojista (PJ)
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      value={settings.commission_outlet}
+                      onChange={(e) => handleChange('commission_outlet', parseFloat(e.target.value))}
+                      className="pr-8"
+                    />
+                    <span className="absolute right-3 top-2.5 text-muted-foreground">%</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Contas com CNPJ, sem assinatura</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-medium">
+                    <Store className="h-4 w-4 text-primary" />
+                    <Crown className="h-4 w-4 text-yellow-500" />
+                    Comissao Lojista Premium
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      value={settings.commission_outlet_premium}
+                      onChange={(e) => handleChange('commission_outlet_premium', parseFloat(e.target.value))}
+                      className="pr-8"
+                    />
+                    <span className="absolute right-3 top-2.5 text-muted-foreground">%</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    CNPJ + assinatura. A melhor taxa do Largo.
+                  </p>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-medium">
+                    <Truck className="h-4 w-4 text-primary" />
+                    Desconto no frete — primeira compra
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      value={settings.first_purchase_shipping_discount}
+                      onChange={(e) => handleChange('first_purchase_shipping_discount', parseFloat(e.target.value))}
+                      className="pr-8"
+                    />
+                    <span className="absolute right-3 top-2.5 text-muted-foreground">%</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Vale so no primeiro pedido pago do comprador. 0 desliga a promocao.
+                  </p>
                 </div>
               </div>
 

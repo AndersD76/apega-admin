@@ -373,4 +373,215 @@ export const getTransactions = (params?: {
 export const processWithdrawal = (transactionId: string, action: 'approve' | 'reject'): Promise<{ success: boolean }> =>
   api.post(`/payments/withdrawals/${transactionId}/${action}`)
 
+// Finance - Asaas integration
+export interface AsaasBalance {
+  available: number
+  pending: number
+  total: number
+}
+
+export interface AsaasPayment {
+  id: string
+  customer: string
+  value: number
+  netValue: number
+  billingType: string
+  status: string
+  dueDate: string
+  paymentDate?: string
+  confirmedDate?: string
+  description?: string
+  externalReference?: string
+  invoiceUrl?: string
+  installmentCount?: number
+}
+
+export interface FinancialEntry {
+  id: string
+  value: number
+  balance: number
+  type: string
+  date: string
+  description?: string
+  paymentId?: string
+}
+
+export interface CashFlowMonth {
+  month: string
+  revenue: number
+  commission: number
+  sellerPayouts: number
+  refunds: number
+  refundsCount: number
+  paidOrders: number
+  approvedWithdrawals: number
+  pendingWithdrawals: number
+  netCashFlow: number
+}
+
+export interface PaymentMethodData {
+  key: string
+  name: string
+  count: number
+  amount: number
+  color: string
+}
+
+export const getAsaasBalance = (): Promise<{ success: boolean; data: any }> =>
+  api.get('/payments/admin/balance')
+
+export const getAsaasPayments = (params?: {
+  page?: number
+  limit?: number
+  status?: string
+  billingType?: string
+  startDate?: string
+  endDate?: string
+}): Promise<{ success: boolean; payments: AsaasPayment[]; pagination: { page: number; limit: number; total: number } }> =>
+  api.get('/payments/admin/payments', { params })
+
+export const getFinancialStatements = (params?: {
+  page?: number
+  limit?: number
+  startDate?: string
+  finishDate?: string
+  type?: string
+}): Promise<{ success: boolean; entries: FinancialEntry[]; pagination: { page: number; limit: number; total: number } }> =>
+  api.get('/payments/admin/financial-statements', { params })
+
+export const getAsaasTransfers = (params?: {
+  page?: number
+  limit?: number
+  startDate?: string
+  endDate?: string
+}): Promise<{ success: boolean; transfers: any[]; pagination: { page: number; limit: number; total: number } }> =>
+  api.get('/payments/admin/transfers', { params })
+
+export const getCashFlow = (months?: number): Promise<{ success: boolean; balance: AsaasBalance | null; cashFlow: CashFlowMonth[] }> =>
+  api.get('/payments/admin/cash-flow', { params: { months } })
+
+export const getPaymentMethods = (): Promise<{ success: boolean; methods: PaymentMethodData[] }> =>
+  api.get('/payments/admin/payment-methods')
+
+export const refundPayment = (paymentId: string, value?: number): Promise<{ success: boolean }> =>
+  api.post(`/payments/admin/refund/${paymentId}`, { value })
+
+// ==================== FINANCEIRO GERENCIAL (contas a pagar/receber) ====================
+
+export interface FinanceCategory {
+  id: string
+  name: string
+  kind: 'despesa' | 'receita'
+  active: boolean
+  entries_count?: number
+}
+
+export interface FinancePartner {
+  id: string
+  name: string
+  active: boolean
+  entries_count?: number
+}
+
+export interface FinanceEntry {
+  id: string
+  kind: 'pagar' | 'receber'
+  description: string
+  category_id?: string
+  category_name?: string
+  partner_id?: string
+  partner_name?: string
+  counterparty?: string
+  amount: string
+  due_date: string
+  paid_at?: string
+  status: 'pendente' | 'pago' | 'cancelado'
+  is_overdue?: boolean
+  payment_method?: string
+  recurring: boolean
+  notes?: string
+  created_at: string
+}
+
+export interface FinanceEntryTotals {
+  count: string
+  total_pendente: string
+  total_vencido: string
+  total_pago: string
+}
+
+export interface FinanceSummary {
+  cards: {
+    a_pagar: string
+    a_pagar_vencido: string
+    a_receber: string
+    a_receber_vencido: string
+    pago_periodo: string
+    recebido_periodo: string
+  }
+  by_category: { kind: string; category: string; total: string }[]
+  by_partner: { partner: string; kind: string; total: string; count: string }[]
+}
+
+export interface FinanceCashflowMonth {
+  month: string
+  entradas: string
+  saidas: string
+}
+
+export const getFinanceCategories = (): Promise<{ success: boolean; categories: FinanceCategory[] }> =>
+  api.get('/admin/finance/categories')
+
+export const createFinanceCategory = (name: string, kind: 'despesa' | 'receita'): Promise<{ success: boolean; category: FinanceCategory }> =>
+  api.post('/admin/finance/categories', { name, kind })
+
+export const updateFinanceCategory = (id: string, data: { name?: string; active?: boolean }): Promise<{ success: boolean; category: FinanceCategory }> =>
+  api.put(`/admin/finance/categories/${id}`, data)
+
+export const getFinancePartners = (): Promise<{ success: boolean; partners: FinancePartner[] }> =>
+  api.get('/admin/finance/partners')
+
+export const createFinancePartner = (name: string): Promise<{ success: boolean; partner: FinancePartner }> =>
+  api.post('/admin/finance/partners', { name })
+
+export const updateFinancePartner = (id: string, data: { name?: string; active?: boolean }): Promise<{ success: boolean; partner: FinancePartner }> =>
+  api.put(`/admin/finance/partners/${id}`, data)
+
+export const getFinanceEntries = (params?: {
+  kind?: string
+  status?: string
+  category_id?: string
+  partner_id?: string
+  from?: string
+  to?: string
+  page?: number
+  limit?: number
+}): Promise<{ success: boolean; entries: FinanceEntry[]; totals: FinanceEntryTotals; pagination: { page: number; limit: number; total: number } }> =>
+  api.get('/admin/finance/entries', { params })
+
+export const createFinanceEntry = (data: Partial<FinanceEntry>): Promise<{ success: boolean; entry: FinanceEntry }> =>
+  api.post('/admin/finance/entries', data)
+
+export const updateFinanceEntry = (id: string, data: Partial<FinanceEntry>): Promise<{ success: boolean; entry: FinanceEntry }> =>
+  api.put(`/admin/finance/entries/${id}`, data)
+
+export const payFinanceEntry = (id: string, data?: { paid_at?: string; payment_method?: string }): Promise<{ success: boolean; entry: FinanceEntry; next_entry?: FinanceEntry }> =>
+  api.post(`/admin/finance/entries/${id}/pay`, data)
+
+export const unpayFinanceEntry = (id: string): Promise<{ success: boolean; entry: FinanceEntry }> =>
+  api.post(`/admin/finance/entries/${id}/unpay`)
+
+export const cancelFinanceEntry = (id: string): Promise<{ success: boolean; entry: FinanceEntry }> =>
+  api.post(`/admin/finance/entries/${id}/cancel`)
+
+export const deleteFinanceEntry = (id: string): Promise<{ success: boolean }> =>
+  api.delete(`/admin/finance/entries/${id}`)
+
+export const getFinanceSummary = (params?: { from?: string; to?: string }): Promise<{ success: boolean } & FinanceSummary> =>
+  api.get('/admin/finance/summary', { params })
+
+export const getFinanceCashflow = (months?: number): Promise<{ success: boolean; realized: FinanceCashflowMonth[]; projected: FinanceCashflowMonth[] }> =>
+  api.get('/admin/finance/cashflow', { params: { months } })
+
+
 export default api
