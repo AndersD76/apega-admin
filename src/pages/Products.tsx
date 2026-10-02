@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,7 +35,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { formatCurrency, formatDate, downloadCSV } from '@/lib/utils'
 import {
   getProducts,
   getProductDetails,
@@ -65,6 +67,7 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  ArrowUpDown,
 } from 'lucide-react'
 
 function getStatusBadge(status: string) {
@@ -79,6 +82,8 @@ function getStatusBadge(status: string) {
       return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" /> Rejeitado</Badge>
     case 'paused':
       return <Badge variant="secondary" className="gap-1"><Clock className="h-3 w-3" /> Pausado</Badge>
+    case 'reserved':
+      return <Badge variant="warning" className="gap-1"><Clock className="h-3 w-3" /> Reservado</Badge>
     default:
       return <Badge>{status}</Badge>
   }
@@ -125,7 +130,8 @@ function StatCard({ title, value, icon, loading }: StatCardProps) {
 }
 
 export default function Products() {
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchParams] = useSearchParams()
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
   const [activeTab, setActiveTab] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [loading, setLoading] = useState(true)
@@ -134,20 +140,32 @@ export default function Products() {
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([])
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0 })
   const [stats, setStats] = useState({ active: 0, pending: 0, sold: 0, total: 0 })
+  const [sortBy, setSortBy] = useState('recent')
   const [selectedProduct, setSelectedProduct] = useState<(Product & { images?: string[] }) | null>(null)
+  // Aprovar publicava a peca no primeiro clique e rejeitar abria o `prompt()` do
+  // navegador (que nao aceita texto longo, nao da para cancelar sem perder o que
+  // foi digitado e, pior, engolia o erro do backend no console). Agora as tres
+  // acoes passam pelo mesmo dialogo, que mostra a falha na tela.
+  const [pendingProduct, setPendingProduct] = useState<
+    { kind: 'approve' | 'reject' | 'delete'; product: Product } | null
+  >(null)
   const [detailsLoading, setDetailsLoading] = useState(false)
 
-  const fetchProducts = async (page = 1) => {
+  // searchOverride existe para a busca do header: ela navega com ?q= e o
+  // fetch precisa usar o termo novo sem esperar o setState propagar.
+  const fetchProducts = async (page = 1, searchOverride?: string) => {
     setLoading(true)
     setError(null)
+    const search = searchOverride !== undefined ? searchOverride : searchTerm
 
     try {
       const [productsRes, categoriesRes] = await Promise.all([
         getProducts({
           page,
           limit: 20,
-          search: searchTerm || undefined,
+          search: search || undefined,
           status: activeTab === 'all' ? undefined : activeTab,
+          sort: sortBy !== 'recent' ? sortBy : undefined,
         }),
         getCategories(),
       ])
@@ -173,9 +191,15 @@ export default function Products() {
     }
   }
 
+  const urlQuery = searchParams.get('q') || ''
+
   useEffect(() => {
-    fetchProducts()
-  }, [activeTab])
+    setSearchTerm(urlQuery)
+  }, [urlQuery])
+
+  useEffect(() => {
+    fetchProducts(1, urlQuery)
+  }, [activeTab, sortBy, urlQuery])
 
   const handleSearch = () => {
     fetchProducts(1)
@@ -195,46 +219,54 @@ export default function Products() {
     }
   }
 
+  // Os tres handlers deixam o erro subir: quem chama e o ConfirmDialog, que
+  // exibe a mensagem do backend na propria caixa e mantem o dialogo aberto.
   const handleApprove = async (productId: string) => {
-    try {
-      const res = await approveProduct(productId)
-      if (res.success) {
-        setProducts(products.map(p =>
-          p.id === productId ? { ...p, status: 'active' as const } : p
-        ))
-      }
-    } catch (err) {
-      console.error('Erro ao aprovar produto:', err)
+    const res = await approveProduct(productId)
+    if (res.success) {
+      setProducts(prev => prev.map(p => (p.id === productId ? { ...p, status: 'active' as const } : p)))
+      setStats(prev => ({ ...prev, pending: Math.max(0, prev.pending - 1), active: prev.active + 1 }))
     }
   }
 
-  const handleReject = async (productId: string) => {
-    const reason = prompt('Motivo da rejeicao:')
-    if (!reason) return
-
-    try {
-      const res = await rejectProduct(productId, reason)
-      if (res.success) {
-        setProducts(products.map(p =>
-          p.id === productId ? { ...p, status: 'rejected' as const } : p
-        ))
-      }
-    } catch (err) {
-      console.error('Erro ao rejeitar produto:', err)
+  const handleReject = async (productId: string, reason: string) => {
+    const res = await rejectProduct(productId, reason)
+    if (res.success) {
+      setProducts(prev => prev.map(p => (p.id === productId ? { ...p, status: 'rejected' as const } : p)))
+      setStats(prev => ({ ...prev, pending: Math.max(0, prev.pending - 1) }))
     }
   }
 
-  const handleDelete = async (productId: string, title: string) => {
-    if (!confirm(`Tem certeza que deseja excluir "${title}"?`)) return
-
-    try {
-      const res = await deleteProduct(productId)
-      if (res.success) {
-        setProducts(products.filter(p => p.id !== productId))
-      }
-    } catch (err) {
-      console.error('Erro ao excluir produto:', err)
+  const handleDelete = async (productId: string) => {
+    const res = await deleteProduct(productId)
+    if (res.success) {
+      setProducts(prev => prev.filter(p => p.id !== productId))
     }
+  }
+
+  // Exporta a pagina carregada (nao ha rota de export no backend). O CSV usa o
+  // helper com quoting e neutralizacao de formula: titulo de peca comecando com
+  // "=" viraria formula ao abrir no Excel.
+  const handleExport = () => {
+    downloadCSV(
+      `produtos-pagina-${pagination.page}.csv`,
+      ['Titulo', 'Marca', 'Tamanho', 'Cor', 'Categoria', 'Preco', 'Condicao', 'Status', 'Vendedor', 'E-mail do vendedor', 'Visualizacoes', 'Favoritos', 'Cadastro'],
+      filteredProducts.map(p => [
+        p.title,
+        p.brand || '',
+        p.size || '',
+        p.color || '',
+        p.category_name || '',
+        Number(p.price || 0).toFixed(2).replace('.', ','),
+        p.condition || '',
+        p.status,
+        p.seller_name || '',
+        p.seller_email || '',
+        p.views || 0,
+        p.favorites || 0,
+        formatDate(p.created_at),
+      ]),
+    )
   }
 
   const handlePageChange = (newPage: number) => {
@@ -276,9 +308,9 @@ export default function Products() {
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             Atualizar
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleExport} disabled={loading || filteredProducts.length === 0}>
             <Download className="mr-2 h-4 w-4" />
-            Exportar
+            Exportar CSV
           </Button>
         </div>
       </div>
@@ -343,6 +375,20 @@ export default function Products() {
                   {categories.map(cat => (
                     <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-40">
+                  <ArrowUpDown className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Ordenar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recent">Mais recentes</SelectItem>
+                  <SelectItem value="az">A → Z</SelectItem>
+                  <SelectItem value="za">Z → A</SelectItem>
+                  <SelectItem value="price_asc">Menor preco</SelectItem>
+                  <SelectItem value="price_desc">Maior preco</SelectItem>
+                  <SelectItem value="views">Mais vistos</SelectItem>
                 </SelectContent>
               </Select>
               <Button onClick={handleSearch} variant="secondary">
@@ -458,14 +504,14 @@ export default function Products() {
                               <>
                                 <DropdownMenuItem
                                   className="text-green-600"
-                                  onClick={() => handleApprove(product.id)}
+                                  onClick={() => setPendingProduct({ kind: 'approve', product })}
                                 >
                                   <CheckCircle className="mr-2 h-4 w-4" />
                                   Aprovar
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   className="text-red-600"
-                                  onClick={() => handleReject(product.id)}
+                                  onClick={() => setPendingProduct({ kind: 'reject', product })}
                                 >
                                   <XCircle className="mr-2 h-4 w-4" />
                                   Rejeitar
@@ -475,7 +521,7 @@ export default function Products() {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-destructive"
-                              onClick={() => handleDelete(product.id, product.title)}
+                              onClick={() => setPendingProduct({ kind: 'delete', product })}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
                               Excluir
@@ -632,7 +678,9 @@ export default function Products() {
                     variant="default"
                     className="flex-1"
                     onClick={() => {
-                      handleApprove(selectedProduct.id)
+                      // Fecha o detalhe antes de abrir a confirmacao: dois Dialog
+                      // empilhados brigam pelo foco e pelo scroll-lock.
+                      setPendingProduct({ kind: 'approve', product: selectedProduct })
                       setSelectedProduct(null)
                     }}
                   >
@@ -643,7 +691,7 @@ export default function Products() {
                     variant="destructive"
                     className="flex-1"
                     onClick={() => {
-                      handleReject(selectedProduct.id)
+                      setPendingProduct({ kind: 'reject', product: selectedProduct })
                       setSelectedProduct(null)
                     }}
                   >
@@ -656,6 +704,64 @@ export default function Products() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/*
+        Aprovar publica a peca no app e rejeitar avisa o vendedor com o motivo —
+        as duas mudam o que o comprador ve. O motivo da rejeicao e obrigatorio e
+        vai para o vendedor, entao vale um textarea de verdade no lugar do
+        `prompt()` do navegador.
+      */}
+      <ConfirmDialog
+        open={!!pendingProduct}
+        onOpenChange={(open) => { if (!open) setPendingProduct(null) }}
+        variant={pendingProduct?.kind === 'approve' ? 'default' : 'destructive'}
+        title={
+          pendingProduct?.kind === 'approve'
+            ? 'Aprovar produto?'
+            : pendingProduct?.kind === 'reject'
+              ? 'Rejeitar produto?'
+              : 'Excluir produto?'
+        }
+        confirmLabel={
+          pendingProduct?.kind === 'approve'
+            ? 'Aprovar e publicar'
+            : pendingProduct?.kind === 'reject'
+              ? 'Rejeitar'
+              : 'Excluir'
+        }
+        reason={
+          pendingProduct?.kind === 'reject'
+            ? {
+                label: 'Motivo da rejeicao (enviado ao vendedor)',
+                placeholder: 'Ex.: fotos fora do padrao, peca sem marca visivel...',
+                required: true,
+              }
+            : undefined
+        }
+        description={
+          pendingProduct ? (
+            <div className="space-y-2">
+              <p>
+                <strong>{pendingProduct.product.title}</strong>
+                {pendingProduct.product.seller_name ? ` — ${pendingProduct.product.seller_name}` : ''}
+              </p>
+              {pendingProduct.kind === 'approve' && <p>A peca fica visivel no app e pode ser comprada.</p>}
+              {pendingProduct.kind === 'delete' && <p>A peca sai do catalogo. Esta acao nao pode ser desfeita.</p>}
+            </div>
+          ) : null
+        }
+        onConfirm={async (reason) => {
+          if (!pendingProduct) return
+          if (pendingProduct.kind === 'approve') {
+            await handleApprove(pendingProduct.product.id)
+          } else if (pendingProduct.kind === 'reject') {
+            await handleReject(pendingProduct.product.id, reason || '')
+          } else {
+            await handleDelete(pendingProduct.product.id)
+          }
+          setPendingProduct(null)
+        }}
+      />
     </div>
   )
 }

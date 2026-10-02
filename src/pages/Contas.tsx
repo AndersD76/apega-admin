@@ -1,3 +1,7 @@
+/* eslint-disable no-useless-escape -- a barra escapada em "</script>", na
+   funcao de impressao, impede que a string feche um <script> que a envolva
+   caso este bundle seja embutido em HTML. Em runtime o resultado e
+   identico; o escape e defesa, nao engano. */
 import { useState, useEffect, useCallback } from 'react'
 import { PeriodFilter, periodPreset, type Period } from '@/components/PeriodFilter'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -37,7 +41,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { formatCurrency, formatDate, escapeHtml, downloadCSV, safeFilename } from '@/lib/utils'
 import {
   getFinanceCategories,
   createFinanceCategory,
@@ -76,6 +80,8 @@ import {
   XCircle,
   Wallet,
   RefreshCw,
+  Printer,
+  FileDown,
 } from 'lucide-react'
 import {
   ResponsiveContainer,
@@ -115,6 +121,7 @@ interface EntryForm {
   partner_id: string
   counterparty: string
   payment_method: string
+  installments: number
   recurring: boolean
   notes: string
   alreadyPaid: boolean
@@ -128,6 +135,7 @@ const emptyForm: EntryForm = {
   partner_id: 'none',
   counterparty: '',
   payment_method: 'none',
+  installments: 1,
   recurring: false,
   notes: '',
   alreadyPaid: false,
@@ -247,6 +255,7 @@ export default function Contas() {
       partner_id: entry.partner_id || 'none',
       counterparty: entry.counterparty || '',
       payment_method: entry.payment_method || 'none',
+      installments: 1,
       recurring: entry.recurring,
       notes: entry.notes || '',
       alreadyPaid: false,
@@ -271,13 +280,16 @@ export default function Contas() {
         partner_id: form.partner_id !== 'none' ? form.partner_id : null,
         counterparty: form.counterparty || null,
         payment_method: form.payment_method !== 'none' ? form.payment_method : null,
-        recurring: form.recurring,
+        recurring: form.installments > 1 ? false : form.recurring,
         notes: form.notes || null,
       }
       if (entryDialog.editing) {
         await updateFinanceEntry(entryDialog.editing.id, payload)
       } else {
-        if (form.alreadyPaid) payload.status = 'pago'
+        if (form.installments > 1) {
+          payload.installments = form.installments
+        }
+        if (form.alreadyPaid && form.installments <= 1) payload.status = 'pago'
         await createFinanceEntry(payload)
       }
       setEntryDialog(null)
@@ -342,6 +354,141 @@ export default function Contas() {
     } catch (e: any) {
       alert(e?.message || 'Erro ao excluir')
     }
+  }
+
+  // ─── Relatórios (imprimir / exportar CSV) ───────────────
+
+  /**
+   * Abre a janela de impressao do relatorio.
+   *
+   * `content` e HTML montado pelas funcoes abaixo. Regra da casa: TODO valor que
+   * veio do banco entra por `escapeHtml`. Antes, descricao, contraparte e nome de
+   * categoria eram interpolados crus — bastava cadastrar um lancamento com
+   * `<img src=x onerror=...>` na descricao para executar script na janela aberta
+   * pelo painel, com a sessao do admin. O CSS e o layout continuam sendo texto
+   * fixo nosso; so os dados sao escapados.
+   */
+  const printReport = (title: string, content: string) => {
+    const win = window.open('', '_blank')
+    if (!win) return
+    win.document.write(`<!DOCTYPE html><html><head><title>${escapeHtml(title)} — Largô</title>
+    <style>
+      body{font-family:-apple-system,system-ui,sans-serif;padding:32px;color:#1a1a1a;font-size:13px;}
+      h1{font-size:20px;margin:0 0 2px}
+      h2{font-size:15px;margin:24px 0 8px}
+      .meta{font-size:12px;color:#666;margin-bottom:20px}
+      table{width:100%;border-collapse:collapse}
+      th{text-align:left;font-weight:600;padding:6px 8px;border-bottom:2px solid #ccc;font-size:11px;text-transform:uppercase}
+      td{padding:6px 8px;border-bottom:1px solid #eee}
+      .r{text-align:right}
+      .b{font-weight:700}
+      .g{color:#16a34a}.red{color:#dc2626}
+      .kpi-row{display:flex;gap:16px;margin-bottom:20px}
+      .kpi{border:1px solid #ddd;border-radius:6px;padding:12px;flex:1}
+      .kpi .l{font-size:10px;color:#666;text-transform:uppercase;letter-spacing:.5px}
+      .kpi .v{font-size:20px;font-weight:800;margin-top:2px}
+      small{color:#888;font-size:11px}
+      @media print{body{padding:0}}
+    </style></head><body>
+    <h1>${escapeHtml(title)}</h1>
+    <div class="meta">Período: ${escapeHtml(period.from || 'início')} a ${escapeHtml(period.to || 'hoje')} · Gerado em ${new Date().toLocaleDateString('pt-BR')}</div>
+    ${content}
+    <script>window.print()<\/script>
+    </body></html>`)
+    win.document.close()
+  }
+
+  /**
+   * Exportacao de CSV.
+   *
+   * Delega para `downloadCSV` (lib/utils), que faz duas coisas que esta funcao
+   * nao fazia:
+   *  1. Quoting RFC 4180 — antes os campos iam crus com `join(';')`, entao uma
+   *     descricao com ";", aspas ou quebra de linha desalinhava todas as colunas
+   *     seguintes da planilha.
+   *  2. Neutraliza formula — Excel e Google Sheets executam a celula que comeca
+   *     com = + - @; um lancamento com descricao `=HYPERLINK(...)` virava formula
+   *     ativa na maquina de quem abrisse o relatorio.
+   * O nome do arquivo tambem passa por saneamento porque carrega o periodo.
+   */
+  const exportCSV = (filename: string, headers: string[], rows: unknown[][]) => {
+    downloadCSV(safeFilename(filename), headers, rows)
+  }
+
+  const statusLabel = (e: FinanceEntry, kind: 'pagar' | 'receber') =>
+    e.status === 'pago' ? (kind === 'pagar' ? 'Pago' : 'Recebido') : e.status === 'cancelado' ? 'Cancelado' : e.is_overdue ? 'Vencido' : 'Pendente'
+
+  const printEntries = (kind: 'pagar' | 'receber') => {
+    const title = kind === 'pagar' ? 'Contas a Pagar' : 'Contas a Receber'
+    const rows = entries.map(e => `<tr${e.status === 'cancelado' ? ' style="opacity:.5"' : ''}>
+      <td>${formatDate(e.due_date)}${e.recurring ? ' ↻' : ''}</td>
+      <td>${escapeHtml(e.description)}${e.paid_at ? `<br><small>${kind === 'pagar' ? 'Pago' : 'Recebido'} em ${formatDate(e.paid_at)}</small>` : ''}</td>
+      <td>${escapeHtml(e.category_name || '—')}</td><td>${escapeHtml(e.counterparty || '—')}</td><td>${escapeHtml(e.partner_name || 'Empresa')}</td>
+      <td class="r b">${formatCurrency(num(e.amount))}</td><td>${escapeHtml(statusLabel(e, kind))}</td></tr>`).join('')
+    printReport(title, `
+      ${totals ? `<div class="kpi-row">
+        <div class="kpi"><div class="l">Pendente</div><div class="v">${formatCurrency(num(totals.total_pendente))}</div></div>
+        <div class="kpi"><div class="l">Vencido</div><div class="v red">${formatCurrency(num(totals.total_vencido))}</div></div>
+        <div class="kpi"><div class="l">${kind === 'pagar' ? 'Pago' : 'Recebido'}</div><div class="v g">${formatCurrency(num(totals.total_pago))}</div></div>
+      </div>` : ''}
+      <table><thead><tr><th>Vencimento</th><th>Descrição</th><th>Categoria</th><th>${kind === 'pagar' ? 'Fornecedor' : 'Cliente'}</th><th>Sócio</th><th class="r">Valor</th><th>Status</th></tr></thead>
+      <tbody>${rows}</tbody></table>`)
+  }
+
+  const exportEntries = (kind: 'pagar' | 'receber') => {
+    const headers = ['Vencimento', 'Descrição', 'Categoria', kind === 'pagar' ? 'Fornecedor' : 'Cliente', 'Sócio', 'Valor', 'Status', 'Pago em']
+    const rows = entries.map(e => [
+      e.due_date?.slice(0, 10) || '', e.description, e.category_name || '', e.counterparty || '',
+      e.partner_name || 'Empresa', String(num(e.amount)).replace('.', ','),
+      statusLabel(e, kind), e.paid_at?.slice(0, 10) || '',
+    ])
+    exportCSV(`contas-${kind}-${period.from || 'inicio'}-a-${period.to || 'hoje'}.csv`, headers, rows)
+  }
+
+  const printCashflow = () => {
+    const rows = cashflowChartData.map(r => {
+      const inn = r.entradas + r.projecao_entradas
+      const out = r.saidas + r.projecao_saidas
+      const res = inn - out
+      return `<tr><td>${escapeHtml(r.label)}${(r.projecao_entradas > 0 || r.projecao_saidas > 0) ? ' <small>(c/ projeção)</small>' : ''}</td>
+        <td class="r g">${formatCurrency(inn)}</td><td class="r red">${formatCurrency(out)}</td>
+        <td class="r b ${res >= 0 ? 'g' : 'red'}">${formatCurrency(res)}</td>
+        <td class="r b">${formatCurrency(r.saldo_acumulado)}</td></tr>`
+    }).join('')
+    printReport('Fluxo de Caixa', `<table>
+      <thead><tr><th>Mês</th><th class="r">Entradas</th><th class="r">Saídas</th><th class="r">Resultado</th><th class="r">Saldo Acumulado</th></tr></thead>
+      <tbody>${rows}</tbody></table>`)
+  }
+
+  const exportCashflow = () => {
+    const headers = ['Mês', 'Entradas Realizado', 'Saídas Realizado', 'Entradas Projeção', 'Saídas Projeção', 'Saldo Acumulado']
+    const rows = cashflowChartData.map(r => [
+      r.month, String(r.entradas).replace('.', ','), String(r.saidas).replace('.', ','),
+      String(r.projecao_entradas).replace('.', ','), String(r.projecao_saidas).replace('.', ','),
+      String(r.saldo_acumulado).replace('.', ','),
+    ])
+    exportCSV('fluxo-de-caixa.csv', headers, rows)
+  }
+
+  const printSummary = () => {
+    const catRows = (summary?.by_category || []).filter(c => c.kind === 'pagar').map(c =>
+      `<tr><td>${escapeHtml(c.category)}</td><td class="r b">${formatCurrency(num(c.total))}</td></tr>`).join('')
+    const recRows = (summary?.by_category || []).filter(c => c.kind === 'receber').map(c =>
+      `<tr><td>${escapeHtml(c.category)}</td><td class="r b">${formatCurrency(num(c.total))}</td></tr>`).join('')
+    const partnerRows = (summary?.by_partner || []).map(p =>
+      `<tr><td>${escapeHtml(p.partner)}</td><td>${p.kind === 'pagar' ? 'Pagou' : 'Recebeu'}</td><td class="r b">${formatCurrency(num(p.total))}</td></tr>`).join('')
+    printReport('Resumo Financeiro', `
+      <div class="kpi-row">
+        <div class="kpi"><div class="l">A Pagar (aberto)</div><div class="v">${formatCurrency(num(summary?.cards.a_pagar))}</div>
+          ${num(summary?.cards.a_pagar_vencido) > 0 ? `<small class="red">${formatCurrency(num(summary?.cards.a_pagar_vencido))} vencido</small>` : ''}</div>
+        <div class="kpi"><div class="l">A Receber (aberto)</div><div class="v">${formatCurrency(num(summary?.cards.a_receber))}</div>
+          ${num(summary?.cards.a_receber_vencido) > 0 ? `<small class="red">${formatCurrency(num(summary?.cards.a_receber_vencido))} vencido</small>` : ''}</div>
+        <div class="kpi"><div class="l">Pago no período</div><div class="v red">${formatCurrency(num(summary?.cards.pago_periodo))}</div></div>
+        <div class="kpi"><div class="l">Recebido no período</div><div class="v g">${formatCurrency(num(summary?.cards.recebido_periodo))}</div></div>
+      </div>
+      ${catRows ? `<h2>Despesas por categoria</h2><table><thead><tr><th>Categoria</th><th class="r">Total</th></tr></thead><tbody>${catRows}</tbody></table>` : ''}
+      ${recRows ? `<h2>Receitas por categoria</h2><table><thead><tr><th>Categoria</th><th class="r">Total</th></tr></thead><tbody>${recRows}</tbody></table>` : ''}
+      ${partnerRows ? `<h2>Por sócio pagante</h2><table><thead><tr><th>Sócio</th><th>Tipo</th><th class="r">Total</th></tr></thead><tbody>${partnerRows}</tbody></table>` : ''}`)
   }
 
   // ─── Cadastros ──────────────────────────────────────────
@@ -457,6 +604,12 @@ export default function Contas() {
           </SelectContent>
         </Select>
         <div className="ml-auto flex gap-2">
+          <Button variant="outline" size="icon" onClick={() => printEntries(kind)} title="Imprimir relatório">
+            <Printer className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => exportEntries(kind)} title="Exportar CSV">
+            <FileDown className="h-4 w-4" />
+          </Button>
           <Button variant="outline" size="icon" onClick={() => fetchEntries(kind)}>
             <RefreshCw className="h-4 w-4" />
           </Button>
@@ -593,6 +746,11 @@ export default function Contas() {
 
         {/* ─── RESUMO ─── */}
         <TabsContent value="resumo" className="space-y-4">
+          <div className="flex justify-end">
+            <Button variant="outline" size="sm" onClick={printSummary}>
+              <Printer className="mr-2 h-4 w-4" /> Imprimir resumo
+            </Button>
+          </div>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -708,6 +866,14 @@ export default function Contas() {
 
         {/* ─── FLUXO DE CAIXA ─── */}
         <TabsContent value="fluxo" className="space-y-4">
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={printCashflow}>
+              <Printer className="mr-2 h-4 w-4" /> Imprimir
+            </Button>
+            <Button variant="outline" size="sm" onClick={exportCashflow}>
+              <FileDown className="mr-2 h-4 w-4" /> Exportar CSV
+            </Button>
+          </div>
           <Card>
             <CardHeader>
               <CardTitle>Fluxo de caixa</CardTitle>
@@ -914,7 +1080,7 @@ export default function Contas() {
               </div>
               <div className="grid gap-1.5">
                 <Label>Forma de pagamento</Label>
-                <Select value={form.payment_method} onValueChange={(v) => setForm({ ...form, payment_method: v })}>
+                <Select value={form.payment_method} onValueChange={(v) => setForm({ ...form, payment_method: v, installments: v !== 'cartao' ? 1 : form.installments })}>
                   <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Não informar</SelectItem>
@@ -925,20 +1091,51 @@ export default function Contas() {
                 </Select>
               </div>
             </div>
+            {form.payment_method === 'cartao' && !entryDialog?.editing && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-1.5">
+                  <Label>Parcelas</Label>
+                  <Select value={String(form.installments)} onValueChange={(v) => setForm({ ...form, installments: parseInt(v) })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          {n}x {num(form.amount) > 0 ? `de ${formatCurrency(Math.round((num(form.amount) / n) * 100) / 100)}` : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {form.installments > 1 && num(form.amount) > 0 && (
+                  <div className="flex items-end pb-2">
+                    <p className="text-sm text-muted-foreground">
+                      Vencimentos a cada 30 dias a partir de {form.due_date ? formatDate(form.due_date) : '—'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="grid gap-1.5">
               <Label>Observações</Label>
               <Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             </div>
             <div className="flex items-center gap-6 pt-1">
-              <label className="flex cursor-pointer items-center gap-2 text-sm">
-                <input type="checkbox" checked={form.recurring} onChange={(e) => setForm({ ...form, recurring: e.target.checked })} />
-                Recorrente mensal
-              </label>
-              {!entryDialog?.editing && (
+              {form.installments <= 1 && (
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <input type="checkbox" checked={form.recurring} onChange={(e) => setForm({ ...form, recurring: e.target.checked })} />
+                  Recorrente mensal
+                </label>
+              )}
+              {!entryDialog?.editing && form.installments <= 1 && (
                 <label className="flex cursor-pointer items-center gap-2 text-sm">
                   <input type="checkbox" checked={form.alreadyPaid} onChange={(e) => setForm({ ...form, alreadyPaid: e.target.checked })} />
                   {entryDialog?.kind === 'pagar' ? 'Já está pago' : 'Já foi recebido'}
                 </label>
+              )}
+              {form.installments > 1 && (
+                <p className="text-sm text-muted-foreground">
+                  {form.installments} parcelas serão criadas como pendentes
+                </p>
               )}
             </div>
           </div>

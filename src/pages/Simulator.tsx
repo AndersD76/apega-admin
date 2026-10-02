@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { formatCurrency } from '@/lib/utils'
-import { getSettings, Settings } from '@/lib/api'
+import { getSettings, SETTINGS_WITHOUT_EFFECT, Settings } from '@/lib/api'
 import {
   Calculator,
   DollarSign,
@@ -20,19 +20,41 @@ import {
   CreditCard,
   Wallet,
   TrendingUp,
-  Crown,
+  Store,
   User,
+  AlertTriangle,
 } from 'lucide-react'
 
-// Fee configuration (matching the settings in the database)
+/**
+ * Fallbacks usados so enquanto `GET /admin/settings` nao responde.
+ *
+ * `cashbackPercentage` era 5 e nunca vinha do backend na pratica, entao o
+ * simulador anunciava 5% de cashback enquanto o sistema pagava 2%. Agora o
+ * numero sai de `settings.cashback_buyer` (mesma fonte da tela de
+ * Configuracoes e de `services/orderState.js`) e este fallback espelha o
+ * `DEFAULT_CASHBACK_RATE` do backend, para as duas pontas nunca divergirem.
+ */
 const DEFAULT_FEES = {
-  commissionPercentage: 12,
-  premiumCommissionPercentage: 8,
+  commissionPercentage: 20,
+  outletCommissionPercentage: 5,
   pixFeePercent: 0.99,
   cardFeePercent: 3.99,
   cardFeeFixed: 0.39,
   withdrawalFee: 2.00,
-  cashbackPercentage: 5,
+  cashbackPercentage: 2,
+}
+
+/** Espelha a whitelist do backend: taxa marcada aqui e salva, mas nao cobrada. */
+const semEfeito = (key: string) => (SETTINGS_WITHOUT_EFFECT as readonly string[]).includes(key)
+
+/** Selo de "numero ilustrativo" nos cards de taxa que o sistema ainda nao aplica. */
+function SemEfeitoTag() {
+  return (
+    <p className="mt-2 flex items-start gap-1 rounded-md bg-amber-100 px-2 py-1 text-[11px] leading-tight text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
+      <AlertTriangle className="mt-px h-3 w-3 shrink-0" />
+      <span>Valor ilustrativo — ainda nao aplicado pelo sistema.</span>
+    </p>
+  )
 }
 
 interface SimulationResult {
@@ -64,7 +86,7 @@ export default function Simulator() {
           setFees((prev) => ({
             ...prev,
             commissionPercentage: settings.commission_free ?? prev.commissionPercentage,
-            premiumCommissionPercentage: settings.commission_premium ?? prev.premiumCommissionPercentage,
+            outletCommissionPercentage: settings.commission_outlet ?? prev.outletCommissionPercentage,
             pixFeePercent: settings.pix_fee ?? prev.pixFeePercent,
             cardFeePercent: settings.card_fee_percent ?? prev.cardFeePercent,
             cardFeeFixed: settings.card_fee_fixed ?? prev.cardFeeFixed,
@@ -81,8 +103,8 @@ export default function Simulator() {
 
 
   const simulation = useMemo<SimulationResult>(() => {
-    const commissionRate = sellerType === 'premium'
-      ? fees.premiumCommissionPercentage
+    const commissionRate = sellerType === 'outlet'
+      ? fees.outletCommissionPercentage
       : fees.commissionPercentage
 
     const commissionAmount = (productPrice * commissionRate) / 100
@@ -104,7 +126,11 @@ export default function Simulator() {
     const totalBuyerPays = productPrice + shippingPrice
     const sellerReceives = productPrice - commissionAmount
     const platformProfit = commissionAmount - paymentFee
-    const cashbackAmount = (totalBuyerPays * fees.cashbackPercentage) / 100
+    // Base = preco do produto, sem frete. E o que `creditOrderEffects` em
+    // services/orderState.js credita (`order.product_price * taxa`); somar o
+    // frete aqui inflava o cashback simulado em relacao ao que o comprador
+    // recebe de verdade.
+    const cashbackAmount = (productPrice * fees.cashbackPercentage) / 100
 
     return {
       productPrice,
@@ -196,13 +222,13 @@ export default function Simulator() {
                   <SelectItem value="free">
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
-                      Vendedor Free ({fees.commissionPercentage}% comissao)
+                      Vendedor padrao ({fees.commissionPercentage}% comissao)
                     </div>
                   </SelectItem>
-                  <SelectItem value="premium">
+                  <SelectItem value="outlet">
                     <div className="flex items-center gap-2">
-                      <Crown className="h-4 w-4 text-yellow-500" />
-                      Vendedor Premium ({fees.premiumCommissionPercentage}% comissao)
+                      <Store className="h-4 w-4 text-blue-500" />
+                      Lojista / CNPJ ({fees.outletCommissionPercentage}% comissao)
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -269,6 +295,9 @@ export default function Simulator() {
                 </Badge>
                 <span>+{formatCurrency(simulation.cashbackAmount)} de volta</span>
               </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Calculado sobre o preco do produto (sem frete), como faz o backend.
+              </p>
             </div>
 
             {/* Platform Section */}
@@ -297,8 +326,8 @@ export default function Simulator() {
             {/* Seller Section */}
             <div className="rounded-lg bg-primary/5 p-4">
               <h3 className="mb-3 flex items-center gap-2 font-semibold">
-                {sellerType === 'premium' ? (
-                  <Crown className="h-4 w-4 text-yellow-500" />
+                {sellerType === 'outlet' ? (
+                  <Store className="h-4 w-4 text-blue-500" />
                 ) : (
                   <User className="h-4 w-4" />
                 )}
@@ -347,10 +376,10 @@ export default function Simulator() {
 
             <div className="rounded-lg border p-4">
               <div className="flex items-center gap-2 text-sm font-medium">
-                <Crown className="h-4 w-4 text-yellow-500" />
-                Comissao Premium
+                <Store className="h-4 w-4 text-blue-500" />
+                Comissao Lojista
               </div>
-              <p className="mt-2 text-2xl font-bold">{fees.premiumCommissionPercentage}%</p>
+              <p className="mt-2 text-2xl font-bold">{fees.outletCommissionPercentage}%</p>
               <p className="text-xs text-muted-foreground">Por venda realizada</p>
             </div>
 
@@ -361,6 +390,7 @@ export default function Simulator() {
               </div>
               <p className="mt-2 text-2xl font-bold">{fees.pixFeePercent}%</p>
               <p className="text-xs text-muted-foreground">Do valor total</p>
+              {semEfeito('pix_fee') && <SemEfeitoTag />}
             </div>
 
             <div className="rounded-lg border p-4">
@@ -370,6 +400,7 @@ export default function Simulator() {
               </div>
               <p className="mt-2 text-2xl font-bold">{fees.cardFeePercent}% + R$ {fees.cardFeeFixed.toFixed(2)}</p>
               <p className="text-xs text-muted-foreground">Por transacao</p>
+              {(semEfeito('card_fee_percent') || semEfeito('card_fee_fixed')) && <SemEfeitoTag />}
             </div>
 
             <div className="rounded-lg border p-4">
@@ -379,6 +410,7 @@ export default function Simulator() {
               </div>
               <p className="mt-2 text-2xl font-bold">{formatCurrency(fees.withdrawalFee)}</p>
               <p className="text-xs text-muted-foreground">Por saque realizado</p>
+              {semEfeito('withdrawal_fee') && <SemEfeitoTag />}
             </div>
 
             <div className="rounded-lg border p-4">
@@ -387,9 +419,18 @@ export default function Simulator() {
                 Cashback Comprador
               </div>
               <p className="mt-2 text-2xl font-bold">{fees.cashbackPercentage}%</p>
-              <p className="text-xs text-muted-foreground">Do valor da compra</p>
+              <p className="text-xs text-muted-foreground">
+                Do preco do produto — vem de Configuracoes ({'cashback_buyer'}).
+              </p>
             </div>
           </div>
+          {/* O simulador le `GET /admin/settings`, a mesma fonte da tela de
+              Configuracoes. Comissoes e cashback saem exatamente como o backend
+              aplica; as taxas de gateway ainda sao apenas referencia. */}
+          <p className="mt-4 text-xs text-muted-foreground">
+            Comissoes e cashback vem de Configuracoes e sao os valores que o sistema aplica de verdade.
+            As taxas de gateway e de saque ficam salvas, mas nenhuma regra do backend as usa ainda.
+          </p>
         </CardContent>
       </Card>
     </div>

@@ -1,4 +1,4 @@
-﻿import { useMemo, useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,49 +12,28 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { formatCurrency, formatDateTime } from '@/lib/utils'
+import { formatCurrency, formatDateTime, downloadCSV } from '@/lib/utils'
 import { getAbandonedCarts, getHourlyViews, Cart } from '@/lib/api'
 import {
   Search,
   Download,
-  MoreHorizontal,
-  Eye,
   ShoppingCart,
-  Mail,
-  Bell,
-  RefreshCcw,
   CheckCircle,
   Clock,
   TrendingUp,
   TrendingDown,
   DollarSign,
-  Smartphone,
-  Monitor,
   Loader2,
   RefreshCw,
   AlertCircle,
 } from 'lucide-react'
 import {
-  AreaChart,
-  Area,
   BarChart,
   Bar,
-  PieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from 'recharts'
 
@@ -64,6 +43,8 @@ function getStatusBadge(status: string) {
       return <Badge variant="warning" className="gap-1"><ShoppingCart className="h-3 w-3" /> Abandonado</Badge>
     case 'active':
       return <Badge variant="info" className="gap-1"><Clock className="h-3 w-3" /> Ativo</Badge>
+    case 'expiring':
+      return <Badge variant="warning" className="gap-1"><Clock className="h-3 w-3" /> Expirando</Badge>
     case 'recovered':
       return <Badge variant="success" className="gap-1"><CheckCircle className="h-3 w-3" /> Recuperado</Badge>
     case 'converted':
@@ -119,28 +100,21 @@ export default function Carts() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [carts, setCarts] = useState<Cart[]>([])
+  // `recovered` saiu do estado junto com os cards que o exibiam: o backend
+  // devolve o literal `0` nesse campo, nao ha o que guardar.
   const [stats, setStats] = useState({
     abandoned: 0,
-    recovered: 0,
     expiring: 0,
     lost_revenue: 0,
   })
   const [hourlyData, setHourlyData] = useState<{ hour: string; views: number }[]>([])
 
-  const deviceData = useMemo(() => {
-    const counts = carts.reduce((acc, cart) => {
-      const key = (cart.device_type || 'mobile').toLowerCase();
-      acc[key] = (acc[key] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    const total = Object.values(counts).reduce((sum, val) => sum + val, 0) || 1;
-    return [
-      { name: 'Mobile', value: Math.round((counts.mobile || 0) / total * 100), color: '#ec4899' },
-      { name: 'Desktop', value: Math.round((counts.desktop || 0) / total * 100), color: '#8b5cf6' },
-      { name: 'Tablet', value: Math.round((counts.tablet || 0) / total * 100), color: '#06b6d4' },
-    ];
-  }, [carts]);
-
+  // `deviceData` foi removido: `GET /admin/abandoned-carts` nao devolve
+  // `device_type` — o campo era sempre undefined, o grafico caia no fallback
+  // 'mobile' e desenhava 100% mobile, com as legendas "68% Mobile / 28% Desktop"
+  // escritas a mao logo abaixo. Um grafico que nao le nada e pior que nenhum.
+  // Quando o backend passar a registrar o dispositivo do carrinho, a fonte certa
+  // e `GET /admin/engagement` (campo `byDevice`), ja usada na tela de Analytics.
 
   const fetchData = async () => {
     setLoading(true)
@@ -155,10 +129,9 @@ export default function Carts() {
       if (cartsRes.success) {
         setCarts(cartsRes.carts)
         setStats({
-          abandoned: cartsRes.stats.abandoned,
-          recovered: cartsRes.stats.recovered,
-          expiring: cartsRes.stats.expiring,
-          lost_revenue: cartsRes.stats.lost_revenue,
+          abandoned: Number(cartsRes.stats.abandoned) || 0,
+          expiring: Number(cartsRes.stats.expiring) || 0,
+          lost_revenue: Number(cartsRes.stats.lost_revenue) || 0,
         })
       }
 
@@ -186,7 +159,24 @@ export default function Carts() {
     return matchesSearch
   })
 
-  const recoveryRate = stats.abandoned > 0 ? ((stats.recovered / stats.abandoned) * 100).toFixed(1) : 0
+  // Exporta o que esta na tela (nao ha rota de export no backend). O helper de
+  // CSV faz o quoting e neutraliza formula, entao um nome comecando com "=" nao
+  // vira formula ao abrir no Excel.
+  const handleExport = () => {
+    downloadCSV(
+      'carrinhos-abandonados.csv',
+      ['Usuario', 'E-mail', 'Telefone', 'Itens', 'Valor', 'Ultima atividade', 'Status'],
+      filteredCarts.map(c => [
+        c.user_name || '',
+        c.user_email || '',
+        (c as any).user_phone || '',
+        c.items_count,
+        Number(c.total_value || 0).toFixed(2).replace('.', ','),
+        formatDateTime(c.last_activity_at),
+        c.status,
+      ]),
+    )
+  }
 
   if (error) {
     return (
@@ -217,46 +207,54 @@ export default function Carts() {
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             Atualizar
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleExport} disabled={loading || filteredCarts.length === 0}>
             <Download className="mr-2 h-4 w-4" />
-            Exportar
+            Exportar CSV
           </Button>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
+      {/*
+        Stats. "Taxa de Recuperacao" e "Recuperados" sairam daqui: o backend
+        devolve `0 as recovered` literalmente — nao existe medicao de carrinho
+        recuperado no sistema — entao os dois cards mostravam 0 e 0,0% para
+        sempre, e alguem podia ler isso como "a recuperacao nao esta funcionando"
+        em vez de "nao e medido". No lugar entra "Expirando", que o backend
+        calcula de verdade.
+      */}
+      <div className="grid gap-4 md:grid-cols-3">
         <StatCard
           title="Carrinhos Abandonados"
           value={stats.abandoned}
           icon={<ShoppingCart className="h-6 w-6" />}
+          description="Sem atividade ha mais de 24 h"
           loading={loading}
         />
         <StatCard
-          title="Taxa de Recuperacao"
-          value={`${recoveryRate}%`}
-          icon={<RefreshCcw className="h-6 w-6" />}
+          title="Expirando"
+          value={stats.expiring}
+          icon={<Clock className="h-6 w-6" />}
+          description="Parados entre 1 h e 24 h"
           loading={loading}
         />
         <StatCard
           title="Receita Perdida"
           value={formatCurrency(stats.lost_revenue)}
           icon={<DollarSign className="h-6 w-6" />}
-          description="Potencial de recuperacao"
-          loading={loading}
-        />
-        <StatCard
-          title="Recuperados"
-          value={stats.recovered}
-          icon={<CheckCircle className="h-6 w-6" />}
+          description="Soma dos carrinhos abandonados"
           loading={loading}
         />
       </div>
 
+      <p className="text-xs text-muted-foreground">
+        Recuperacao de carrinho ainda nao e medida: o sistema nao registra quando um
+        carrinho abandonado vira pedido, entao nao ha taxa de recuperacao para exibir.
+      </p>
+
       {/* Charts Row */}
-      <div className="grid gap-4 lg:grid-cols-7">
+      <div className="grid gap-4">
         {/* Hourly Distribution */}
-        <Card className="lg:col-span-4">
+        <Card>
           <CardHeader>
             <CardTitle>Horarios de Pico</CardTitle>
             <CardDescription>Visualizacoes por hora do dia (ultimos 7 dias)</CardDescription>
@@ -291,47 +289,6 @@ export default function Carts() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Device Distribution */}
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Por Dispositivo</CardTitle>
-            <CardDescription>Onde os carrinhos sao abandonados</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={deviceData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={70}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {deviceData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-4 flex items-center justify-center gap-4">
-              <div className="flex items-center gap-2">
-                <Smartphone className="h-4 w-4 text-primary" />
-                <span className="text-sm">68% Mobile</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Monitor className="h-4 w-4 text-purple-500" />
-                <span className="text-sm">28% Desktop</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Abandoned Carts Table */}
@@ -342,7 +299,10 @@ export default function Carts() {
               <TabsList>
                 <TabsTrigger value="all">Todos</TabsTrigger>
                 <TabsTrigger value="abandoned">Abandonados</TabsTrigger>
-                <TabsTrigger value="recovered">Recuperados</TabsTrigger>
+                {/* A aba "Recuperados" saiu: o backend classifica os carrinhos em
+                    active/expiring/abandoned, e nunca em 'recovered'. A aba
+                    filtrava por um status que nao existe e ficava sempre vazia. */}
+                <TabsTrigger value="expiring">Expirando</TabsTrigger>
               </TabsList>
             </Tabs>
             <div className="relative">
@@ -372,10 +332,10 @@ export default function Carts() {
                   <TableHead>Usuario</TableHead>
                   <TableHead>Itens</TableHead>
                   <TableHead>Valor</TableHead>
-                  <TableHead>Dispositivo</TableHead>
+                  {/* Coluna "Dispositivo" removida: escrevia "Mobile" fixo em toda
+                      linha, sem nenhum dado por tras. */}
                   <TableHead>Ultima Atividade</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="w-12"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -394,12 +354,6 @@ export default function Carts() {
                       <span className="font-medium">{formatCurrency(cart.total_value)}</span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Smartphone className="h-4 w-4 text-muted-foreground" />
-                        <span className="capitalize">Mobile</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
                       <span className="text-sm text-muted-foreground">
                         {formatDateTime(cart.last_activity_at)}
                       </span>
@@ -407,33 +361,10 @@ export default function Carts() {
                     <TableCell>
                       {getStatusBadge(cart.status)}
                     </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Acoes</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Ver Carrinho
-                          </DropdownMenuItem>
-                          {cart.status === 'abandoned' && (
-                            <DropdownMenuItem>
-                              <Mail className="mr-2 h-4 w-4" />
-                              Enviar Lembrete
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem>
-                            <Bell className="mr-2 h-4 w-4" />
-                            Enviar Push
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+                    {/* O menu de acoes saiu inteiro: "Ver Carrinho", "Enviar
+                        Lembrete" e "Enviar Push" nao tinham onClick nem rota no
+                        backend. Tres itens que abriam e nao faziam nada custavam
+                        mais que a ausencia deles. */}
                   </TableRow>
                 ))}
               </TableBody>

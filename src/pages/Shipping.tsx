@@ -12,8 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { formatDateTime } from '@/lib/utils'
-import { getOrders, Order } from '@/lib/api'
+import { formatDateTime, downloadCSV } from '@/lib/utils'
+import { getOrders, ORDER_STATUS_LABELS, type Order } from '@/lib/api'
 import {
   Truck,
   Package,
@@ -48,15 +48,42 @@ export default function Shipping() {
   const [orders, setOrders] = useState<Order[]>([])
   const [activeTab, setActiveTab] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
+  /**
+   * Contadores vindos do backend.
+   *
+   * Antes esta tela puxava `limit: 200` e contava os status dentro do array
+   * recebido. Passando de 200 pedidos — o que ja acontece — os quatro cards
+   * simplesmente paravam de crescer e o operador via "Aguardando Envio: 200"
+   * como se fosse o total real. `GET /admin/orders` ja devolve `stats` calculado
+   * sobre a tabela inteira; e ele que manda agora.
+   *
+   * Mapeamento: o backend chama de `paid` o contador de `pending_shipment`
+   * (`COUNT(*) FILTER (WHERE status IN ('pending_shipment','paid'))`), que e
+   * exatamente "pago, aguardando o vendedor postar".
+   */
+  const [stats, setStats] = useState({ pending: 0, shipped: 0, delivered: 0, cancelled: 0 })
 
+  // O filtro de aba vai para o servidor: filtrar no cliente sobre a janela de
+  // 200 registros escondia os pedidos mais antigos de cada status.
   const fetchData = async () => {
     setLoading(true)
     setError(null)
 
     try {
-      const res = await getOrders({ limit: 200 })
+      const res = await getOrders({
+        limit: 200,
+        status: activeTab === 'all' ? undefined : activeTab,
+      })
       if (res.success) {
         setOrders(res.orders || [])
+        if (res.stats) {
+          setStats({
+            pending: Number(res.stats.paid) || 0,
+            shipped: Number(res.stats.shipped) || 0,
+            delivered: Number(res.stats.delivered) || 0,
+            cancelled: Number(res.stats.cancelled) || 0,
+          })
+        }
       }
     } catch (err: any) {
       console.error('Erro ao carregar envios:', err)
@@ -68,22 +95,38 @@ export default function Shipping() {
 
   useEffect(() => {
     fetchData()
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab])
 
+  // A busca continua no cliente porque o `search` do backend cobre numero do
+  // pedido, comprador e titulo da peca — nao o codigo de rastreio, que e o que
+  // se procura nesta tela.
   const filteredOrders = useMemo(() => {
+    if (!searchTerm) return orders
+    const needle = searchTerm.toLowerCase()
     return orders.filter((order) => {
-      if (activeTab !== 'all' && order.status !== activeTab) return false
-      if (!searchTerm) return true
       const haystack = `${order.order_number || ''} ${order.shipping_code || ''}`.toLowerCase()
-      return haystack.includes(searchTerm.toLowerCase())
+      return haystack.includes(needle)
     })
-  }, [orders, activeTab, searchTerm])
+  }, [orders, searchTerm])
 
-  const stats = {
-    pending: orders.filter(o => o.status === 'pending_shipment').length,
-    shipped: orders.filter(o => o.status === 'shipped').length,
-    delivered: orders.filter(o => o.status === 'delivered').length,
-    cancelled: orders.filter(o => o.status === 'cancelled').length,
+  // Exporta os envios carregados. O helper de CSV faz quoting e neutraliza
+  // formula (um codigo de rastreio nunca comeca com "=", mas a regra vale para
+  // toda coluna vinda do banco).
+  const handleExport = () => {
+    downloadCSV(
+      'envios.csv',
+      ['Pedido', 'Rastreio', 'Transportadora', 'Status', 'Comprador', 'Vendedor', 'Data'],
+      filteredOrders.map(o => [
+        o.order_number || o.id.slice(0, 8),
+        o.shipping_code || '',
+        o.shipping_carrier || '',
+        ORDER_STATUS_LABELS[o.status] || o.status,
+        o.buyer_name || '',
+        o.seller_name || '',
+        formatDateTime(o.created_at),
+      ]),
+    )
   }
 
   if (error) {
@@ -107,9 +150,9 @@ export default function Shipping() {
           <h1 className="text-3xl font-bold tracking-tight">Envios</h1>
           <p className="text-muted-foreground">Acompanhe os envios do marketplace</p>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" onClick={handleExport} disabled={loading || filteredOrders.length === 0}>
           <Download className="mr-2 h-4 w-4" />
-          Exportar
+          Exportar CSV
         </Button>
       </div>
 

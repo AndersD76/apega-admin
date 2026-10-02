@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { PeriodFilter, periodPreset, type Period } from '@/components/PeriodFilter'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -35,8 +36,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { formatCurrency, formatDateTime } from '@/lib/utils'
-import { getOrders, getOrderDetails, updateOrderStatus, Order } from '@/lib/api'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { formatCurrency, formatDateTime, downloadCSV } from '@/lib/utils'
+import {
+  getOrders,
+  getOrderDetails,
+  updateOrderStatus,
+  getOrderTransitions,
+  ADMIN_ORDER_TRANSITIONS,
+  ORDER_STATUS_LABELS,
+  Order,
+} from '@/lib/api'
 import {
   Search,
   Download,
@@ -60,24 +70,40 @@ import {
   Image,
 } from 'lucide-react'
 
+// Todos os status do dominio real (services/orderState.js). A versao anterior
+// so conhecia cinco e os demais apareciam como texto cru na tela.
 function getStatusBadge(status: string) {
+  const label = ORDER_STATUS_LABELS[status] || status
   switch (status) {
     case 'pending_payment':
-      return <Badge variant="warning" className="gap-1"><Clock className="h-3 w-3" /> Aguardando Pagamento</Badge>
+      return <Badge variant="warning" className="gap-1"><Clock className="h-3 w-3" /> {label}</Badge>
+    case 'processing':
+      return <Badge variant="warning" className="gap-1"><Loader2 className="h-3 w-3" /> {label}</Badge>
+    case 'payment_failed':
+      return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" /> {label}</Badge>
     case 'pending_shipment':
-      return <Badge variant="info" className="gap-1"><DollarSign className="h-3 w-3" /> Aguardando Envio</Badge>
     case 'paid':
-      return <Badge variant="info" className="gap-1"><DollarSign className="h-3 w-3" /> Pago</Badge>
+      return <Badge variant="info" className="gap-1"><DollarSign className="h-3 w-3" /> {label}</Badge>
     case 'shipped':
-      return <Badge variant="info" className="gap-1"><Truck className="h-3 w-3" /> Enviado</Badge>
+    case 'in_transit':
+      return <Badge variant="info" className="gap-1"><Truck className="h-3 w-3" /> {label}</Badge>
     case 'delivered':
-      return <Badge variant="success" className="gap-1"><CheckCircle className="h-3 w-3" /> Entregue</Badge>
+      return <Badge variant="success" className="gap-1"><Package className="h-3 w-3" /> {label}</Badge>
+    case 'completed':
+      return <Badge variant="success" className="gap-1"><CheckCircle className="h-3 w-3" /> {label}</Badge>
+    case 'disputed':
+      return <Badge variant="warning" className="gap-1"><AlertCircle className="h-3 w-3" /> {label}</Badge>
     case 'cancelled':
-      return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" /> Cancelado</Badge>
+    case 'refunded':
+    case 'chargeback':
+      return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" /> {label}</Badge>
     default:
-      return <Badge>{status}</Badge>
+      return <Badge>{label}</Badge>
   }
 }
+
+/** Transicoes que exigem confirmacao antes de disparar. */
+const DESTRUCTIVE_TRANSITIONS = ['cancelled', 'refunded', 'disputed', 'completed']
 
 interface StatCardProps {
   title: string
@@ -129,7 +155,8 @@ interface OrderWithDetails extends Order {
 }
 
 export default function Orders() {
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchParams] = useSearchParams()
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
   const [activeTab, setActiveTab] = useState('all')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -147,8 +174,17 @@ export default function Orders() {
   const [selectedOrder, setSelectedOrder] = useState<OrderWithDetails | null>(null)
   const [detailsLoading, setDetailsLoading] = useState(false)
   const [period, setPeriod] = useState<Period>(periodPreset('12m'))
+  // Resultado da ultima mudanca de status. Antes o erro so ia para o console e
+  // o operador achava que tinha salvado.
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [actionMessage, setActionMessage] = useState<string | null>(null)
+  // Transicoes que o backend autoriza para o pedido aberto no modal.
+  const [allowedTransitions, setAllowedTransitions] = useState<string[]>([])
+  const [confirmTarget, setConfirmTarget] = useState<{ order: Order; status: string } | null>(null)
 
-  const fetchOrders = async (page = 1) => {
+  // searchOverride: a busca do cabecalho navega com ?q= e o fetch precisa do
+  // termo novo sem esperar o setState propagar.
+  const fetchOrders = async (page = 1, searchOverride?: string) => {
     setLoading(true)
     setError(null)
 
@@ -159,6 +195,10 @@ export default function Orders() {
         status: activeTab === 'all' ? undefined : activeTab,
         from: period.from,
         to: period.to,
+        // A busca e do BANCO, nao da pagina atual: antes o filtro rodava sobre
+        // os 20 registros ja carregados e "nao encontrado" era mentira sempre
+        // que o pedido estava na pagina 2.
+        search: (searchOverride !== undefined ? searchOverride : searchTerm) || undefined,
       })
 
       if (res.success) {
@@ -178,10 +218,16 @@ export default function Orders() {
     }
   }
 
+  // A busca do cabecalho navega com ?q=; o termo entra no proprio fetch.
+  const urlQuery = searchParams.get('q') || ''
   useEffect(() => {
-    fetchOrders()
+    setSearchTerm(urlQuery)
+  }, [urlQuery])
+
+  useEffect(() => {
+    fetchOrders(1, urlQuery)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, period.from, period.to])
+  }, [activeTab, period.from, period.to, urlQuery])
 
   const handleSearch = () => {
     fetchOrders(1)
@@ -189,45 +235,85 @@ export default function Orders() {
 
   const handleViewDetails = async (orderId: string) => {
     setDetailsLoading(true)
+    setAllowedTransitions([])
     try {
-      const res = await getOrderDetails(orderId)
+      const [res, transitions] = await Promise.all([
+        getOrderDetails(orderId),
+        // Quem manda no que pode virar o que e o backend. O select passa a
+        // oferecer exatamente isso, em vez de cinco opcoes fixas das quais
+        // duas sempre davam 400.
+        getOrderTransitions(orderId).catch(() => null),
+      ])
       if (res.success) {
         setSelectedOrder(res.order)
       }
-    } catch (err) {
-      console.error('Erro ao carregar detalhes:', err)
+      if (transitions?.success) {
+        setAllowedTransitions(transitions.transitions)
+      }
+    } catch (err: any) {
+      setActionError(err.message || 'Erro ao carregar detalhes do pedido')
     } finally {
       setDetailsLoading(false)
     }
   }
 
-  const handleUpdateStatus = async (orderId: string, newStatus: string) => {
-    try {
-      const res = await updateOrderStatus(orderId, newStatus)
-      if (res.success) {
-        setOrders(orders.map(o =>
-          o.id === orderId ? { ...o, status: newStatus as Order['status'] } : o
-        ))
-        if (selectedOrder?.id === orderId) {
-          setSelectedOrder({ ...selectedOrder, status: newStatus as Order['status'] })
-        }
-      }
-    } catch (err) {
-      console.error('Erro ao atualizar status:', err)
+  const applyStatus = async (orderId: string, newStatus: string) => {
+    setActionError(null)
+    setActionMessage(null)
+    const res = await updateOrderStatus(orderId, newStatus)
+    if (res.success) {
+      setOrders(prev => prev.map(o =>
+        o.id === orderId ? { ...o, status: newStatus as Order['status'] } : o
+      ))
+      setSelectedOrder(prev =>
+        prev && prev.id === orderId ? { ...prev, status: newStatus as Order['status'] } : prev
+      )
+      setAllowedTransitions(ADMIN_ORDER_TRANSITIONS[newStatus] || [])
+      setActionMessage(
+        res.effects?.creditedSeller
+          ? `Pedido concluido. Vendedor creditado em ${formatCurrency(res.effects.creditedSeller)}.`
+          : `Status atualizado para "${ORDER_STATUS_LABELS[newStatus] || newStatus}".`
+      )
     }
+  }
+
+  // Transicoes de dinheiro (concluir, estornar, cancelar) passam por
+  // confirmacao; as demais vao direto, mas o erro aparece na tela nos dois casos.
+  const handleUpdateStatus = async (order: Order, newStatus: string) => {
+    if (DESTRUCTIVE_TRANSITIONS.includes(newStatus)) {
+      setConfirmTarget({ order, status: newStatus })
+      return
+    }
+    try {
+      await applyStatus(order.id, newStatus)
+    } catch (err: any) {
+      setActionError(err.message || 'Erro ao atualizar status do pedido')
+    }
+  }
+
+  const handleExportCSV = () => {
+    downloadCSV(
+      `pedidos-${period.from || 'inicio'}-a-${period.to || 'hoje'}.csv`,
+      ['Pedido', 'Produto', 'Comprador', 'Vendedor', 'Valor', 'Frete', 'Comissao', 'Vendedor recebe', 'Status', 'Rastreio', 'Data'],
+      orders.map(o => [
+        o.order_number || o.id,
+        o.product_title || '',
+        o.buyer_name || '',
+        o.seller_name || '',
+        String(o.product_price ?? o.total_amount ?? '').replace('.', ','),
+        String(o.shipping_price ?? '').replace('.', ','),
+        String(o.commission_amount ?? '').replace('.', ','),
+        String(o.seller_receives ?? '').replace('.', ','),
+        ORDER_STATUS_LABELS[o.status] || o.status,
+        o.shipping_code || '',
+        o.created_at?.slice(0, 10) || '',
+      ])
+    )
   }
 
   const handlePageChange = (newPage: number) => {
     fetchOrders(newPage)
   }
-
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = (order.order_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (order.buyer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (order.seller_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (order.product_title || '').toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesSearch
-  })
 
   const totalPages = Math.ceil(pagination.total / pagination.limit)
 
@@ -260,12 +346,29 @@ export default function Orders() {
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             Atualizar
           </Button>
-          <Button variant="outline">
+          {/* Exporta a pagina carregada, em CSV, sem passar pelo servidor. */}
+          <Button variant="outline" onClick={handleExportCSV} disabled={orders.length === 0}>
             <Download className="mr-2 h-4 w-4" />
             Exportar
           </Button>
         </div>
       </div>
+
+      {/* Retorno das acoes de status — o erro precisa ser visivel, nao console */}
+      {actionError && (
+        <div className="flex items-start gap-2 rounded-lg bg-destructive/10 p-4 text-destructive">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+          <div className="flex-1 text-sm">{actionError}</div>
+          <button className="text-xs underline" onClick={() => setActionError(null)}>fechar</button>
+        </div>
+      )}
+      {actionMessage && (
+        <div className="flex items-start gap-2 rounded-lg bg-green-500/10 p-4 text-green-600">
+          <CheckCircle className="mt-0.5 h-5 w-5 shrink-0" />
+          <div className="flex-1 text-sm">{actionMessage}</div>
+          <button className="text-xs underline" onClick={() => setActionMessage(null)}>fechar</button>
+        </div>
+      )}
 
       {/* Período */}
       <PeriodFilter value={period} onChange={setPeriod} />
@@ -334,7 +437,7 @@ export default function Orders() {
             <div className="flex items-center justify-center h-64">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : filteredOrders.length === 0 ? (
+          ) : orders.length === 0 ? (
             <div className="flex items-center justify-center h-64 text-muted-foreground">
               Nenhum pedido encontrado
             </div>
@@ -355,7 +458,7 @@ export default function Orders() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredOrders.map((order) => (
+                  {orders.map((order) => (
                     <TableRow key={order.id}>
                       <TableCell>
                         <div>
@@ -435,19 +538,19 @@ export default function Orders() {
                             )}
                             <DropdownMenuSeparator />
                             {order.status === 'pending_payment' && (
-                              <DropdownMenuItem onClick={() => handleUpdateStatus(order.id, 'pending_shipment')}>
+                              <DropdownMenuItem onClick={() => handleUpdateStatus(order, 'pending_shipment')}>
                                 <DollarSign className="mr-2 h-4 w-4" />
                                 Confirmar Pagamento
                               </DropdownMenuItem>
                             )}
                             {order.status === 'pending_shipment' && (
-                              <DropdownMenuItem onClick={() => handleUpdateStatus(order.id, 'shipped')}>
+                              <DropdownMenuItem onClick={() => handleUpdateStatus(order, 'shipped')}>
                                 <Truck className="mr-2 h-4 w-4" />
                                 Marcar como Enviado
                               </DropdownMenuItem>
                             )}
                             {order.status === 'shipped' && (
-                              <DropdownMenuItem onClick={() => handleUpdateStatus(order.id, 'delivered')}>
+                              <DropdownMenuItem onClick={() => handleUpdateStatus(order, 'delivered')}>
                                 <CheckCircle className="mr-2 h-4 w-4" />
                                 Marcar como Entregue
                               </DropdownMenuItem>
@@ -455,7 +558,7 @@ export default function Orders() {
                             {order.status !== 'cancelled' && order.status !== 'delivered' && (
                               <DropdownMenuItem
                                 className="text-destructive"
-                                onClick={() => handleUpdateStatus(order.id, 'cancelled')}
+                                onClick={() => handleUpdateStatus(order, 'cancelled')}
                               >
                                 <XCircle className="mr-2 h-4 w-4" />
                                 Cancelar Pedido
@@ -654,7 +757,7 @@ export default function Orders() {
                 <div className="flex gap-2">
                   <Select
                     value={selectedOrder.status}
-                    onValueChange={(value) => handleUpdateStatus(selectedOrder.id, value)}
+                    onValueChange={(value) => handleUpdateStatus(selectedOrder, value)}
                   >
                     <SelectTrigger className="w-48">
                       <SelectValue />

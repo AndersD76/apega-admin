@@ -33,7 +33,6 @@ import {
   getRevenueChart,
   getSalesByCategory,
   getConversionMetrics,
-  getUsersBySubscription,
   getGA4,
   ConversionMetrics,
   RevenueChartData,
@@ -79,10 +78,11 @@ export default function Analytics() {
   const [conversion, setConversion] = useState<ConversionMetrics | null>(null)
   const [revenueData, setRevenueData] = useState<RevenueChartData[]>([])
   const [categoryData, setCategoryData] = useState<CategorySalesData[]>([])
-  const [subscriptionData, setSubscriptionData] = useState<{ subscription_type: string; count: number }[]>([])
   const [period, setPeriod] = useState<Period>(periodPreset('30d'))
   const [ga4, setGa4] = useState<GA4Overview | null>(null)
-  const [ga4Error, setGa4Error] = useState<string | null>(null)
+  // `configured` separa "falta variavel no Railway" (503) de "o Google recusou"
+  // (502): sao passos diferentes da configuracao.
+  const [ga4Error, setGa4Error] = useState<{ message: string; configured: boolean } | null>(null)
   const [ga4Loading, setGa4Loading] = useState(false)
 
   const fetchGA4 = async (p: Period) => {
@@ -93,7 +93,10 @@ export default function Analytics() {
       setGa4(res)
     } catch (err: any) {
       setGa4(null)
-      setGa4Error(err?.message || 'Erro ao consultar o Google Analytics')
+      setGa4Error({
+        message: err?.message || 'Erro ao consultar o Google Analytics',
+        configured: err?.configured === true,
+      })
     } finally {
       setGa4Loading(false)
     }
@@ -104,11 +107,10 @@ export default function Analytics() {
     setError(null)
 
     try {
-      const [conversionRes, revenueRes, categoryRes, subscriptionRes] = await Promise.all([
-        getConversionMetrics(),
+      const [conversionRes, revenueRes, categoryRes] = await Promise.all([
+        getConversionMetrics({ from: period.from, to: period.to }),
         getRevenueChart('30days'),
         getSalesByCategory(),
-        getUsersBySubscription(),
       ])
 
       if (conversionRes.success) {
@@ -129,9 +131,6 @@ export default function Analytics() {
         setCategoryData(categoryRes.data)
       }
 
-      if (subscriptionRes.success) {
-        setSubscriptionData(subscriptionRes.data || [])
-      }
     } catch (err: any) {
       console.error('Erro ao carregar analytics:', err)
       setError(err.message || 'Erro ao carregar dados')
@@ -160,11 +159,13 @@ export default function Analytics() {
     )
   }
 
+  // Etapas em pessoas, para cada barra caber na anterior. A sacola nao entra:
+  // "Comprar" na peca vai direto ao checkout, sem passar por ela.
   const funnelData = conversion ? [
     { stage: 'Visitantes', value: conversion.uniqueVisitors },
-    { stage: 'Visualizacoes', value: conversion.totalViews },
-    { stage: 'Carrinho', value: conversion.cartAdditions },
-    { stage: 'Pedidos', value: conversion.completedOrders },
+    { stage: 'Viram peças', value: conversion.viewers },
+    { stage: 'Iniciaram checkout', value: conversion.checkoutUsers },
+    { stage: 'Compraram', value: conversion.buyers },
   ] : []
 
   return (
@@ -188,8 +189,8 @@ export default function Analytics() {
           icon={<ShoppingBag className="h-6 w-6" />}
         />
         <MetricCard
-          title="Carrinho -> Pedido"
-          value={conversion ? `${conversion.cartToOrderRate}%` : '0%'}
+          title="Checkout -> Pago"
+          value={conversion ? `${conversion.checkoutToOrderRate}%` : '0%'}
           icon={<RefreshCcw className="h-6 w-6" />}
         />
         <MetricCard
@@ -204,7 +205,6 @@ export default function Analytics() {
           <TabsTrigger value="revenue">Receita</TabsTrigger>
           <TabsTrigger value="funnel">Funil</TabsTrigger>
           <TabsTrigger value="categories">Categorias</TabsTrigger>
-          <TabsTrigger value="subscriptions">Assinaturas</TabsTrigger>
           <TabsTrigger value="google">Google</TabsTrigger>
         </TabsList>
 
@@ -216,16 +216,18 @@ export default function Analytics() {
           ) : !ga4 ? (
             <Card>
               <CardHeader>
-                <CardTitle>Google Analytics nao conectado</CardTitle>
+                <CardTitle>
+                  {ga4Error?.configured ? 'Google Analytics com erro' : 'Google Analytics nao conectado'}
+                </CardTitle>
                 <CardDescription>
-                  {ga4Error || 'Configure as credenciais para ver os dados do GA4 aqui.'}
+                  {ga4Error?.message || 'Configure as credenciais para ver os dados do GA4 aqui.'}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2 text-sm text-muted-foreground">
-                <p>1. No Google Cloud Console, crie um <strong>service account</strong> e gere uma chave JSON.</p>
-                <p>2. No GA4: Administrador → Gerenciamento de acesso da propriedade → adicione o e-mail do service account como <strong>Leitor</strong>.</p>
-                <p>3. No Railway, adicione as variaveis <code>GA4_PROPERTY_ID</code>, <code>GOOGLE_SA_EMAIL</code> e <code>GOOGLE_SA_PRIVATE_KEY</code> (private_key do JSON).</p>
-                <p>Detalhes no HANDOFF.md do projeto.</p>
+                <p>1. No GA4: Administrador → Detalhes da propriedade → copie o <strong>ID da propriedade</strong> (só números; não é o ID de medição G-...).</p>
+                <p>2. No Google Cloud Console: ative a <strong>Google Analytics Data API</strong> no projeto, crie um <strong>service account</strong> e gere uma chave JSON.</p>
+                <p>3. No GA4: Administrador → Gerenciamento de acesso à propriedade → adicione o <code>client_email</code> do JSON como <strong>Leitor</strong>.</p>
+                <p>4. No Railway, no serviço do <strong>backend</strong> (a API, não o admin), crie <code>GA4_PROPERTY_ID</code>, <code>GOOGLE_SA_EMAIL</code> (o <code>client_email</code>) e <code>GOOGLE_SA_PRIVATE_KEY</code> (o <code>private_key</code> inteiro, com as linhas BEGIN e END).</p>
               </CardContent>
             </Card>
           ) : (
@@ -336,7 +338,7 @@ export default function Analytics() {
           <Card>
             <CardHeader>
               <CardTitle>Funil de Conversao</CardTitle>
-              <CardDescription>Ultimos 30 dias</CardDescription>
+              <CardDescription>Pessoas no período selecionado</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-80">
@@ -348,14 +350,23 @@ export default function Analytics() {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={funnelData} layout="vertical">
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis type="number" />
+                      <XAxis type="number" allowDecimals={false} />
                       <YAxis dataKey="stage" type="category" width={150} />
                       <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
-                      <Bar dataKey="value" fill="#ec4899" radius={[0, 4, 4, 0]} />
+                      <Bar dataKey="value" name="Pessoas" fill="#ec4899" radius={[0, 4, 4, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
               </div>
+              {conversion && !loading && (
+                <p className="mt-4 text-sm text-muted-foreground">
+                  No período: {formatNumber(conversion.totalViews)} visualizações de peças,{' '}
+                  {formatNumber(conversion.cartAdditions)} adições à sacola,{' '}
+                  {formatNumber(conversion.checkoutStarts)} checkouts e{' '}
+                  {formatNumber(conversion.completedOrders)} pedidos pagos. A sacola fica fora do funil
+                  porque "Comprar" na peça leva direto ao checkout.
+                </p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -397,36 +408,6 @@ export default function Analytics() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="subscriptions" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Usuarios por Assinatura</CardTitle>
-              <CardDescription>Distribuicao atual</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                {loading ? (
-                  <div className="flex items-center justify-center h-full">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                  </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={subscriptionData.map(item => ({
-                      name: item.subscription_type,
-                      total: parseInt(String(item.count)),
-                    }))}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
-                      <Bar dataKey="total" name="Usuarios" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
     </div>
   )

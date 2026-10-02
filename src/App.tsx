@@ -15,6 +15,7 @@ import Shipping from '@/pages/Shipping'
 import Finance from '@/pages/Finance'
 import Contas from '@/pages/Contas'
 import Analytics from '@/pages/Analytics'
+import Tracking from '@/pages/Tracking'
 import Simulator from '@/pages/Simulator'
 import Communications from '@/pages/Communications'
 import Reports from '@/pages/Reports'
@@ -60,6 +61,7 @@ function AppRoutes() {
         <Route path="financeiro" element={<Finance />} />
         <Route path="contas" element={<Contas />} />
         <Route path="analytics" element={<Analytics />} />
+        <Route path="tracking" element={<Tracking />} />
         <Route path="simulador" element={<Simulator />} />
         <Route path="comunicacoes" element={<Communications />} />
         <Route path="denuncias" element={<Reports />} />

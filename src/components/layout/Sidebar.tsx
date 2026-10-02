@@ -20,6 +20,7 @@ import {
   LogOut,
   Heart,
   Wallet,
+  Activity,
 } from 'lucide-react'
 
 interface NavItem {
@@ -77,6 +78,11 @@ const secondaryNavItems: NavItem[] = [
     title: 'Analytics',
     href: '/analytics',
     icon: <BarChart3 className="h-5 w-5" />,
+  },
+  {
+    title: 'Tracking',
+    href: '/tracking',
+    icon: <Activity className="h-5 w-5" />,
   },
 ]
 

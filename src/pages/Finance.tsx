@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import {
   getDashboard,
@@ -207,6 +208,13 @@ export default function Finance() {
   const [entriesLoading, setEntriesLoading] = useState(false)
   const [period, setPeriod] = useState<Period>(periodPreset('mes'))
 
+  // Aprovar/rejeitar saque mexe com dinheiro de terceiro e antes disparava no
+  // primeiro clique, sem pergunta. Guarda aqui a acao pendente ate o operador
+  // confirmar no dialogo.
+  const [pendingWithdrawal, setPendingWithdrawal] = useState<
+    { id: string; action: 'approve' | 'reject'; name: string; amount: number } | null
+  >(null)
+
   // ─── Data fetching ──────────────────────────────────────
 
   const fetchOverview = useCallback(async () => {
@@ -308,19 +316,29 @@ export default function Finance() {
   }, [fetchOverview])
 
   useEffect(() => {
-    if (activeTab === 'receivables') fetchReceivables(1)
     if (activeTab === 'payables') fetchPayables(1)
     if (activeTab === 'cashflow') fetchCashFlow()
     if (activeTab === 'entries') fetchEntries(1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, period.from, period.to])
 
+  // Recebiveis tem efeito proprio porque tem filtro proprio. Antes o onValueChange
+  // do Select fazia `setState` + `setTimeout(() => fetchReceivables(1), 0)`, e o
+  // `fetchReceivables` capturado pelo timeout ainda era o da renderizacao anterior:
+  // buscava com o filtro ANTIGO, e o filtro novo so aparecia na troca seguinte.
+  // Dependendo de `fetchReceivables` (que ja e um useCallback preso a
+  // `receivablesFilter`) a busca sai sempre com o valor atual.
+  useEffect(() => {
+    if (activeTab !== 'receivables') return
+    fetchReceivables(1)
+  }, [activeTab, fetchReceivables])
+
+  // Sem try/catch: o erro sobe para o ConfirmDialog, que o mostra na propria
+  // caixa. Antes a falha ia para o vazio e o operador achava que tinha dado certo.
   const handleWithdrawal = async (transactionId: string, action: 'approve' | 'reject') => {
-    try {
-      await processWithdrawal(transactionId, action)
-      fetchOverview()
-      if (activeTab === 'payables') fetchPayables(payablesPage)
-    } catch { /* silent */ }
+    await processWithdrawal(transactionId, action)
+    await fetchOverview()
+    if (activeTab === 'payables') fetchPayables(payablesPage)
   }
 
   if (error) {
@@ -373,6 +391,13 @@ export default function Finance() {
         <TabsContent value="overview" className="space-y-6">
           {/* Balance + Stats */}
           <div className="grid gap-4 md:grid-cols-5">
+            {/*
+              `available` aqui e o valor ja normalizado por `getAsaasBalance`
+              (lib/api.ts): a rota do backend devolve o objeto cru do Asaas,
+              `{ balance, totalPending }`, e este card lia `available` direto —
+              por isso mostrava sempre R$ 0,00. Nao trocar por `asaasBalance.balance`:
+              o mapeamento e responsabilidade da camada de api.
+            */}
             <StatCard
               title="Saldo Asaas Disponivel"
               value={formatCurrency(asaasBalance?.available || 0)}
@@ -491,6 +516,11 @@ export default function Finance() {
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5" /> Saques Pendentes ({withdrawals.length})
                 </CardTitle>
+                {/* O backend so troca o status; a transferencia e manual. Dizer isso
+                    na tela evita que alguem aprove e considere o vendedor pago. */}
+                <CardDescription>
+                  Aprovar marca a solicitacao como paga — a transferencia ao vendedor e feita fora do painel.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -510,8 +540,8 @@ export default function Finance() {
                         <TableCell>{formatDate(w.created_at)}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button size="sm" variant="outline" onClick={() => handleWithdrawal(w.id, 'approve')}>Aprovar</Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleWithdrawal(w.id, 'reject')}>Rejeitar</Button>
+                            <Button size="sm" variant="outline" onClick={() => setPendingWithdrawal({ id: w.id, action: 'approve', name: w.user_name || 'Usuario', amount: Math.abs(parseFloat(w.amount)) })}>Aprovar</Button>
+                            <Button size="sm" variant="destructive" onClick={() => setPendingWithdrawal({ id: w.id, action: 'reject', name: w.user_name || 'Usuario', amount: Math.abs(parseFloat(w.amount)) })}>Rejeitar</Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -651,8 +681,8 @@ export default function Finance() {
                           <TableCell>
                             {tx.status === 'pending' ? (
                               <div className="flex gap-2">
-                                <Button size="sm" variant="outline" onClick={() => handleWithdrawal(tx.id, 'approve')}>Aprovar</Button>
-                                <Button size="sm" variant="destructive" onClick={() => handleWithdrawal(tx.id, 'reject')}>Rejeitar</Button>
+                                <Button size="sm" variant="outline" onClick={() => setPendingWithdrawal({ id: tx.id, action: 'approve', name: tx.user_name || 'Usuario', amount: Math.abs(parseFloat(tx.amount)) })}>Aprovar</Button>
+                                <Button size="sm" variant="destructive" onClick={() => setPendingWithdrawal({ id: tx.id, action: 'reject', name: tx.user_name || 'Usuario', amount: Math.abs(parseFloat(tx.amount)) })}>Rejeitar</Button>
                               </div>
                             ) : (
                               <span className="text-xs text-muted-foreground">Processado</span>
@@ -827,6 +857,43 @@ export default function Finance() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/*
+        Confirmacao de saque. O texto e explicito sobre o que o botao faz de
+        verdade hoje: "aprovar" so muda o status do lancamento no banco, nenhuma
+        transferencia sai daqui. Como o painel nao avisava isso, havia risco de
+        alguem aprovar achando que o dinheiro tinha saido — e nao pagar o vendedor.
+      */}
+      <ConfirmDialog
+        open={!!pendingWithdrawal}
+        onOpenChange={(open) => { if (!open) setPendingWithdrawal(null) }}
+        variant={pendingWithdrawal?.action === 'reject' ? 'destructive' : 'default'}
+        title={pendingWithdrawal?.action === 'reject' ? 'Rejeitar saque?' : 'Marcar saque como pago?'}
+        confirmLabel={pendingWithdrawal?.action === 'reject' ? 'Rejeitar saque' : 'Marcar como pago'}
+        description={
+          pendingWithdrawal ? (
+            <div className="space-y-2">
+              <p>
+                <strong>{pendingWithdrawal.name}</strong> — {formatCurrency(pendingWithdrawal.amount)}
+              </p>
+              {pendingWithdrawal.action === 'approve' ? (
+                <p className="rounded-md bg-amber-100 px-3 py-2 text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
+                  Atencao: aprovar aqui <strong>nao transfere dinheiro</strong>. A acao apenas
+                  muda o status da solicitacao para &quot;aprovado&quot;. A transferencia
+                  precisa ser feita a parte (PIX/TED) antes de confirmar.
+                </p>
+              ) : (
+                <p>O valor volta para o saldo do vendedor e a solicitacao fica marcada como rejeitada.</p>
+              )}
+            </div>
+          ) : null
+        }
+        onConfirm={async () => {
+          if (!pendingWithdrawal) return
+          await handleWithdrawal(pendingWithdrawal.id, pendingWithdrawal.action)
+          setPendingWithdrawal(null)
+        }}
+      />
     </div>
   )
 }

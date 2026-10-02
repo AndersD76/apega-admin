@@ -13,8 +13,9 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
+    // Sem console.log aqui: era uma linha por requisicao — incluindo a busca com
+    // debounce do cabecalho — e ainda anunciava a presenca do token no console.
     const token = localStorage.getItem('admin_token')
-    console.log('[API] v2 Request to:', config.url, '| Token:', token ? 'Present' : 'Missing')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -23,12 +24,44 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
+/** Limpa a sessao e manda para o login. Usada no 401. */
+function dropSession() {
+  localStorage.removeItem('admin_token')
+  localStorage.removeItem('admin_user')
+  if (window.location.pathname !== '/login') {
+    // `replace` para o botao "voltar" nao devolver a tela vazia.
+    window.location.replace('/login')
+  }
+}
+
 // Response interceptor
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    console.error('API Error:', error.response?.data || error.message)
-    return Promise.reject(error.response?.data || error)
+    const status: number | undefined = error.response?.status
+
+    // O token expira em 24 h e a sessao so era conferida na montagem do app.
+    // Depois disso toda chamada falhava em silencio e o operador ficava olhando
+    // telas vazias, achando que nao havia dados. Agora o 401 derruba a sessao.
+    if (status === 401) {
+      dropSession()
+    }
+
+    // O interceptor antigo rejeitava com `error.response.data` puro: um objeto
+    // sem `status` e sem prototipo de Error, entao as paginas nao distinguiam
+    // 403 de 500. Aqui o corpo do backend e preservado e o status viaja junto.
+    const body = error.response?.data
+    const message =
+      (body && typeof body === 'object' && (body as any).message) ||
+      error.message ||
+      'Erro de comunicacao com o servidor'
+
+    const normalized = Object.assign(new Error(message), body || {}, {
+      status,
+      message,
+    })
+
+    return Promise.reject(normalized)
   }
 )
 
@@ -74,8 +107,8 @@ export interface User {
   city?: string
   state?: string
   is_active: boolean
-  subscription_type: 'free' | 'premium' | 'premium_plus'
-  subscription_expires_at?: string
+  is_admin?: boolean
+  is_outlet?: boolean
   seller_rating?: number
   total_sales?: number
   balance?: number
@@ -83,7 +116,17 @@ export interface User {
   last_login_at?: string
   products_count?: number
   sales_count?: number
-  // Payment info
+  // A LISTAGEM devolve apenas estes dois booleanos. Documento, chave PIX e
+  // dados bancarios saem so no detalhe (`getUserDetails`) e ja mascarados.
+  has_pix?: boolean
+  has_bank_account?: boolean
+}
+
+/** Detalhe de um usuario. Os campos sensiveis chegam MASCARADOS do backend. */
+export interface UserDetails extends User {
+  cashback_balance?: number
+  person_type?: string
+  company_name?: string
   pix_key_type?: 'cpf' | 'cnpj' | 'email' | 'phone' | 'random'
   pix_key?: string
   bank_code?: string
@@ -92,6 +135,7 @@ export interface User {
   bank_account?: string
   bank_account_type?: 'corrente' | 'poupanca'
   cpf?: string
+  cnpj?: string
 }
 
 export interface Product {
@@ -119,13 +163,79 @@ export interface Product {
   category_name?: string
 }
 
+/**
+ * Status reais do pedido, espelhando `KNOWN_STATUSES` de
+ * `largo-backend/src/services/orderState.js`. O painel enviava 'pending' e
+ * 'paid', que o backend nunca aceitou — toda mudanca de status dava 400.
+ */
+export const ORDER_STATUSES = [
+  'pending_payment',
+  'processing',
+  'payment_failed',
+  'pending_shipment',
+  'shipped',
+  'in_transit',
+  'delivered',
+  'completed',
+  'disputed',
+  'cancelled',
+  'refunded',
+  'chargeback',
+] as const
+
+export type OrderStatus = typeof ORDER_STATUSES[number]
+
+/** Rotulo em portugues de cada status, usado em badges e selects. */
+export const ORDER_STATUS_LABELS: Record<string, string> = {
+  pending_payment: 'Aguardando Pagamento',
+  processing: 'Processando Pagamento',
+  payment_failed: 'Pagamento Falhou',
+  pending_shipment: 'Aguardando Envio',
+  paid: 'Pago',
+  shipped: 'Enviado',
+  in_transit: 'Em Transito',
+  delivered: 'Entregue',
+  completed: 'Concluido',
+  disputed: 'Em Disputa',
+  cancelled: 'Cancelado',
+  refunded: 'Estornado',
+  chargeback: 'Chargeback',
+}
+
+/**
+ * Espelho das transicoes que o papel `admin` pode disparar, copiado de
+ * `TRANSITIONS` em `largo-backend/src/services/orderState.js`.
+ *
+ * A autoridade continua sendo o backend — isto existe so para a tela nao
+ * oferecer uma acao que vai voltar 403. Note que 'pending_payment' ->
+ * 'pending_shipment' NAO esta aqui: confirmar pagamento e do webhook do
+ * gateway, nunca do painel. O botao "Confirmar Pagamento" que existia na tela
+ * jamais poderia funcionar.
+ */
+export const ADMIN_ORDER_TRANSITIONS: Record<string, OrderStatus[]> = {
+  pending_payment: ['cancelled'],
+  processing: ['cancelled'],
+  payment_failed: ['cancelled'],
+  pending_shipment: ['shipped', 'disputed', 'cancelled', 'refunded'],
+  shipped: ['in_transit', 'delivered', 'disputed', 'refunded'],
+  in_transit: ['delivered', 'disputed', 'refunded'],
+  delivered: ['completed', 'disputed', 'refunded'],
+  disputed: ['delivered', 'completed', 'refunded'],
+  completed: [],
+  cancelled: [],
+  refunded: [],
+  chargeback: [],
+}
+
 export interface Order {
   id: string
   order_number?: string
   product_id: string
   buyer_id: string
   seller_id: string
-  status: 'pending_payment' | 'pending_shipment' | 'paid' | 'shipped' | 'delivered' | 'completed' | 'cancelled' | 'disputed' | 'refunded'
+  // Dominio real da maquina de estados (services/orderState.js). 'paid' fica
+  // so por causa de pedidos antigos gravados antes da padronizacao.
+  status: OrderStatus | 'paid'
   total_amount: number
   commission_amount: number
   seller_receives: number
@@ -167,25 +277,66 @@ export interface CategorySalesData {
   revenue: number
 }
 
+/**
+ * Funil do periodo (backend: services/analytics.js, getConversionFunnel).
+ * Etapas em pessoas: visitantes > viram peca > iniciaram checkout > compraram.
+ * Totais em eventos: visualizacoes, adicoes a sacola, checkouts, pedidos pagos.
+ */
 export interface ConversionMetrics {
-  totalViews: number
+  from: string
+  to: string
   uniqueVisitors: number
+  viewers: number
+  checkoutUsers: number
+  buyers: number
+  totalViews: number
   cartAdditions: number
+  checkoutStarts: number
   completedOrders: number
   viewToCartRate: string
-  cartToOrderRate: string
+  checkoutToOrderRate: string
   overallConversionRate: string
 }
 
+/**
+ * Chaves reais da tabela `settings` (whitelist do backend em
+ * `analytics.js`). `commission_rate`, `minimum_withdrawal`,
+ * `free_listings_limit` e `shipping_base_cost` foram removidas daqui: nao
+ * existem no banco nem no codigo, e por estarem no tipo davam a impressao
+ * de que a tela mexia em algo.
+ *
+ * Marcadas com [ATIVA] as que o backend realmente le hoje.
+ */
 export interface Settings {
   [key: string]: any
-  commission_rate?: number
-  free_listings_limit?: number
-  premium_price?: number
-  premium_plus_price?: number
-  shipping_base_cost?: number
-  minimum_withdrawal?: number
+  commission_free?: number                  // [ATIVA] services/commission.js
+  commission_outlet?: number                // [ATIVA] services/commission.js
+  first_purchase_shipping_discount?: number // [ATIVA] services/promotions.js
+  cashback_buyer?: number                   // [ATIVA] services/orderState.js — pontos percentuais (2 = 2%)
+  pix_fee?: number                          // sem efeito no backend
+  card_fee_percent?: number                 // sem efeito no backend
+  card_fee_fixed?: number                   // sem efeito no backend
+  boleto_fee?: number                       // sem efeito no backend
+  withdrawal_fee?: number                   // sem efeito no backend
+  min_withdrawal?: number                   // sem efeito no backend
+  release_days?: number                     // sem efeito no backend
+  cart_abandon_hours?: number               // sem efeito no backend
 }
+
+/**
+ * Chaves gravadas pelo painel que NENHUM codigo do backend le ainda.
+ * A tela de Configuracoes usa esta lista para avisar o operador, campo a campo.
+ */
+export const SETTINGS_WITHOUT_EFFECT = [
+  'pix_fee',
+  'card_fee_percent',
+  'card_fee_fixed',
+  'boleto_fee',
+  'withdrawal_fee',
+  'min_withdrawal',
+  'release_days',
+  'cart_abandon_hours',
+] as const
 
 export interface AdminNotification {
   id: string
@@ -234,8 +385,8 @@ export const getOrdersByStatus = (): Promise<{ success: boolean; data: { status:
 export const getSalesByCategory = (): Promise<{ success: boolean; data: CategorySalesData[] }> =>
   api.get('/analytics/admin/sales-by-category')
 
-export const getConversionMetrics = (): Promise<{ success: boolean; data: ConversionMetrics }> =>
-  api.get('/analytics/admin/conversion-metrics')
+export const getConversionMetrics = (params?: { from?: string; to?: string }): Promise<{ success: boolean; data: ConversionMetrics }> =>
+  api.get('/analytics/admin/conversion-metrics', { params })
 
 export const getTopSellers = (): Promise<{ success: boolean; data: User[] }> =>
   api.get('/analytics/admin/top-sellers')
@@ -247,23 +398,30 @@ export const getHourlyViews = (): Promise<{ success: boolean; data: { hour: numb
   api.get('/analytics/admin/hourly-views')
 
 // Users
+export interface UserStats {
+  total: number
+  inactive: number
+  sellers: number
+  new_this_month: number
+}
+
 export const getUsers = (params?: {
   page?: number
   limit?: number
   search?: string
   subscription?: string
   status?: string
-}): Promise<{ success: boolean; users: User[]; pagination: { page: number; limit: number; total: number } }> =>
+}): Promise<{ success: boolean; users: User[]; stats: UserStats; pagination: { page: number; limit: number; total: number } }> =>
   api.get('/analytics/admin/users', { params })
+
+export const getUserDetails = (userId: string): Promise<{ success: boolean; user: UserDetails }> =>
+  api.get(`/analytics/admin/users/${userId}`)
 
 export const toggleUserStatus = (userId: string): Promise<{ success: boolean; is_active: boolean }> =>
   api.post(`/analytics/admin/users/${userId}/toggle-status`)
 
 export const deleteUser = (userId: string): Promise<{ success: boolean }> =>
   api.delete(`/analytics/admin/users/${userId}`)
-
-export const getUsersBySubscription = (): Promise<{ success: boolean; data: { subscription_type: string; count: number }[] }> =>
-  api.get('/analytics/admin/users-by-subscription')
 
 // Products
 export const getProducts = (params?: {
@@ -272,6 +430,7 @@ export const getProducts = (params?: {
   search?: string
   status?: string
   category?: string
+  sort?: string
 }): Promise<{ success: boolean; products: Product[]; stats: { active: number; pending: number; sold: number; total: number }; pagination: { page: number; limit: number; total: number } }> =>
   api.get('/analytics/admin/products', { params })
 
@@ -290,6 +449,91 @@ export const rejectProduct = (productId: string, reason?: string): Promise<{ suc
 export const deleteProduct = (productId: string): Promise<{ success: boolean }> =>
   api.delete(`/analytics/admin/products/${productId}`)
 
+// ==================== TRACKING / ENGAJAMENTO ====================
+
+export interface TrackingEvent {
+  id: string
+  event_type: string
+  event_category?: string
+  created_at: string
+  session_id?: string
+  device_type?: string
+  metadata?: any
+  user_name?: string
+  user_email?: string
+  product_title?: string
+  product_id?: string
+}
+
+export interface EngagementFunnel {
+  views: string
+  favorites: string
+  cart_adds: string
+  checkout_starts: string
+  purchases: string
+  sessions: string
+  users: string
+}
+
+export interface EngagementSessions {
+  total: string
+  avg_seconds: string
+  max_seconds: string
+  avg_screens: string
+}
+
+export interface UserSession {
+  id: string
+  started_at: string
+  last_seen_at: string
+  duration_seconds: number
+  screen_views: number
+  platform?: string
+  device_type?: string
+  user_name?: string
+  user_email?: string
+  events_count: string
+}
+
+export interface ProductAudience {
+  events: {
+    event_type: string
+    created_at: string
+    session_id?: string
+    device_type?: string
+    user_id?: string
+    user_name?: string
+    user_email?: string
+    avatar_url?: string
+  }[]
+  totals: {
+    views: string
+    unique_viewers: string
+    favorites: string
+    cart_adds: string
+    checkouts: string
+  }
+}
+
+export const getEngagement = (params?: { from?: string; to?: string }): Promise<{
+  success: boolean
+  funnel: EngagementFunnel
+  sessions: EngagementSessions
+  byDevice: { device: string; count: string }[]
+  topSearches: { term: string; count: string }[]
+}> => api.get('/analytics/admin/engagement', { params })
+
+export const getSessions = (limit = 50): Promise<{ success: boolean; sessions: UserSession[] }> =>
+  api.get('/analytics/admin/sessions', { params: { limit } })
+
+export const getTrackingEvents = (params?: { limit?: number; event_type?: string }): Promise<{
+  success: boolean
+  events: TrackingEvent[]
+}> => api.get('/analytics/admin/events', { params })
+
+export const getProductAudience = (productId: string): Promise<{ success: boolean } & ProductAudience> =>
+  api.get(`/analytics/admin/products/${productId}/audience`)
+
 // Orders
 export const getOrders = (params?: {
   page?: number
@@ -297,6 +541,7 @@ export const getOrders = (params?: {
   status?: string
   from?: string
   to?: string
+  search?: string
 }): Promise<{ success: boolean; orders: Order[]; stats: { pending: number; paid: number; shipped: number; delivered: number; cancelled: number; total_revenue: number; total_commission: number }; pagination: { page: number; limit: number; total: number } }> =>
   api.get('/analytics/admin/orders', { params })
 
@@ -317,8 +562,12 @@ export const getGA4 = (params?: { from?: string; to?: string }): Promise<{ succe
 export const getOrderDetails = (orderId: string): Promise<{ success: boolean; order: Order & { product_images: string[]; street?: string; number?: string; complement?: string; neighborhood?: string; city?: string; state?: string; zipcode?: string; recipient_name?: string } }> =>
   api.get(`/analytics/admin/orders/${orderId}`)
 
-export const updateOrderStatus = (orderId: string, status: string): Promise<{ success: boolean }> =>
+export const updateOrderStatus = (orderId: string, status: string): Promise<{ success: boolean; order?: Order; effects?: any }> =>
   api.put(`/analytics/admin/orders/${orderId}/status`, { status })
+
+/** Destinos que o admin pode alcancar a partir do estado atual do pedido. */
+export const getOrderTransitions = (orderId: string): Promise<{ success: boolean; status: string; transitions: string[] }> =>
+  api.get(`/analytics/admin/orders/${orderId}/transitions`)
 
 // Carts
 export const getAbandonedCarts = (params?: {
@@ -445,8 +694,31 @@ export interface PaymentMethodData {
   color: string
 }
 
-export const getAsaasBalance = (): Promise<{ success: boolean; data: any }> =>
-  api.get('/payments/admin/balance')
+/**
+ * Saldo Asaas.
+ *
+ * `GET /payments/admin/balance` devolve o objeto CRU do Asaas
+ * (`{ balance, totalPending }`), enquanto o card do painel lia `available` —
+ * por isso a Visao Geral mostrava sempre R$ 0,00. Ja `/payments/admin/cash-flow`
+ * devolve o formato mapeado. A rota do backend e de outra frente, entao a
+ * normalizacao acontece aqui e aceita os dois formatos.
+ */
+export const getAsaasBalance = async (): Promise<{ success: boolean; data: AsaasBalance | null }> => {
+  const res = await (api.get('/payments/admin/balance') as unknown as Promise<{ success: boolean; data: any }>)
+  const raw = res?.data
+  if (!raw) return { success: !!res?.success, data: null }
+
+  const available = Number(raw.available ?? raw.balance ?? 0)
+  const pending = Number(raw.pending ?? raw.totalPending ?? 0)
+  return {
+    success: !!res.success,
+    data: {
+      available: Number.isFinite(available) ? available : 0,
+      pending: Number.isFinite(pending) ? pending : 0,
+      total: (Number.isFinite(available) ? available : 0) + (Number.isFinite(pending) ? pending : 0),
+    },
+  }
+}
 
 export const getAsaasPayments = (params?: {
   page?: number

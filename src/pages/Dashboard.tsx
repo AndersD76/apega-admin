@@ -159,7 +159,7 @@ export default function Dashboard() {
         getOrdersByStatus(),
         getOrders({ limit: 5 }),
         getTopProducts(),
-        getConversionMetrics(),
+        getConversionMetrics({ from: period.from, to: period.to }),
       ])
 
       if (dashboardRes.success) {
@@ -465,7 +465,7 @@ export default function Dashboard() {
         <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle>Metricas de Conversao</CardTitle>
-            <CardDescription>Ultimos 30 dias</CardDescription>
+            <CardDescription>No período selecionado</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {loading ? (
@@ -484,10 +484,10 @@ export default function Dashboard() {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Carrinho para Compra</span>
-                    <span className="font-medium">{conversionMetrics?.cartToOrderRate || 0}%</span>
+                    <span className="text-muted-foreground">Checkout para Pagamento</span>
+                    <span className="font-medium">{conversionMetrics?.checkoutToOrderRate || 0}%</span>
                   </div>
-                  <Progress value={parseFloat(conversionMetrics?.cartToOrderRate || '0')} className="h-2" />
+                  <Progress value={parseFloat(conversionMetrics?.checkoutToOrderRate || '0')} className="h-2" />
                 </div>
 
                 <div className="space-y-2">
