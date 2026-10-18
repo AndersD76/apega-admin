@@ -267,7 +267,10 @@ export default function Users() {
   const hasPaymentInfo = (user: User) => !!(user.has_pix || user.has_bank_account)
 
   const filteredUsers = users.filter(user => {
-    if (activeTab === 'sellers') return (user.sales_count || 0) > 0
+    // Vendedor e quem tem peca anunciada, nao quem ja vendeu: com
+    // `sales_count > 0` a aba ficava vazia enquanto o marketplace nao
+    // fechasse a primeira venda — escondendo justamente quem esta anunciando.
+    if (activeTab === 'sellers') return (user.products_count || 0) > 0
     return true
   })
 

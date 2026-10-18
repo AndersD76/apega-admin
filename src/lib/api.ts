@@ -617,6 +617,35 @@ export const getReports = (params?: {
 export const resolveReport = (reportId: string, status: 'resolved' | 'dismissed', resolution_notes?: string): Promise<{ success: boolean }> =>
   api.put(`/analytics/admin/reports/${reportId}`, { status, resolution_notes })
 
+// Verificacao de identidade (KYC) dos vendedores
+export interface Verification {
+  id: string
+  status: 'pending' | 'approved' | 'rejected'
+  document_type?: string
+  selfie_url?: string | null
+  document_front_url?: string | null
+  document_back_url?: string | null
+  submitted_at: string
+  admin_notes?: string | null
+  user_id: string
+  name: string
+  email: string
+  avatar_url?: string | null
+  user_since?: string
+  /** As URLs das fotos sao assinadas e vencem; o backend informa em quanto tempo. */
+  urls_expire_in_seconds?: number
+}
+
+export const getPendingVerifications = (): Promise<{ success: boolean; verifications: Verification[] }> =>
+  api.get('/verification/admin/pending')
+
+export const reviewVerification = (
+  id: string,
+  action: 'approve' | 'reject',
+  admin_notes?: string
+): Promise<{ success: boolean; message?: string }> =>
+  api.put(`/verification/admin/${id}`, { action, admin_notes })
+
 // Settings
 export const getSettings = (): Promise<{ success: boolean; settings: Settings }> =>
   api.get('/analytics/admin/settings')
