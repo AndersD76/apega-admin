@@ -904,3 +904,47 @@ export const getFinanceCashflow = (months?: number): Promise<{ success: boolean;
 
 
 export default api
+
+// Moderação: conversas entre usuários (só leitura; não marca como lida)
+export interface AdminConversation {
+  id: string
+  product_id?: string | null
+  created_at: string
+  last_message_at?: string | null
+  user1_id: string
+  user1_name?: string | null
+  user1_email?: string | null
+  user1_avatar?: string | null
+  user2_id: string
+  user2_name?: string | null
+  user2_email?: string | null
+  user2_avatar?: string | null
+  product_title?: string | null
+  product_price?: string | number | null
+  product_status?: string | null
+  is_support: boolean
+  last_message?: string | null
+  last_sender_id?: string | null
+  messages_count: number
+}
+
+export interface AdminConversationMessage {
+  id: string
+  sender_id: string
+  sender_name?: string | null
+  content: string
+  is_read: boolean
+  created_at: string
+}
+
+export const getAllConversations = (params?: {
+  q?: string
+  page?: number
+  limit?: number
+}): Promise<{ success: boolean; conversations: AdminConversation[]; pagination: { page: number; limit: number; total: number } }> =>
+  api.get('/messages/admin/all-conversations', { params })
+
+export const getConversationThread = (
+  id: string
+): Promise<{ success: boolean; conversation: AdminConversation; messages: AdminConversationMessage[] }> =>
+  api.get(`/messages/admin/all-conversations/${id}`)
