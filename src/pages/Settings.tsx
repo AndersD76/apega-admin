@@ -76,6 +76,8 @@ export default function Settings() {
     // services/orderState.js. O placeholder era 5 e nao correspondia a nada.
     cashback_buyer: 2,
     cart_abandon_hours: 1,
+    // Piso da oferta: routes/offers.js usa 70 quando a chave nao existe.
+    min_offer_percent: 70,
   })
 
   const fetchSettings = async () => {
@@ -126,6 +128,7 @@ export default function Settings() {
           { key: 'min_withdrawal', value: settings.min_withdrawal },
           { key: 'release_days', value: settings.release_days },
           { key: 'cashback_buyer', value: settings.cashback_buyer },
+          { key: 'min_offer_percent', value: settings.min_offer_percent },
         )
       } else if (section === 'notifications') {
         updates.push(
@@ -390,6 +393,15 @@ export default function Settings() {
                   />
                   <p className="text-xs text-muted-foreground">Apos confirmacao de entrega</p>
                   {semEfeito('release_days') && <SemEfeito>O saldo do vendedor e creditado pela maquina de estados do pedido, sem esperar estes dias.</SemEfeito>}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Oferta mínima (%)</label>
+                  <Input
+                    type="number"
+                    value={settings.min_offer_percent}
+                    onChange={(e) => handleChange('min_offer_percent', parseInt(e.target.value))}
+                  />
+                  <p className="text-xs text-muted-foreground">Menor oferta que um comprador pode fazer, em % do preço da peça. Na Quarta do Largô vale o preço com desconto.</p>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Cashback Comprador</label>
