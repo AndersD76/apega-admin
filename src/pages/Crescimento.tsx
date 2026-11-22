@@ -6,8 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { formatDateTime } from '@/lib/utils'
 import {
-  getCrescimento, ingerirCrescimento, getLeads,
-  CrescimentoPainel, LeadsResposta,
+  getCrescimento, ingerirCrescimento, getLeads, getMapaBuscas, enviarResumoSemanal,
+  CrescimentoPainel, LeadsResposta, MapaBusca,
 } from '@/lib/api'
 import { RefreshCw, Loader2, AlertCircle, Search, MousePointerClick, Eye, Sparkles, Mail, ShoppingBag, TrendingUp } from 'lucide-react'
 
@@ -41,6 +41,19 @@ export default function Crescimento() {
   const [carregando, setCarregando] = useState(true)
   const [ingerindo, setIngerindo] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
+  const [mapa, setMapa] = useState<{ resumo: { cluster: string; total: number; com_pagina: number }[]; lista: MapaBusca[]; total: { total: number; colhido_em: string | null } } | null>(null)
+  const [clusterMapa, setClusterMapa] = useState<string>('')
+  const [enviandoResumo, setEnviandoResumo] = useState(false)
+
+  const carregarMapa = async (c: string) => {
+    try { setMapa(await getMapaBuscas({ cluster: c || undefined, limit: 500 })) } catch { /* aba mostra vazio */ }
+  }
+  useEffect(() => { carregarMapa(clusterMapa) }, [clusterMapa])
+
+  const resumoAgora = async () => {
+    setEnviandoResumo(true)
+    try { await enviarResumoSemanal() } catch (e: any) { setErro(e.message || 'Erro ao enviar') } finally { setEnviandoResumo(false) }
+  }
 
   const carregar = async (d = dias) => {
     setCarregando(true)
@@ -88,6 +101,10 @@ export default function Crescimento() {
             <RefreshCw className={`mr-2 h-4 w-4 ${ingerindo ? 'animate-spin' : ''}`} />
             Buscar agora
           </Button>
+          <Button variant="outline" onClick={resumoAgora} disabled={enviandoResumo} title="Envia o resumo semanal por e-mail agora (LEADS_ALERTA_EMAIL)">
+            <Mail className="mr-2 h-4 w-4" />
+            Resumo por e-mail
+          </Button>
         </div>
       </div>
 
@@ -124,6 +141,7 @@ export default function Crescimento() {
               <TabsTrigger value="paginas">Páginas</TabsTrigger>
               <TabsTrigger value="oportunidades">Oportunidades (posição 4 a 15)</TabsTrigger>
               <TabsTrigger value="canais">Canais</TabsTrigger>
+              <TabsTrigger value="mapa">Mapa de buscas</TabsTrigger>
             </TabsList>
 
             <TabsContent value="leads" className="mt-4 space-y-4">
@@ -179,6 +197,38 @@ export default function Crescimento() {
               <Card><CardHeader><CardTitle className="text-base">Telemetria própria: sessões por canal</CardTitle><CardDescription>Medido pelo próprio app (user_sessions), sem depender do Google.</CardDescription></CardHeader><CardContent className="space-y-1 text-sm">
                 {(dados?.sessoes_proprias || []).map((c) => <p key={c.canal}><strong>{c.sessoes}</strong> {CANAL[c.canal] || c.canal}</p>)}
               </CardContent></Card>
+            </TabsContent>
+            <TabsContent value="mapa" className="mt-4 space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">O que as pessoas pesquisam ({mapa?.total?.total ?? 0} consultas)</CardTitle>
+                  <CardDescription>Colhido do autocomplete do Google, classificado por cluster, intenção e tipo de página que deve responder. Volume sem dado até haver Keyword Planner. {mapa?.total?.colhido_em ? `Colhido em ${formatDateTime(mapa.total.colhido_em)}.` : ''}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant={clusterMapa === '' ? 'default' : 'outline'} onClick={() => setClusterMapa('')}>todos</Button>
+                    {(mapa?.resumo || []).map((r) => (
+                      <Button key={r.cluster} size="sm" variant={clusterMapa === r.cluster ? 'default' : 'outline'} onClick={() => setClusterMapa(r.cluster)}>{r.cluster} ({r.total})</Button>
+                    ))}
+                  </div>
+                  {mapa?.lista?.length ? (
+                    <Table>
+                      <TableHeader><TableRow><TableHead>Consulta</TableHead><TableHead>Cluster</TableHead><TableHead>Intenção</TableHead><TableHead>Página que responde</TableHead><TableHead>Isca</TableHead></TableRow></TableHeader>
+                      <TableBody>
+                        {mapa.lista.map((m) => (
+                          <TableRow key={m.consulta}>
+                            <TableCell>{m.consulta}</TableCell>
+                            <TableCell>{m.cluster}</TableCell>
+                            <TableCell>{m.intencao}</TableCell>
+                            <TableCell>{m.tipo_pagina}{m.tem_pagina ? <Badge variant="success" className="ml-2">tem</Badge> : null}</TableCell>
+                            <TableCell>{m.isca}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : <p className="text-sm text-muted-foreground">Mapa ainda não importado. Ele entra sozinho no primeiro boot do backend depois da coleta.</p>}
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
           <p className="text-xs text-muted-foreground">Última coleta: {dados?.ultima_coleta ? formatDateTime(dados.ultima_coleta) : 'nenhuma'}. O Search Console publica com 2 a 3 dias de atraso.</p>

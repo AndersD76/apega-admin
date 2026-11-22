@@ -987,3 +987,12 @@ export const ingerirCrescimento = (): Promise<{ success: boolean; resultado: any
   api.post('/analytics/admin/crescimento/ingerir')
 export const getLeads = (params?: { limit?: number }): Promise<LeadsResposta> =>
   api.get('/leads/admin', { params })
+
+export interface MapaBusca {
+  consulta: string; cluster: string; intencao: string; tipo_pagina: string; isca: string
+  volume?: number | null; dificuldade?: number | null; origem: string; tem_pagina: boolean; url_pagina?: string | null
+}
+export const getMapaBuscas = (params?: { cluster?: string; limit?: number }): Promise<{ success: boolean; resumo: { cluster: string; total: number; com_pagina: number }[]; lista: MapaBusca[]; total: { total: number; colhido_em: string | null } }> =>
+  api.get('/analytics/admin/mapa-buscas', { params })
+export const enviarResumoSemanal = (): Promise<{ success: boolean; enviado: boolean }> =>
+  api.post('/analytics/admin/crescimento/resumo-semanal')
