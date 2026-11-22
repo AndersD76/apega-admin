@@ -948,3 +948,42 @@ export const getConversationThread = (
   id: string
 ): Promise<{ success: boolean; conversation: AdminConversation; messages: AdminConversationMessage[] }> =>
   api.get(`/messages/admin/all-conversations/${id}`)
+
+// Crescimento orgânico (Search Console + GA4 ingeridos no banco) e leads das iscas
+export interface CrescimentoTotais {
+  cliques: number; impressoes: number; posicao: number | null
+  sessoes_organicas: number; sessoes_ia: number; leads: number; vendas_organicas: number
+}
+export interface CrescimentoPainel {
+  dias: number
+  faltando: string[]
+  ultima_coleta: string | null
+  totais: CrescimentoTotais
+  anteriores: CrescimentoTotais
+  serie: any[]
+  consultas: { chave: string; cliques: number; impressoes: number; posicao: number | string | null }[]
+  paginas: { chave: string; cliques: number; impressoes: number; posicao: number | string | null }[]
+  oportunidades: { chave: string; cliques: number; impressoes: number; posicao: number | string | null }[]
+  canais_ga4: { canal: string; sessoes: number; conversoes: number }[]
+  sessoes_proprias: { canal: string; sessoes: number }[]
+}
+export interface LeadAdmin {
+  id: string; email: string; nome?: string | null; isca_id: string; marca_slug?: string | null
+  pagina?: string | null; canal?: string | null; referrer?: string | null; utm_source?: string | null
+  utm_campaign?: string | null; aceita_marketing: boolean; sequencia_etapa: number
+  proxima_etapa_em?: string | null; descadastrado_em?: string | null; created_at: string
+}
+export interface LeadsResposta {
+  success: boolean
+  leads: LeadAdmin[]
+  por_isca: { isca_id: string; total: number; optin: number }[]
+  por_canal: { canal: string; total: number }[]
+  por_dia: { dia: string; total: number }[]
+  total: { total: number; semana: number }
+}
+export const getCrescimento = (params?: { dias?: number }): Promise<{ success: boolean } & CrescimentoPainel> =>
+  api.get('/analytics/admin/crescimento', { params })
+export const ingerirCrescimento = (): Promise<{ success: boolean; resultado: any }> =>
+  api.post('/analytics/admin/crescimento/ingerir')
+export const getLeads = (params?: { limit?: number }): Promise<LeadsResposta> =>
+  api.get('/leads/admin', { params })

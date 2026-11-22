@@ -22,6 +22,7 @@ import {
   Wallet,
   Activity,
   ShieldCheck,
+  Sprout,
 } from 'lucide-react'
 
 interface NavItem {
@@ -107,6 +108,11 @@ const managementNavItems: NavItem[] = [
     title: 'Verificações',
     href: '/verificacoes',
     icon: <ShieldCheck className="h-5 w-5" />,
+  },
+  {
+    title: 'Crescimento',
+    href: '/crescimento',
+    icon: <Sprout className="h-5 w-5" />,
   },
   {
     title: 'Denúncias',
