@@ -21,6 +21,7 @@ import Communications from '@/pages/Communications'
 import Reports from '@/pages/Reports'
 import Verifications from '@/pages/Verifications'
 import Crescimento from '@/pages/Crescimento'
+import Push from '@/pages/Push'
 import Settings from '@/pages/Settings'
 import Support from '@/pages/Support'
 
@@ -69,6 +70,7 @@ function AppRoutes() {
         <Route path="denuncias" element={<Reports />} />
         <Route path="verificacoes" element={<Verifications />} />
         <Route path="crescimento" element={<Crescimento />} />
+        <Route path="push" element={<Push />} />
         <Route path="suporte" element={<Support />} />
         <Route path="configuracoes" element={<Settings />} />
       </Route>

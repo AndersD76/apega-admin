@@ -117,6 +117,42 @@ function descreverPasso(cart: Cart) {
   return <span title={cart.ultimo_passo_em ? formatDateTime(cart.ultimo_passo_em) : ''}>{partes.join(' · ')}</span>
 }
 
+/** Dias inteiros entre uma data e agora. */
+function diasAtras(iso?: string | null) {
+  if (!iso) return null
+  return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000)
+}
+
+/**
+ * Pistas do abandono com o que o banco já sabe. Cada chip é um fato
+ * (contagem ou estado), não um palpite; a leitura é de quem olha.
+ */
+function descreverPistas(cart: Cart) {
+  const chips: { texto: string; tom: 'alerta' | 'info' | 'ok' }[] = []
+  if (cart.pedido_tentado) {
+    const p = cart.pedido_tentado
+    chips.push({ texto: `Criou pedido (${p.status}${p.metodo ? ', ' + p.metodo : ''})`, tom: p.status === 'paid' ? 'ok' : 'alerta' })
+  }
+  if ((cart.mensagens_com_contato ?? 0) > 0) chips.push({ texto: `Trocou contato no chat (${cart.mensagens_com_contato} msg)`, tom: 'alerta' })
+  else if ((cart.mensagens_sobre_a_peca ?? 0) > 0) chips.push({ texto: `Conversou sobre a peça (${cart.mensagens_sobre_a_peca} msg)`, tom: 'info' })
+  if (cart.enderecos === 0) chips.push({ texto: 'Sem endereço cadastrado', tom: 'alerta' })
+  if (cart.comprador_uf && cart.vendedor_uf) {
+    const vendedoras = cart.vendedor_uf.split(',').filter((u) => u && u !== '?')
+    const outroEstado = vendedoras.some((u) => u !== cart.comprador_uf)
+    chips.push({ texto: `${cart.comprador_uf} → ${vendedoras.join('/') || '?'}${outroEstado ? ' (frete interestadual)' : ''}`, tom: outroEstado ? 'info' : 'ok' })
+  }
+  if ((cart.itens_indisponiveis ?? 0) > 0) chips.push({ texto: `${cart.itens_indisponiveis} peça(s) do carrinho já saíram`, tom: 'info' })
+  const d = diasAtras(cart.visto_por_ultimo)
+  if (d != null) chips.push({ texto: d === 0 ? 'Abriu o app hoje' : `Último acesso há ${d} dia(s)`, tom: d <= 2 ? 'ok' : 'info' })
+  if (chips.length === 0) return <span className="text-muted-foreground">sem pista</span>
+  const cor = { alerta: 'bg-red-50 text-red-700 border-red-200', info: 'bg-slate-50 text-slate-700 border-slate-200', ok: 'bg-green-50 text-green-700 border-green-200' }
+  return (
+    <div className="flex flex-wrap gap-1 max-w-sm">
+      {chips.map((c) => <span key={c.texto} className={`text-xs rounded-full border px-2 py-0.5 ${cor[c.tom]}`}>{c.texto}</span>)}
+    </div>
+  )
+}
+
 export default function Carts() {
   const [searchTerm, setSearchTerm] = useState('')
   const [activeTab, setActiveTab] = useState('all')
@@ -359,6 +395,7 @@ export default function Carts() {
                       linha, sem nenhum dado por tras. */}
                   <TableHead>Ultima Atividade</TableHead>
                   <TableHead>Até onde chegou</TableHead>
+                  <TableHead>Pistas</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -372,7 +409,10 @@ export default function Carts() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span>{cart.items_count} itens</span>
+                      <span title={(cart.itens || []).map((i) => `${i.titulo} (R$ ${Number(i.preco).toFixed(2).replace('.', ',')}, ${i.vendedora})`).join('\n')}>{cart.items_count} itens</span>
+                      {cart.itens && cart.itens.length > 0 && (
+                        <p className="text-xs text-muted-foreground truncate max-w-[180px]">{cart.itens.map((i) => i.titulo).join(', ')}</p>
+                      )}
                     </TableCell>
                     <TableCell>
                       <span className="font-medium">{formatCurrency(cart.total_value)}</span>
@@ -383,6 +423,7 @@ export default function Carts() {
                       </span>
                     </TableCell>
                     <TableCell className="text-sm">{descreverPasso(cart)}</TableCell>
+                    <TableCell>{descreverPistas(cart)}</TableCell>
                     <TableCell>
                       {getStatusBadge(cart.status)}
                     </TableCell>

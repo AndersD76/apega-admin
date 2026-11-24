@@ -23,6 +23,7 @@ import {
   Activity,
   ShieldCheck,
   Sprout,
+  BellRing,
 } from 'lucide-react'
 
 interface NavItem {
@@ -113,6 +114,11 @@ const managementNavItems: NavItem[] = [
     title: 'Crescimento',
     href: '/crescimento',
     icon: <Sprout className="h-5 w-5" />,
+  },
+  {
+    title: 'Push',
+    href: '/push',
+    icon: <BellRing className="h-5 w-5" />,
   },
   {
     title: 'Denúncias',

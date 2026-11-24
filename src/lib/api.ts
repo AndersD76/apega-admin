@@ -267,6 +267,16 @@ export interface Cart {
   ultimo_passo_em?: string | null
   ultimo_passo_dados?: any
   frete_cotado?: any
+  /** Pistas com o que o banco já sabe, para carrinhos de antes da medição também */
+  pedido_tentado?: { status: string; em: string; metodo?: string | null } | null
+  mensagens_sobre_a_peca?: number
+  mensagens_com_contato?: number
+  enderecos?: number
+  comprador_uf?: string | null
+  vendedor_uf?: string | null
+  visto_por_ultimo?: string | null
+  itens_indisponiveis?: number
+  itens?: { id: string; titulo: string; preco: number; vendedora: string }[]
 }
 
 export interface RevenueChartData {
@@ -1001,6 +1011,16 @@ export const getMapaBuscas = (params?: { cluster?: string; limit?: number }): Pr
   api.get('/analytics/admin/mapa-buscas', { params })
 export const enviarResumoSemanal = (): Promise<{ success: boolean; enviado: boolean }> =>
   api.post('/analytics/admin/crescimento/resumo-semanal')
+
+// ─── Push: campanhas ───
+export interface PushAlcance { web: number; app: number; total: number; aceitam_promo: number; pecas_novas_24h: number; pecas_na_quarta: number }
+export interface PushCampanha { id: string; titulo: string; mensagem: string; url: string; segmento: string; tipo: string; origem: string; destinatarios: number; enviados: number; created_at: string }
+export const getPushAlcance = (): Promise<{ success: boolean; alcance: PushAlcance; segmentos: Record<string, string>; limites: { titulo: number; mensagem: number } }> =>
+  api.get('/analytics/admin/push/alcance')
+export const enviarPush = (dados: { titulo: string; mensagem: string; url: string; segmento: string }): Promise<{ success: boolean; campanha: PushCampanha }> =>
+  api.post('/analytics/admin/push/enviar', dados)
+export const getPushCampanhas = (): Promise<{ success: boolean; campanhas: PushCampanha[] }> =>
+  api.get('/analytics/admin/push/campanhas')
 
 export const getSaldoMelhorEnvio = (): Promise<{ success: boolean; autorizado: boolean; saldo: number | null; consultado_em?: string; erro?: string }> =>
   api.get('/analytics/admin/melhorenvio/saldo')
