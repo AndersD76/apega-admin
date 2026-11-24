@@ -1001,3 +1001,6 @@ export const getMapaBuscas = (params?: { cluster?: string; limit?: number }): Pr
   api.get('/analytics/admin/mapa-buscas', { params })
 export const enviarResumoSemanal = (): Promise<{ success: boolean; enviado: boolean }> =>
   api.post('/analytics/admin/crescimento/resumo-semanal')
+
+export const getSaldoMelhorEnvio = (): Promise<{ success: boolean; autorizado: boolean; saldo: number | null; consultado_em?: string; erro?: string }> =>
+  api.get('/analytics/admin/melhorenvio/saldo')

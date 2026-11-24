@@ -13,7 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { formatDateTime, downloadCSV } from '@/lib/utils'
-import { getOrders, ORDER_STATUS_LABELS, type Order } from '@/lib/api'
+import { getOrders, getSaldoMelhorEnvio, ORDER_STATUS_LABELS, type Order } from '@/lib/api'
 import {
   Truck,
   Package,
@@ -48,6 +48,8 @@ export default function Shipping() {
   const [orders, setOrders] = useState<Order[]>([])
   const [activeTab, setActiveTab] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
+  const [saldo, setSaldo] = useState<{ autorizado: boolean; saldo: number | null; erro?: string } | null>(null)
+  useEffect(() => { getSaldoMelhorEnvio().then(setSaldo).catch(() => setSaldo({ autorizado: false, saldo: null, erro: 'falha ao consultar' })) }, [])
   /**
    * Contadores vindos do backend.
    *
@@ -156,6 +158,17 @@ export default function Shipping() {
         </Button>
       </div>
 
+      <Card className={saldo && saldo.saldo != null && saldo.saldo < 50 ? 'border-red-300 bg-red-50' : ''}>
+        <CardContent className="p-4 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm text-muted-foreground">Saldo da carteira do Melhor Envio (paga as etiquetas)</p>
+            <p className="text-2xl font-bold">
+              {saldo === null ? '…' : !saldo.autorizado ? 'sem token válido' : saldo.saldo == null ? `indisponível${saldo.erro ? `: ${saldo.erro}` : ''}` : `R$ ${saldo.saldo.toFixed(2).replace('.', ',')}`}
+            </p>
+          </div>
+          <a className="text-sm underline" href="https://melhorenvio.com.br/carteira" target="_blank" rel="noreferrer">Recarregar</a>
+        </CardContent>
+      </Card>
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="flex items-center gap-4 p-6">
