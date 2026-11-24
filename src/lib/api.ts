@@ -262,6 +262,11 @@ export interface Cart {
   abandoned_at?: string
   user_name?: string
   user_email?: string
+  /** Até onde chegou no checkout (telemetria própria): checkout_abriu, checkout_frete_cotado, checkout_frete_erro, checkout_pagamento_escolhido, checkout_confirmar, checkout_erro, checkout_pago, checkout_saiu */
+  ultimo_passo?: string | null
+  ultimo_passo_em?: string | null
+  ultimo_passo_dados?: any
+  frete_cotado?: any
 }
 
 export interface RevenueChartData {

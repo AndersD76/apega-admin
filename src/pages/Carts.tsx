@@ -94,6 +94,29 @@ function StatCard({ title, value, icon, trend, description, loading }: StatCardP
   )
 }
 
+const PASSO: Record<string, string> = {
+  checkout_abriu: 'Abriu o checkout',
+  checkout_frete_cotado: 'Viu o frete',
+  checkout_frete_erro: 'Frete falhou',
+  checkout_pagamento_escolhido: 'Escolheu pagamento',
+  checkout_confirmar: 'Clicou em pagar',
+  checkout_erro: 'Erro no pagamento',
+  checkout_pago: 'Pagou',
+  checkout_saiu: 'Saiu sem pagar',
+}
+
+/** Até onde a pessoa chegou no checkout, com o número que explica (frete, método, motivo). */
+function descreverPasso(cart: Cart) {
+  if (!cart.ultimo_passo) return <span className="text-muted-foreground">sem dado (antes da medição)</span>
+  const d = cart.ultimo_passo_dados || {}
+  const f = cart.frete_cotado || {}
+  const partes: string[] = [PASSO[cart.ultimo_passo] || cart.ultimo_passo]
+  if (f.mais_barato != null) partes.push(`frete R$ ${Number(f.mais_barato).toFixed(2).replace('.', ',')}${f.frete_sobre_preco != null ? ` (${f.frete_sobre_preco}% da peça)` : ''}`)
+  if (d.metodo) partes.push(String(d.metodo))
+  if (d.motivo) partes.push(`motivo: ${d.motivo}`)
+  return <span title={cart.ultimo_passo_em ? formatDateTime(cart.ultimo_passo_em) : ''}>{partes.join(' · ')}</span>
+}
+
 export default function Carts() {
   const [searchTerm, setSearchTerm] = useState('')
   const [activeTab, setActiveTab] = useState('all')
@@ -335,6 +358,7 @@ export default function Carts() {
                   {/* Coluna "Dispositivo" removida: escrevia "Mobile" fixo em toda
                       linha, sem nenhum dado por tras. */}
                   <TableHead>Ultima Atividade</TableHead>
+                  <TableHead>Até onde chegou</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -358,6 +382,7 @@ export default function Carts() {
                         {formatDateTime(cart.last_activity_at)}
                       </span>
                     </TableCell>
+                    <TableCell className="text-sm">{descreverPasso(cart)}</TableCell>
                     <TableCell>
                       {getStatusBadge(cart.status)}
                     </TableCell>
