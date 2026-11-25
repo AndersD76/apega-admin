@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,43 +22,47 @@ const DESTINOS: { valor: string; rotulo: string }[] = [
   { valor: '/vender', rotulo: 'Vender' },
 ]
 
+// Atalhos de emoji para título e mensagem. O emoji entra onde está o cursor.
+// Conta no limite como o servidor conta (String.length): 🛍️ ocupa 3.
+const EMOJIS = ['🛍️', '👗', '👠', '👜', '🧥', '👖', '✨', '🔥', '💸', '🏷️', '⏰', '🖤', '💖', '🎉', '♻️', '📦', '👀', '🤑']
+
 function modelos(a: PushAlcance | null) {
   const novas = a?.pecas_novas_24h ?? 0
   const quarta = a?.pecas_na_quarta ?? 0
   return [
     {
       nome: 'Black Friday',
-      titulo: 'Black Friday de brechó no Largô',
-      mensagem: 'Peça seminova já custa menos que na loja. Hoje, faça sua oferta em qualquer peça: a vendedora decide.',
+      titulo: '🖤 Black Friday de brechó no Largô',
+      mensagem: 'Peça seminova já custa menos que na loja. Hoje, faça sua oferta em qualquer peça: a vendedora decide. 💸',
       url: '/buscar',
       segmento: 'todos',
     },
     {
       nome: 'Black Friday: vendedoras',
-      titulo: 'Sua peça na Black Friday',
-      mensagem: 'Ative a Quarta do Largô nas peças paradas e aceite ofertas nesta semana. Peça com oferta roda mais rápido.',
+      titulo: '🖤 Sua peça na Black Friday',
+      mensagem: 'Ative a Quarta do Largô nas peças paradas e aceite ofertas nesta semana. Peça com oferta roda mais rápido. 🔥',
       url: '/vender',
       segmento: 'vendedores',
     },
     {
       nome: `Peças novas (${novas} nas últimas 24h)`,
-      titulo: novas > 0 ? `${novas} peças novas no Largô` : 'Peças novas no Largô',
-      mensagem: 'Chegaram hoje. Garimpe antes que rodem.',
+      titulo: novas > 0 ? `🛍️ ${novas} peças novas no Largô` : '🛍️ Peças novas no Largô',
+      mensagem: 'Chegaram hoje. Garimpe antes que rodem. ✨',
       url: '/',
       segmento: 'todos',
       desabilitado: novas < 5,
     },
     {
       nome: `Quarta do Largô (${quarta} peças na vitrine)`,
-      titulo: 'Quarta do Largô amanhã',
-      mensagem: quarta > 0 ? `${quarta} peças com o desconto que cada vendedora escolheu. Faça sua oferta.` : 'Peças com o desconto que cada vendedora escolheu. Faça sua oferta.',
+      titulo: '🏷️ Quarta do Largô amanhã',
+      mensagem: quarta > 0 ? `${quarta} peças com o desconto que cada vendedora escolheu. Faça sua oferta. 💸` : 'Peças com o desconto que cada vendedora escolheu. Faça sua oferta. 💸',
       url: '/quarta-largo',
       segmento: 'todos',
     },
     {
       nome: 'Carrinho parado',
-      titulo: 'Sua peça ainda está lá',
-      mensagem: 'A peça do seu carrinho continua disponível. Peça única: quando roda, roda.',
+      titulo: '👀 Sua peça ainda está lá',
+      mensagem: 'A peça do seu carrinho continua disponível. Peça única: quando roda, roda. ⏰',
       url: '/',
       segmento: 'carrinho',
     },
@@ -77,6 +81,25 @@ export default function Push() {
   const [segmento, setSegmento] = useState('todos')
   const [confirmar, setConfirmar] = useState(false)
   const [resultado, setResultado] = useState<string | null>(null)
+  const [campoAtivo, setCampoAtivo] = useState<'titulo' | 'mensagem'>('titulo')
+  const tituloRef = useRef<HTMLInputElement>(null)
+  const mensagemRef = useRef<HTMLTextAreaElement>(null)
+
+  const inserirEmoji = (emoji: string) => {
+    const el = campoAtivo === 'titulo' ? tituloRef.current : mensagemRef.current
+    const atual = campoAtivo === 'titulo' ? titulo : mensagem
+    const limite = campoAtivo === 'titulo' ? limites.titulo : limites.mensagem
+    if (atual.length + emoji.length > limite) return
+    const ini = el?.selectionStart ?? atual.length
+    const fim = el?.selectionEnd ?? atual.length
+    const novo = atual.slice(0, ini) + emoji + atual.slice(fim)
+    if (campoAtivo === 'titulo') setTitulo(novo); else setMensagem(novo)
+    requestAnimationFrame(() => {
+      if (!el) return
+      el.focus()
+      el.setSelectionRange(ini + emoji.length, ini + emoji.length)
+    })
+  }
 
   const carregar = async () => {
     setLoading(true)
@@ -130,17 +153,36 @@ export default function Push() {
           <CardContent className="space-y-4">
             <div>
               <label className="text-sm font-medium">Título <span className="text-muted-foreground">({titulo.length}/{limites.titulo})</span></label>
-              <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} maxLength={limites.titulo} placeholder="Ex.: 12 peças novas no Largô" />
+              <Input ref={tituloRef} value={titulo} onFocus={() => setCampoAtivo('titulo')} onChange={(e) => setTitulo(e.target.value)} maxLength={limites.titulo} placeholder="Ex.: 🛍️ 12 peças novas no Largô" />
             </div>
             <div>
               <label className="text-sm font-medium">Mensagem <span className="text-muted-foreground">({mensagem.length}/{limites.mensagem})</span></label>
               <textarea
+                ref={mensagemRef}
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={mensagem}
+                onFocus={() => setCampoAtivo('mensagem')}
                 onChange={(e) => setMensagem(e.target.value)}
                 maxLength={limites.mensagem}
-                placeholder="Ex.: Chegaram hoje. Garimpe antes que rodem."
+                placeholder="Ex.: Chegaram hoje. Garimpe antes que rodem. ✨"
               />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Emoji no {campoAtivo === 'titulo' ? 'título' : 'texto da mensagem'} (clique no campo para trocar)</p>
+              <div className="flex flex-wrap gap-1">
+                {EMOJIS.map((e) => (
+                  <button
+                    key={e}
+                    type="button"
+                    onMouseDown={(ev) => ev.preventDefault()}
+                    onClick={() => inserirEmoji(e)}
+                    className="h-9 w-9 rounded-md border text-lg leading-none hover:bg-muted/60"
+                    title={`Inserir ${e}`}
+                  >
+                    {e}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
@@ -159,11 +201,12 @@ export default function Push() {
 
             <div className="rounded-lg border bg-muted/40 p-4">
               <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Prévia</p>
-              <div className="flex gap-3 items-start">
-                <div className="h-10 w-10 rounded-lg bg-[#B95330] flex items-center justify-center text-white font-bold">L</div>
-                <div>
-                  <p className="font-medium text-sm">{titulo || 'Título'}</p>
-                  <p className="text-sm text-muted-foreground">{mensagem || 'Mensagem'}</p>
+              <div className="flex gap-3 items-start rounded-xl bg-background p-3 shadow-sm">
+                <img src="/largo-icon.png" alt="Largô" className="h-10 w-10 rounded-lg border object-cover shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">Largô · agora</p>
+                  <p className="font-medium text-sm break-words">{titulo || 'Título'}</p>
+                  <p className="text-sm text-muted-foreground break-words">{mensagem || 'Mensagem'}</p>
                 </div>
               </div>
             </div>
