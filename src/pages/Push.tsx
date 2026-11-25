@@ -118,7 +118,11 @@ export default function Push() {
 
   const enviar = async () => {
     const r = await enviarPush({ titulo, mensagem, url, segmento })
-    setResultado(`Enviada para ${r.campanha.enviados} de ${r.campanha.destinatarios} pessoas do segmento.`)
+    setResultado(
+      r.campanha.enviados === 0 && r.campanha.destinatarios > 0
+        ? `Chegou a 0 de ${r.campanha.destinatarios} pessoas do segmento: ninguém nele aceitou promoções ainda.`
+        : `Chegou a ${r.campanha.enviados} de ${r.campanha.destinatarios} pessoas do segmento.`
+    )
     setTitulo(''); setMensagem('')
     await carregar()
   }
@@ -211,6 +215,14 @@ export default function Push() {
               </div>
             </div>
 
+            {alcance && alcance.aceitam_promo === 0 && (
+              <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                Ninguém aceitou receber promoções ainda, então a campanha chega a <b>0 pessoas</b>. O app passou a
+                perguntar ("Quer saber das novidades?") a quem já ativou notificações, e a chave "Promoções e
+                novidades" voltou aos Ajustes. O número sobe conforme as pessoas aceitam.
+              </div>
+            )}
+
             {resultado && <p className="text-sm text-green-700">{resultado}</p>}
 
             <Button onClick={() => setConfirmar(true)} disabled={!pronto}>
@@ -285,7 +297,7 @@ export default function Push() {
         open={confirmar}
         onOpenChange={setConfirmar}
         title="Enviar esta campanha?"
-        description={`"${titulo}" vai para ${segmentos[segmento] || segmento}. Não dá para desfazer.`}
+        description={`"${titulo}" vai para ${segmentos[segmento] || segmento}, mas só chega a quem aceitou promoções (hoje ${alcance?.aceitam_promo ?? 0} de ${alcance?.total ?? 0} pessoas com push ativo). Não dá para desfazer.`}
         confirmLabel="Enviar"
         onConfirm={enviar}
       />
