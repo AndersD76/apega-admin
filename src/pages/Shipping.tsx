@@ -48,7 +48,7 @@ export default function Shipping() {
   const [orders, setOrders] = useState<Order[]>([])
   const [activeTab, setActiveTab] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
-  const [saldo, setSaldo] = useState<{ autorizado: boolean; saldo: number | null; erro?: string } | null>(null)
+  const [saldo, setSaldo] = useState<{ autorizado: boolean; saldo: number | null; erro?: string; pendentes?: { quantidade: number; valor: number } } | null>(null)
   useEffect(() => { getSaldoMelhorEnvio().then(setSaldo).catch(() => setSaldo({ autorizado: false, saldo: null, erro: 'falha ao consultar' })) }, [])
   /**
    * Contadores vindos do backend.
@@ -158,13 +158,24 @@ export default function Shipping() {
         </Button>
       </div>
 
-      <Card className={saldo && saldo.saldo != null && saldo.saldo < 50 ? 'border-red-300 bg-red-50' : ''}>
+      <Card className={saldo && saldo.saldo != null && (saldo.saldo < 50 || (saldo.pendentes && saldo.pendentes.valor > saldo.saldo)) ? 'border-red-300 bg-red-50' : ''}>
         <CardContent className="p-4 flex items-center justify-between gap-4">
           <div>
             <p className="text-sm text-muted-foreground">Saldo da carteira do Melhor Envio (paga as etiquetas)</p>
             <p className="text-2xl font-bold">
               {saldo === null ? '…' : !saldo.autorizado ? 'sem token válido' : saldo.saldo == null ? `indisponível${saldo.erro ? `: ${saldo.erro}` : ''}` : `R$ ${saldo.saldo.toFixed(2).replace('.', ',')}`}
             </p>
+            {saldo?.pendentes && (
+              <p className="text-sm text-muted-foreground">
+                {saldo.pendentes.quantidade === 0
+                  ? 'Nenhuma etiqueta pendente.'
+                  : `${saldo.pendentes.quantidade} etiqueta(s) pendente(s) somam R$ ${saldo.pendentes.valor.toFixed(2).replace('.', ',')}`}
+                {saldo.saldo != null && saldo.pendentes.valor > saldo.saldo && (
+                  <span className="text-red-700 font-medium"> — faltam R$ {(saldo.pendentes.valor - saldo.saldo).toFixed(2).replace('.', ',')}</span>
+                )}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground mt-1">A API do Melhor Envio só compra etiqueta com saldo da carteira; o frete que o comprador paga cai no gateway. Recarga é manual (Pix, cartão ou boleto).</p>
           </div>
           <a className="text-sm underline" href="https://melhorenvio.com.br/carteira" target="_blank" rel="noreferrer">Recarregar</a>
         </CardContent>
