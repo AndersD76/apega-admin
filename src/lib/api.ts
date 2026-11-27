@@ -464,6 +464,10 @@ export const rejectProduct = (productId: string, reason?: string): Promise<{ suc
 export const deleteProduct = (productId: string): Promise<{ success: boolean }> =>
   api.delete(`/analytics/admin/products/${productId}`)
 
+/** Destaque manual: a peça abre a prateleira Destaques da Home do app. */
+export const setProductFeatured = (productId: string, featured: boolean): Promise<{ success: boolean; is_featured: boolean }> =>
+  api.put(`/admin/products/${productId}/featured`, { featured })
+
 // ==================== TRACKING / ENGAJAMENTO ====================
 
 export interface TrackingEvent {

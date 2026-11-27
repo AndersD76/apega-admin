@@ -41,6 +41,7 @@ import {
   getProducts,
   getProductDetails,
   approveProduct,
+  setProductFeatured,
   rejectProduct,
   deleteProduct,
   getCategories,
@@ -234,6 +235,18 @@ export default function Products() {
     if (res.success) {
       setProducts(prev => prev.map(p => (p.id === productId ? { ...p, status: 'rejected' as const } : p)))
       setStats(prev => ({ ...prev, pending: Math.max(0, prev.pending - 1) }))
+    }
+  }
+
+  const handleFeatured = async (productId: string, featured: boolean) => {
+    try {
+      const res = await setProductFeatured(productId, featured)
+      if (res.success) {
+        setProducts(prev => prev.map(p => (p.id === productId ? { ...p, is_featured: res.is_featured } : p)))
+      }
+    } catch (err) {
+      console.error('Erro ao destacar:', err)
+      alert('Não deu para mudar o destaque. Tente de novo.')
     }
   }
 
@@ -500,6 +513,12 @@ export default function Products() {
                               <Eye className="mr-2 h-4 w-4" />
                               Ver Detalhes
                             </DropdownMenuItem>
+                            {product.status === 'active' && (
+                              <DropdownMenuItem onClick={() => handleFeatured(product.id, !product.is_featured)}>
+                                <Star className={`mr-2 h-4 w-4 ${product.is_featured ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                                {product.is_featured ? 'Tirar dos Destaques' : 'Destacar na Home'}
+                              </DropdownMenuItem>
+                            )}
                             {product.status === 'pending' && (
                               <>
                                 <DropdownMenuItem
